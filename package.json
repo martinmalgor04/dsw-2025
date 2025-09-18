@@ -1,0 +1,26 @@
+{
+  "name": "alumnos-app-layered-architecture",
+  "version": "1.0.0",
+  "description": "Aplicación de gestión de alumnos con arquitectura por capas",
+  "type": "module",
+  "main": "app/app.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "postgresql",
+    "layered-architecture",
+    "javascript",
+    "es6-modules"
+  ],
+  "author": "UTN - Desarrollo de Software",
+  "license": "MIT"
+}
