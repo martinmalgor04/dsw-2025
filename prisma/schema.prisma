@@ -1,0 +1,35 @@
+// Esquema de Prisma para Microservicio de Logística - Grupo 12
+// TPI - Desarrollo de Software 2025
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo para Items/Productos
+model Item {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("items")
+}
+
+// Modelo para Cálculos de Envío (historial)
+model EnvioCalculo {
+  id                    Int      @id @default(autoincrement())
+  codigoPostalOrigen    String
+  codigoPostalDestino   String
+  precio                Float?
+  volumen               Int
+  precioCalculado       Float
+  createdAt             DateTime @default(now())
+
+  @@map("envio_calculos")
+}
