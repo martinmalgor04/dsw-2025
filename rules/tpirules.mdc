@@ -1,0 +1,466 @@
+---
+alwaysApply: true
+---
+
+# Transport and Logistics Module - Software Development Final Project
+
+## Project Context
+
+This is the final project (TPI - Trabajo Práctico Integrador) for the Software Development course. The system consists of three independent modules that communicate via REST APIs using OpenAPI specification:
+
+1. **Order Management Module** (developed by other team)
+2. **Inventory Management Module** (developed by other team)
+3. **Transport and Logistics Module** (OUR MODULE - main focus)
+
+### Our Responsibility: Transport and Logistics Module
+
+We are developing the Transport and Logistics module, which handles:
+- Shipment management and tracking
+- Delivery route optimization
+- Transportation status updates
+- Integration with Order Management and Inventory modules
+- Logistics operations and carrier management
+
+## Technical Architecture
+
+### Inter-Module Communication
+- **Protocol**: RESTful APIs with OpenAPI 3.0 specification
+- **Data Format**: JSON
+- **Authentication**: Bearer JWT tokens (required for all endpoints)
+- **API Documentation**: Complete OpenAPI/Swagger specification required
+- **Shared Standards**: All three modules follow the same API design patterns:
+  - Consistent error response format (`code`, `message`, `details`)
+  - Standard HTTP status codes (200, 201, 400, 401, 404, 409, 422, 500)
+  - ISO 8601 UTC timestamps for all datetime fields
+  - Versioned endpoints (e.g., `/api/v1/...`)
+
+### Our API Specification
+- Base URL: `https://api.logistica-utn.com`
+- See `openapilog.yaml` for complete API contract
+- All endpoints secured with Bearer JWT authentication
+- Implements shipment management, cost calculation, and tracking
+
+### Technology Stack Considerations
+- Not defined yet
+
+## Development Guidelines
+
+### 1. Code Quality Standards
+
+- **Language**: All code, comments, and documentation in English
+- **Naming Conventions**: 
+  - Use clear, descriptive names for variables, functions, and classes
+  - Follow language-specific conventions (camelCase, PascalCase, snake_case as appropriate)
+- **Code Comments**: 
+  - Document complex business logic
+  - Explain "why" not "what" (code should be self-documenting)
+  - Use JSDoc/JavaDoc style comments for public APIs
+
+### 2. API Design Principles
+
+- **RESTful Standards**: Follow REST best practices
+  - Use proper HTTP methods (GET, POST, PUT, PATCH, DELETE)
+  - Meaningful resource naming (plural nouns)
+  - Proper HTTP status codes (200, 201, 400, 404, 500, etc.)
+- **Versioning**: Include API version in URL or header (e.g., `/api/v1/shipments`)
+- **Pagination**: Implement for list endpoints
+- **Filtering & Sorting**: Support query parameters for data retrieval
+- **Error Responses**: Standardized error format across all endpoints
+
+### 3. OpenAPI Specification Requirements
+
+- **Complete Documentation**: Document ALL endpoints with:
+  - Request/response schemas
+  - Query parameters
+  - Path parameters
+  - Request bodies
+  - Response examples
+  - Error responses
+- **Schema Definitions**: Reusable component schemas for DTOs
+- **Tags**: Organize endpoints by functionality
+- **Descriptions**: Clear descriptions for each endpoint and parameter
+
+### 4. Project Structure
+
+- We dont define it yet, but probably we will use layers architecture
+
+Organize code following clean architecture principles:
+```
+/src
+  /controllers     # API endpoints and request handling
+  /services        # Business logic
+  /models          # Data models/entities
+  /repositories    # Data access layer
+  /dto             # Data Transfer Objects
+  /middleware      # Express middleware, filters, interceptors
+  /config          # Configuration files
+  /utils           # Utility functions
+  /validators      # Request validation logic
+/tests             # Unit and integration tests
+/docs              # Additional documentation
+  /api             # OpenAPI specifications
+```
+
+### 5. Data Validation
+
+- Validate ALL incoming data at API boundaries
+- Use schema validation libraries (Joi, Yup, class-validator, etc.)
+- Return clear, actionable validation error messages
+- Never trust client input
+
+### 6. Error Handling
+
+- Implement global error handling middleware
+- Use custom error classes for different error types
+- Log errors with appropriate severity levels
+- Never expose internal errors to clients
+- Standardized error response format:
+  ```json
+  {
+    "error": {
+      "code": "ERROR_CODE",
+      "message": "Human-readable message",
+      "details": []
+    }
+  }
+  ```
+
+### 7. Testing Requirements
+
+- **Unit Tests**: For business logic and services
+- **Integration Tests**: For API endpoints
+- **Test Coverage**: Aim for >70% code coverage
+- **Test Organization**: Mirror source code structure
+- **Mocking**: Mock external dependencies and other modules
+
+### 8. Database Design
+
+- **Normalization**: Properly normalized schema (at least 3NF)
+- **Indexes**: Add indexes for frequently queried fields
+- **Constraints**: Use foreign keys, unique constraints, NOT NULL where appropriate
+- **Migrations**: Version control database schema changes
+- **Seed Data**: Provide initial data for development/testing
+
+### 9. Documentation Requirements
+
+- **README.md**: 
+  - Project overview and setup instructions
+  - Environment variables needed
+  - How to run locally
+  - How to run tests
+  - API documentation link
+- **API Documentation**: 
+  - Interactive Swagger UI
+  - Example requests/responses
+  - Authentication guide
+- **Architecture Diagram**: Visual representation of module structure
+- **Integration Guide**: How other modules can integrate with ours
+
+### 10. Inter-Module Integration
+
+When integrating with Order Management and Inventory modules:
+- **Loose Coupling**: Don't depend on internal implementation details
+- **API Contracts**: Strictly follow agreed-upon API contracts
+- **Timeouts**: Implement request timeouts for external calls
+- **Retry Logic**: Handle transient failures gracefully
+- **Circuit Breaker**: Consider implementing circuit breaker pattern
+- **Fallback Strategies**: Plan for when other modules are unavailable
+
+## Evaluation Aspects to Consider
+
+The project will likely be evaluated on:
+
+1. **Functionality**: Does the module work correctly and meet requirements?
+2. **Code Quality**: Clean, maintainable, well-organized code
+3. **API Design**: RESTful principles, proper use of HTTP methods and status codes
+4. **Documentation**: Complete and clear API documentation
+5. **Error Handling**: Robust error handling and validation
+6. **Testing**: Adequate test coverage and quality
+7. **Integration**: Successful communication with other modules
+8. **Best Practices**: Following industry standards and patterns
+9. **Database Design**: Properly designed and normalized schema
+10. **Presentation**: Clear explanation of design decisions and architecture
+
+## Transport & Logistics Module - Specific Guidelines
+
+### OpenAPI Specification
+
+Our module implements the following API contract (see `openapilog.yaml`):
+
+**Base URL**: `https://api.logistica-utn.com`
+
+**Authentication**: Bearer JWT tokens for all endpoints
+
+**Endpoints**:
+1. `POST /shipping/cost` - Calculate shipping cost (quote only, no resource creation)
+2. `GET /shipping/transport-methods` - Get available transport methods for customer selection
+3. `POST /shipping` - Create a new shipment (includes order_id for integration)
+4. `GET /shipping` - List shipments with filters (user_id, status, dates) and pagination
+5. `GET /shipping/{shipping_id}` - Get complete shipment details including logs and status
+6. `POST /shipping/{shipping_id}/cancel` - Cancel a shipment (if not yet dispatched)
+
+**Note:** Status updates and address modifications are handled internally, not exposed via API.
+
+**Key Data Models**:
+- **Address**: Full delivery/pickup address with postal code validation (Argentinian format)
+- **ProductItemInput**: Product details including dimensions (length, width, height) and weight
+- **ShippingStatus**: Lifecycle states (created, reserved, in_transit, delivered, cancelled, in_distribution, arrived)
+- **TransportType**: Available transport methods (air, sea, rail, road)
+- **ShippingLog**: Timestamped status change logs
+
+**Standard Error Responses**:
+- 400: Bad Request (malformed data)
+- 401: Unauthorized (missing/invalid JWT)
+- 404: Not Found (resource doesn't exist)
+- 409: Conflict (state conflicts, e.g., trying to cancel already dispatched shipment)
+- 422: Unprocessable Entity (validation failures with detailed field errors)
+- 500: Internal Server Error
+
+### Core Entities (based on API spec)
+- **Shipment**: Main entity tracking deliveries with status, transport type, and ETA
+- **Address**: Structured address with validation (street, city, state, postal_code, country)
+- **Product**: Linked to shipments with quantity, weight, and dimensions
+- **ShippingLog**: Audit trail of status changes with timestamps
+- **User**: Reference for shipment ownership
+- **TransportType**: Classification of delivery method (air, sea, rail, road)
+
+### Key Features to Implement
+- ✅ **Cost Calculation**: Quote shipping costs without creating resources
+- ✅ **Transport Methods**: Provide list of available shipping options for customer selection
+- ✅ **Shipment Creation**: Register new shipments with order_id linking for integration
+- ✅ **Status Tracking**: Real-time shipment status with historical logs (internal management)
+- ✅ **Shipment Cancellation**: Cancel shipments before dispatch (created/reserved only)
+- ✅ **Shipment Queries**: List and filter shipments by user, status, and date ranges
+- ✅ **ETA Calculation**: Provide estimated delivery times based on transport type
+- ✅ **Validation**: Postal code format validation (Argentinian CPA format)
+- ✅ **Product Management**: Handle multiple products per shipment with dimensions
+- ✅ **Tracking Information**: Include tracking numbers and carrier details
+
+**Internal Operations (Not exposed via API):**
+- Status updates managed internally by logistics team
+- Address modifications handled through internal processes
+
+### Integration Points with Other Modules
+
+**With Order Management Module:**
+- **Customer Checkout Flow:**
+  1. Customer adds products to cart
+  2. Customer enters delivery address at checkout
+  3. Portal queries `GET /shipping/transport-methods` (shows options: air, road, rail, sea)
+  4. Portal queries `POST /shipping/cost` for each transport option (shows prices and ETAs)
+  5. Customer selects preferred transport method (e.g., "Air Freight - $45.50 - 1-3 days")
+  6. Customer completes payment → Order created
+  7. Portal calls `POST /shipping` with customer's selected `transport_type`
+- **Shipment Creation Flow:**
+  - Order Management sends `order_id` + `transport_type` (customer's choice) when creating shipments
+  - Each shipment is associated with exactly one order
+  - Logistics returns `shipping_id` to Order Management for reference
+- **Status Notifications:**
+  - Callback/webhook to notify order status updates when shipment status changes:
+    - `created` → Order shipment registered
+    - `reserved` → Inventory reserved, awaiting dispatch
+    - `in_transit` → Order is being delivered
+    - `delivered` → Order completed successfully
+    - `cancelled` → Order shipment cancelled (handle refunds/restocking)
+- **Shipment Queries:**
+  - Order Management can query shipments by `user_id` to display customer's order history
+  - Use `GET /shipping?user_id={id}` to retrieve all shipments for a customer
+
+**With Inventory Management Module:**
+- **Product Information Flow:**
+  - Order Management sends ONLY `product_id` + `quantity` in shipment requests
+  - NO weight, dimensions, or warehouse location in request payloads
+  - Logistics queries Inventory for EACH product to get:
+    - Weight and dimensions (for cost/volume calculation)
+    - Warehouse location (`departure_postal_code` for origin)
+  - Inventory is the single source of truth for ALL product data
+- **Stock Management:**
+  - Before creating shipment (`POST /shipping`):
+    - Verify that all product IDs exist in inventory
+    - Check if products have sufficient stock for the requested quantities
+    - Validate product weights and dimensions match inventory records
+  - After successful shipment creation:
+    - Reserve/decrease inventory stock for products in `created` or `reserved` status
+    - If shipment is `cancelled`, return stock to inventory
+- **Cost Calculation (`POST /shipping/cost`):**
+  - Optionally validate product IDs exist (read-only operation, no stock changes)
+  - Query product details for accurate cost estimation
+
+### Implementation Requirements
+
+**Data Validation Rules**:
+- Postal codes must follow Argentinian CPA format: `^([A-Z]{1}\d{4}[A-Z]{3})$` (e.g., H3500ABC)
+  - Applied to both `delivery_address.postal_code` and `departure_postal_code`
+- All product quantities must be >= 1
+- Product dimensions (length, width, height) must be positive numbers (minimum: 0.01)
+- Weights must be positive numbers (minimum: 0.01 kg)
+- Country codes must be ISO-3166-1 alpha-2 format (2 characters, e.g., "AR")
+- All timestamps must be in ISO 8601 UTC format (e.g., "2025-10-01T00:00:00Z")
+
+**Business Logic**:
+- Shipments can only be cancelled if status is `created` or `reserved`
+- Each status transition should create a log entry with timestamp and message
+- ETA calculation should consider transport type:
+  - `air`: fastest (1-3 days)
+  - `road`: medium (3-7 days)
+  - `rail`: medium-slow (5-10 days)
+  - `sea`: slowest (15-30 days)
+- Cost calculation should consider:
+  - Total weight (sum of all products * quantities)
+  - Total volume (calculated from dimensions)
+  - Distance (based on postal codes)
+  - Transport type selected
+
+**State Machine for Shipment Status**:
+```
+created → reserved → in_transit → arrived → in_distribution → delivered
+   ↓
+cancelled (only from created/reserved)
+```
+
+**API Response Guidelines**:
+- Always return consistent error format with `code`, `message`, and optional `details`
+- For validation errors (422), include field-level details with specific error messages
+- Use appropriate HTTP status codes as defined in the OpenAPI spec
+- Include detailed logs array when returning shipment details
+- Ensure all datetime fields use ISO 8601 UTC format
+
+### API Usage Examples
+
+**Example 1: Calculate Shipping Cost**
+```http
+POST /shipping/cost
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "delivery_address": {
+    "street": "Av. Dirac 1234",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500ABC",
+    "country": "AR"
+  },
+  "products": [
+    {
+      "id": 1,
+      "quantity": 2
+    },
+    {
+      "id": 2,
+      "quantity": 1
+    }
+  ]
+}
+
+Note: Logistics will query Stock module for each product to get:
+- Weight, dimensions (for cost calculation)
+- Warehouse location (for distance calculation)
+```
+
+**Example 2: Create Shipment**
+```http
+POST /shipping
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "order_id": 123,
+  "user_id": 456,
+  "delivery_address": {
+    "street": "Av. Siempre Viva 123",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500ABC",
+    "country": "AR"
+  },
+  "transport_type": "air",
+  "products": [
+    {
+      "id": 1,
+      "quantity": 1
+    },
+    {
+      "id": 2,
+      "quantity": 2
+    }
+  ]
+}
+
+Flow:
+1. Customer selected "air" transport during checkout
+2. Portal sends this selection to Logistics
+3. Logistics queries Stock: GET /products/1 and GET /products/2
+4. Stock returns weight, dimensions, warehouse_postal_code for each
+5. Logistics calculates cost using customer's selected "air" transport
+6. Creates shipment and returns shipping_id to Order Management
+```
+
+**Example 3: Error Response (Validation)**
+```json
+{
+  "code": "unprocessable_entity",
+  "message": "Validation failed.",
+  "details": {
+    "field_errors": [
+      {
+        "field": "products[0].quantity",
+        "message": "Must be >= 1"
+      }
+    ]
+  }
+}
+```
+
+**Database Schema Considerations**:
+- `shipments` table: 
+  - id, order_id, user_id, status, transport_type, tracking_number, carrier_name
+  - total_cost, currency, estimated_delivery_at, created_at, updated_at
+- `addresses` table: 
+  - id, shipment_id, street, city, state, postal_code, country, type (delivery/departure)
+- `shipment_products` table: 
+  - id, shipment_id, product_id, quantity, weight, length, width, height, cost
+- `shipment_logs` table: 
+  - id, shipment_id, status, message, timestamp
+- `orders` table: id, ... (reference only, managed by Order Management module)
+- `users` table: id, ... (reference only, managed by Order Management module)
+- `products` table: id, ... (reference only, managed by Inventory module)
+
+**Key Indexes to Create**:
+- `shipments.order_id` (for linking shipments to orders, foreign key)
+- `shipments.user_id` (for GET /shipping?user_id={id} queries)
+- `shipments.status` (for filtering by status)
+- `shipments.tracking_number` (for tracking lookup, unique)
+- `shipments.created_at` (for date range queries)
+- `shipment_logs.shipment_id` (for retrieving logs efficiently)
+- `shipment_products.shipment_id` (for retrieving products per shipment)
+
+## Best Practices Reminders
+
+- ✅ Write self-documenting code with clear variable/function names
+- ✅ Keep functions small and focused (Single Responsibility Principle)
+- ✅ Use dependency injection for better testability
+- ✅ Implement proper logging at different levels (debug, info, warn, error)
+- ✅ Use environment variables for configuration (never hardcode)
+- ✅ Validate and sanitize all inputs
+- ✅ Handle async operations properly (avoid callback hell)
+- ✅ Use TypeScript/strongly-typed languages when possible
+- ✅ Follow DRY principle (Don't Repeat Yourself)
+- ✅ Comment complex business logic
+- ✅ Use Git with meaningful commit messages
+- ✅ Keep dependencies up to date and minimal
+- ✅ Implement proper CORS configuration
+- ✅ Use consistent date/time formats (ISO 8601)
+- ✅ Implement request rate limiting if applicable
+
+## Portfolio Considerations
+
+Since this will be uploaded to a portfolio:
+- Ensure all documentation is professional and complete
+- Include clear setup instructions
+- Provide example API calls and responses
+- Add screenshots or demo video if possible
+- Highlight technical decisions and their justification
+- Showcase best practices and design patterns used
+- Keep code clean and well-commented
+- Include a comprehensive README with project overview
