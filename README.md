@@ -1,98 +1,327 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📦 Microservicio de Logística - Grupo 12
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> **Trabajo Práctico Integrador - Desarrollo de Software 2025**  
+> **UTN FRRE - Facultad Regional Resistencia**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## 🚀 Instalación
 
 ```bash
-$ npm install
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+
+# Levantar Docker (PostgreSQL + Redis)
+docker-compose up -d
+
+# Configurar base de datos
+npx prisma generate
+npx prisma migrate dev
+
+# Ejecutar en desarrollo
+npm run start:dev
 ```
 
-## Compile and run the project
+## 📡 API Endpoints
 
-```bash
-# development
-$ npm run start
+### 1. Calcular Costo de Envío
 
-# watch mode
-$ npm run start:dev
+**POST** `/shipping/cost`
 
-# production mode
-$ npm run start:prod
+Calcula el costo de envío sin crear ningún registro.
+
+**Request Body:**
+```json
+{
+  "delivery_address": {
+    "street": "Av. Dirac 1234",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500ABC",
+    "country": "AR"
+  },
+  "products": [
+    {
+      "id": 1,
+      "quantity": 2
+    },
+    {
+      "id": 2,
+      "quantity": 1
+    }
+  ]
+}
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+**Response 200:**
+```json
+{
+  "currency": "ARS",
+  "total_cost": 45.5,
+  "transport_type": "air",
+  "products": [
+    {
+      "id": 1,
+      "cost": 20.0
+    },
+    {
+      "id": 2,
+      "cost": 25.5
+    }
+  ]
+}
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 2. Obtener Métodos de Transporte
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**GET** `/shipping/transport-methods`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+Retorna la lista de métodos de transporte disponibles.
+
+**Response 200:**
+```json
+{
+  "transport_methods": [
+    {
+      "type": "air",
+      "name": "Air Freight",
+      "estimated_days": "1-3"
+    },
+    {
+      "type": "road",
+      "name": "Road Transport",
+      "estimated_days": "3-7"
+    },
+    {
+      "type": "rail",
+      "name": "Rail Freight",
+      "estimated_days": "5-10"
+    },
+    {
+      "type": "sea",
+      "name": "Sea Freight",
+      "estimated_days": "15-30"
+    }
+  ]
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+### 3. Crear Envío
 
-Check out a few resources that may come in handy when working with NestJS:
+**POST** `/shipping`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Crea un nuevo envío asociado a una orden.
 
-## Support
+**Request Body:**
+```json
+{
+  "order_id": 123,
+  "user_id": 456,
+  "delivery_address": {
+    "street": "Av. Siempre Viva 123",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500ABC",
+    "country": "AR"
+  },
+  "transport_type": "air",
+  "products": [
+    {
+      "id": 1,
+      "quantity": 1
+    },
+    {
+      "id": 2,
+      "quantity": 2
+    }
+  ]
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Response 201:**
+```json
+{
+  "shipping_id": "uuid-123-456",
+  "status": "created",
+  "transport_type": "air",
+  "estimated_delivery_at": "2025-10-01T00:00:00Z"
+}
+```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 4. Listar Envíos
 
-## License
+**GET** `/shipping`
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Obtiene una lista paginada de envíos con filtros opcionales.
+
+**Query Parameters:**
+- `user_id` (opcional): Filtrar por ID de usuario
+- `status` (opcional): Filtrar por estado (created, in_transit, delivered, etc.)
+- `from_date` (opcional): Fecha desde (ISO 8601)
+- `to_date` (opcional): Fecha hasta (ISO 8601)
+- `page` (opcional, default: 1): Número de página
+- `limit` (opcional, default: 20): Resultados por página
+
+**Ejemplo:** `GET /shipping?user_id=456&status=in_transit&page=1&limit=20`
+
+**Response 200:**
+```json
+{
+  "shipments": [
+    {
+      "shipping_id": "uuid-123",
+      "order_id": 123,
+      "user_id": 456,
+      "products": [
+        {
+          "product_id": 12,
+          "quantity": 2
+        }
+      ],
+      "status": "in_distribution",
+      "transport_type": "air",
+      "estimated_delivery_at": "2025-10-01T00:00:00Z",
+      "created_at": "2025-09-01T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 5,
+    "total_items": 87,
+    "items_per_page": 20
+  }
+}
+```
+
+---
+
+### 5. Obtener Detalle de Envío
+
+**GET** `/shipping/:id`
+
+Obtiene información completa de un envío específico, incluyendo historial de logs.
+
+**Ejemplo:** `GET /shipping/uuid-123`
+
+**Response 200:**
+```json
+{
+  "shipping_id": "uuid-123",
+  "order_id": 123,
+  "user_id": 456,
+  "delivery_address": {
+    "street": "Av. Siempre Viva 123",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500ABC",
+    "country": "AR"
+  },
+  "departure_address": {
+    "street": "Warehouse Central",
+    "city": "Resistencia",
+    "state": "Chaco",
+    "postal_code": "H3500XYZ",
+    "country": "AR"
+  },
+  "products": [
+    {
+      "product_id": 12,
+      "quantity": 2
+    }
+  ],
+  "status": "in_distribution",
+  "transport_type": "air",
+  "tracking_number": "LOG-AR-123456789",
+  "carrier_name": "Express Logistics SA",
+  "total_cost": 45.5,
+  "currency": "ARS",
+  "estimated_delivery_at": "2025-10-01T00:00:00Z",
+  "created_at": "2025-09-01T10:00:00Z",
+  "updated_at": "2025-09-15T09:29:00Z",
+  "logs": [
+    {
+      "timestamp": "2025-09-15T09:29:00Z",
+      "status": "in_distribution",
+      "message": "Shipment is in distribution"
+    },
+    {
+      "timestamp": "2025-09-01T10:00:00Z",
+      "status": "created",
+      "message": "Shipment created"
+    }
+  ]
+}
+```
+
+---
+
+### 6. Cancelar Envío
+
+**POST** `/shipping/:id/cancel`
+
+Cancela un envío. Solo se puede cancelar si está en estado `created` o `reserved`.
+
+**Ejemplo:** `POST /shipping/uuid-123/cancel`
+
+**Response 200:**
+```json
+{
+  "shipping_id": "uuid-123",
+  "status": "cancelled",
+  "cancelled_at": "2025-09-18T19:00:00Z"
+}
+```
+
+**Response 400 (Error):**
+```json
+{
+  "code": "bad_request",
+  "message": "Shipment cannot be cancelled. Current status 'in_transit' does not allow cancellation."
+}
+```
+
+---
+
+## 🗄️ Estados del Envío
+
+- `created`: Envío creado
+- `reserved`: Inventario reservado
+- `in_transit`: En tránsito
+- `arrived`: Llegó a destino
+- `in_distribution`: En distribución local
+- `delivered`: Entregado
+- `cancelled`: Cancelado
+
+---
+
+## 🚚 Tipos de Transporte
+
+- `air`: Aéreo (1-3 días)
+- `road`: Terrestre (3-7 días)
+- `rail`: Ferroviario (5-10 días)
+- `sea`: Marítimo (15-30 días)
+
+---
+
+## 📄 Licencia
+
+Apache-2.0
+
+---
+
+## 👥 Equipo
+
+**Grupo 12 - Desarrollo de Software 2025 - UTN FRRE**
+
+- [Integrantes del grupo]
+
+---
+
+**Repositorio:** https://github.com/FRRe-DS/2025-12-TPI

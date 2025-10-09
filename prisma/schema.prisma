@@ -1,5 +1,7 @@
-// Esquema de Prisma para Microservicio de Logística - Grupo 12
-// TPI - Desarrollo de Software 2025
+// ===================================
+// SCHEMA DE PRISMA - LOGÍSTICA GRUPO 12
+// TPI Desarrollo de Software 2025
+// ===================================
 
 generator client {
   provider = "prisma-client-js"
@@ -10,26 +12,110 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo para Items/Productos
-model Item {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// ===================================
+// ENUMS
+// ===================================
 
-  @@map("items")
+enum ShippingStatus {
+  CREATED
+  RESERVED
+  IN_TRANSIT
+  ARRIVED
+  IN_DISTRIBUTION
+  DELIVERED
+  CANCELLED
 }
 
-// Modelo para Cálculos de Envío (historial)
-model EnvioCalculo {
-  id                    Int      @id @default(autoincrement())
-  codigoPostalOrigen    String
-  codigoPostalDestino   String
-  precio                Float?
-  volumen               Int
-  precioCalculado       Float
-  createdAt             DateTime @default(now())
+enum TransportType {
+  AIR
+  SEA
+  RAIL
+  ROAD
+}
 
-  @@map("envio_calculos")
+// ===================================
+// MODELOS
+// ===================================
+
+// Tabla principal de envíos
+model Shipping {
+  id                    String          @id @default(uuid())
+  orderId               Int
+  userId                Int
+  
+  // Dirección de entrega
+  deliveryStreet        String
+  deliveryCity          String
+  deliveryState         String
+  deliveryPostalCode    String
+  deliveryCountry       String          @default("AR")
+  
+  // Dirección de origen (almacén)
+  departureStreet       String?
+  departureCity         String?
+  departureState        String?
+  departurePostalCode   String?
+  departureCountry      String          @default("AR")
+  
+  // Estado y seguimiento
+  status                ShippingStatus  @default(CREATED)
+  transportType         TransportType
+  trackingNumber        String?         @unique
+  carrierName           String?
+  
+  // Costos
+  totalCost             Decimal         @db.Decimal(10, 2)
+  currency              String          @default("ARS")
+  
+  // Fechas
+  estimatedDeliveryAt   DateTime
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  cancelledAt           DateTime?
+  
+  // Relaciones
+  products              ShippingProduct[]
+  logs                  ShippingLog[]
+  
+  @@map("shipments")
+}
+
+// Productos incluidos en el envío
+model ShippingProduct {
+  id          String   @id @default(uuid())
+  shippingId  String
+  productId   Int      // ID del producto en el módulo de Stock
+  quantity    Int
+  
+  shipping    Shipping @relation(fields: [shippingId], references: [id], onDelete: Cascade)
+  
+  @@map("shipping_products")
+}
+
+// Logs de auditoría (historial de cambios de estado)
+model ShippingLog {
+  id          String         @id @default(uuid())
+  shippingId  String
+  status      ShippingStatus
+  message     String
+  timestamp   DateTime       @default(now())
+  
+  shipping    Shipping       @relation(fields: [shippingId], references: [id], onDelete: Cascade)
+  
+  @@map("shipping_logs")
+}
+
+// Métodos de transporte disponibles
+model TransportMethod {
+  id              String        @id @default(uuid())
+  type            TransportType @unique
+  name            String
+  estimatedDays   String        // Formato: "1-3", "3-7", etc.
+  baseCostPerKm   Decimal       @db.Decimal(10, 4)
+  baseCostPerKg   Decimal       @db.Decimal(10, 4)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("transport_methods")
 }

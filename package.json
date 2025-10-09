@@ -1,10 +1,31 @@
 {
-  "name": "logistica_grupo12_backend_nestjs",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "logistica-grupo12-tpi",
+  "version": "1.0.0",
+  "description": "Microservicio de Logística y Transporte - TPI Desarrollo de Software 2025 - UTN FRRE - Grupo 12",
+  "author": "Grupo 12 - UTN FRRE",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FRRe-DS/2025-12-TPI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FRRe-DS/2025-12-TPI/issues"
+  },
+  "homepage": "https://github.com/FRRe-DS/2025-12-TPI#readme",
+  "keywords": [
+    "nestjs",
+    "typescript",
+    "microservices",
+    "logistics",
+    "shipping",
+    "prisma",
+    "postgresql",
+    "redis",
+    "tpi",
+    "utn",
+    "frre"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -23,6 +44,9 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@prisma/client": "^5.22.0",
+    "class-validator": "^0.14.1",
+    "class-transformer": "^0.5.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -42,6 +66,7 @@
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
+    "prisma": "^5.22.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -50,6 +75,9 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "jest": {
     "moduleFileExtensions": [

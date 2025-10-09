@@ -1,9 +1,90 @@
-# compiled output
-/dist
-/node_modules
-/build
+# ===================================
+# GITIGNORE - Logística Grupo 12
+# TPI Desarrollo de Software 2025
+# ===================================
 
+# ===================================
+# Dependencies
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ===================================
+# Compiled output
+# ===================================
+/dist
+/build
+*.js
+*.js.map
+!jest.config.js
+!eslint.config.mjs
+
+# ===================================
+# TypeScript
+# ===================================
+*.tsbuildinfo
+*.d.ts
+
+# ===================================
+# Testing
+# ===================================
+/coverage
+/.nyc_output
+*.test.js
+*.spec.js
+
+# ===================================
+# Environment Variables
+# ===================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# IMPORTANTE: Mantener archivos de ejemplo
+!.env.example
+
+# ===================================
+# IDEs and editors
+# ===================================
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# ===================================
+# OS
+# ===================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ===================================
+# Docker
+# ===================================
+docker-compose.override.yml
+.dockerignore
+
+# ===================================
 # Logs
+# ===================================
 logs
 *.log
 npm-debug.log*
@@ -12,47 +93,93 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# OS
-.DS_Store
+# ===================================
+# Prisma
+# ===================================
+prisma/migrations/**/migration.sql
+# Mantener carpeta migrations pero ignorar contenido específico
+!prisma/migrations/.gitkeep
 
-# Tests
-/coverage
-/.nyc_output
+# ===================================
+# Temporary files
+# ===================================
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# ===================================
+# Database
+# ===================================
+*.sqlite
+*.sqlite3
+*.db
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# ===================================
+# NestJS specific
+# ===================================
+dist/
+.webpack/
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# ===================================
+# Redis dump
+# ===================================
+dump.rdb
 
-# temp directory
-.temp
-.tmp
+# ===================================
+# Documentation builds
+# ===================================
+docs/build/
+docs/.vuepress/dist/
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# ===================================
+# Certificates & Keys
+# ===================================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+# ===================================
+# Backup files
+# ===================================
+*.bak
+*.backup
 
-/generated/prisma
+# ===================================
+# Archives
+# ===================================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ===================================
+# Proyecto específico - Archivos de trabajo
+# ===================================
+# PDFs del proyecto (ya están en el repo)
+# DS-2025 - TPI-v1.pdf ya está trackeado
+
+# Postman collections locales (si hay modificaciones)
+*.postman_collection.local.json
+
+# Archivos de prueba temporales
+test-data/
+mock-data/
+*.mock.json
+
+# ===================================
+# CI/CD
+# ===================================
+.github/workflows/*.local.yml
+
+# ===================================
+# Package manager locks (opcional, según equipo)
+# ===================================
+# Descomentar si el equipo decide no versionar lockfiles
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

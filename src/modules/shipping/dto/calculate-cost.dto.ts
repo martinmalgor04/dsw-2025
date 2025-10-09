@@ -1,0 +1,29 @@
+import { Type } from 'class-transformer';
+import { ValidateNested, IsArray, ArrayMinSize } from 'class-validator';
+import { AddressDto } from '../../../common/dto/address.dto';
+import { ProductRequestDto } from '../../../common/dto/product-request.dto';
+
+export class CalculateCostRequestDto {
+  @ValidateNested()
+  @Type(() => AddressDto)
+  delivery_address: AddressDto;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => ProductRequestDto)
+  products: ProductRequestDto[];
+}
+
+export class ProductCostDto {
+  id: number;
+  cost: number;
+}
+
+export class CalculateCostResponseDto {
+  currency: string;
+  total_cost: number;
+  transport_type: string;
+  products: ProductCostDto[];
+}
+
