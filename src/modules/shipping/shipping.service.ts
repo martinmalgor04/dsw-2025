@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MockDataService } from '../../common/services/mock-data.service';
 import {
   CalculateCostRequestDto,
   CalculateCostResponseDto,
@@ -16,45 +17,127 @@ import {
 
 @Injectable()
 export class ShippingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mockData: MockDataService,
+  ) {}
 
   async calculateCost(
     dto: CalculateCostRequestDto,
   ): Promise<CalculateCostResponseDto> {
-    // TODO: Implementar lógica de cálculo de costos
-    // 1. Consultar API de Stock por cada producto
-    // 2. Calcular peso y volumen total
-    // 3. Calcular distancia
-    // 4. Calcular costo basado en transporte
+    // 1. Obtener información de productos desde mock
+    const productIds = dto.products.map(p => p.id);
+    const stockInfo = await this.mockData.getStockInfo(productIds);
     
-    const totalCost = 45.5;
-    const productCosts = dto.products.map((p) => ({
-      id: p.id,
-      cost: 20.0,
-    }));
+    // 2. Calcular peso total
+    let totalWeight = 0;
+    const productCosts = [];
+    
+    for (let i = 0; i < dto.products.length; i++) {
+      const product = dto.products[i];
+      const stock = stockInfo.find(s => s.id === product.id);
+      
+      if (!stock || !stock.available) {
+        throw new BadRequestException(`Product ${product.id} not available`);
+      }
+      
+      const productWeight = stock.weight * product.quantity;
+      totalWeight += productWeight;
+      
+      productCosts.push({
+        id: product.id,
+        cost: stock.price * product.quantity,
+      });
+    }
+    
+    // 3. Calcular distancia usando mock
+    const distanceInfo = await this.mockData.getDistanceInfo(
+      dto.delivery_address.postal_code,
+      'C1000ABC' // Origen fijo para testing
+    );
+    
+    // 4. Calcular costo de envío
+    const shippingCost = this.mockData.calculateShippingCost(
+      distanceInfo.distance_km,
+      totalWeight,
+      'STANDARD' // Tipo por defecto para testing
+    );
+    
+    // 5. Calcular costo total (productos + envío)
+    const productTotal = productCosts.reduce((sum, p) => sum + p.cost, 0);
+    const totalCost = productTotal + shippingCost.total_cost;
 
     return {
       currency: 'ARS',
-      total_cost: totalCost,
-      transport_type: 'air',
+      total_cost: Math.round(totalCost),
+      transport_type: 'standard',
       products: productCosts,
+      breakdown: {
+        products_cost: productTotal,
+        shipping_cost: shippingCost.total_cost,
+        distance_km: distanceInfo.distance_km,
+        weight_kg: totalWeight
+      }
     };
   }
 
   async createShipping(
     dto: CreateShippingRequestDto,
   ): Promise<CreateShippingResponseDto> {
-    // TODO: Implementar lógica de creación
-    // 1. Validar productos con Stock API
+    // 1. Validar productos con Stock API (mock)
+    const productIds = dto.products.map(p => p.id);
+    const stockInfo = await this.mockData.getStockInfo(productIds);
+    
+    for (const stock of stockInfo) {
+      if (!stock.available) {
+        throw new BadRequestException(`Product ${stock.id} not available`);
+      }
+    }
+    
     // 2. Calcular costo final
-    // 3. Crear registro en BD
-    // 4. Crear log inicial
-    // 5. Generar tracking number
+    let totalWeight = 0;
+    for (let i = 0; i < dto.products.length; i++) {
+      const product = dto.products[i];
+      const stock = stockInfo.find(s => s.id === product.id);
+      totalWeight += stock.weight * product.quantity;
+    }
+    
+    const distanceInfo = await this.mockData.getDistanceInfo(
+      dto.delivery_address.postal_code,
+      'C1000ABC'
+    );
+    
+    const shippingCost = this.mockData.calculateShippingCost(
+      distanceInfo.distance_km,
+      totalWeight,
+      dto.transport_type.toUpperCase() as any
+    );
+    
+    const productTotal = stockInfo.reduce((sum, stock) => {
+      const product = dto.products.find(p => p.id === stock.id);
+      return sum + (stock.price * product.quantity);
+    }, 0);
+    
+    const totalCost = productTotal + shippingCost.total_cost;
+    
+    // 3. Generar tracking number
+    const trackingNumber = this.mockData.generateTrackingNumber();
+    
+    // 4. Calcular tiempo de entrega estimado
+    const deliveryDays = this.mockData.getEstimatedDeliveryTime(
+      dto.transport_type.toUpperCase() as any,
+      distanceInfo.distance_km
+    );
+    
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
 
+    // 5. Crear registro en BD
     const shipping = await this.prisma.shipping.create({
       data: {
         orderId: dto.order_id,
         userId: dto.user_id,
+        trackingNumber,
         deliveryStreet: dto.delivery_address.street,
         deliveryCity: dto.delivery_address.city,
         deliveryState: dto.delivery_address.state,
@@ -62,8 +145,9 @@ export class ShippingService {
         deliveryCountry: dto.delivery_address.country,
         transportType: dto.transport_type.toUpperCase() as any,
         status: 'CREATED',
-        totalCost: 45.5,
-        estimatedDeliveryAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        totalCost,
+        currency: 'ARS',
+        estimatedDeliveryAt: estimatedDelivery,
         products: {
           create: dto.products.map((p) => ({
             productId: p.id,
@@ -73,7 +157,7 @@ export class ShippingService {
         logs: {
           create: {
             status: 'CREATED',
-            message: 'Shipment created',
+            message: `Shipment created with tracking number: ${trackingNumber}`,
           },
         },
       },
@@ -83,6 +167,7 @@ export class ShippingService {
       shipping_id: shipping.id,
       status: 'created',
       transport_type: dto.transport_type,
+      tracking_number: trackingNumber,
       estimated_delivery_at: shipping.estimatedDeliveryAt.toISOString(),
     };
   }
