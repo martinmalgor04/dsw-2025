@@ -31,6 +31,7 @@ export class CreateShippingResponseDto {
   shipping_id: string;
   status: string;
   transport_type: string;
+  tracking_number?: string;
   estimated_delivery_at: string;
 }
 

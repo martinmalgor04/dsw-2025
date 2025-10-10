@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { MockDataService } from '../../common/services/mock-data.service';
 import {
   CalculateCostRequestDto,
@@ -18,9 +17,12 @@ import {
 @Injectable()
 export class ShippingService {
   constructor(
-    private prisma: PrismaService,
     private mockData: MockDataService,
   ) {}
+
+  // Mock storage para testing (en memoria)
+  private mockShipments: any[] = [];
+  private nextId = 1;
 
   async calculateCost(
     dto: CalculateCostRequestDto,
@@ -31,14 +33,14 @@ export class ShippingService {
     
     // 2. Calcular peso total
     let totalWeight = 0;
-    const productCosts = [];
+    const productCosts: { id: number; cost: number }[] = [];
     
     for (let i = 0; i < dto.products.length; i++) {
       const product = dto.products[i];
       const stock = stockInfo.find(s => s.id === product.id);
       
-      if (!stock || !stock.available) {
-        throw new BadRequestException(`Product ${product.id} not available`);
+      if (!stock || !stock.available || !stock.weight || !stock.price) {
+        throw new BadRequestException(`Product ${product.id} not available or missing data`);
       }
       
       const productWeight = stock.weight * product.quantity;
@@ -99,7 +101,9 @@ export class ShippingService {
     for (let i = 0; i < dto.products.length; i++) {
       const product = dto.products[i];
       const stock = stockInfo.find(s => s.id === product.id);
-      totalWeight += stock.weight * product.quantity;
+      if (stock && stock.weight) {
+        totalWeight += stock.weight * product.quantity;
+      }
     }
     
     const distanceInfo = await this.mockData.getDistanceInfo(
@@ -115,7 +119,10 @@ export class ShippingService {
     
     const productTotal = stockInfo.reduce((sum, stock) => {
       const product = dto.products.find(p => p.id === stock.id);
-      return sum + (stock.price * product.quantity);
+      if (stock.price && product) {
+        return sum + (stock.price * product.quantity);
+      }
+      return sum;
     }, 0);
     
     const totalCost = productTotal + shippingCost.total_cost;
@@ -132,36 +139,37 @@ export class ShippingService {
     const estimatedDelivery = new Date();
     estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
 
-    // 5. Crear registro en BD
-    const shipping = await this.prisma.shipping.create({
-      data: {
-        orderId: dto.order_id,
-        userId: dto.user_id,
-        trackingNumber,
-        deliveryStreet: dto.delivery_address.street,
-        deliveryCity: dto.delivery_address.city,
-        deliveryState: dto.delivery_address.state,
-        deliveryPostalCode: dto.delivery_address.postal_code,
-        deliveryCountry: dto.delivery_address.country,
-        transportType: dto.transport_type.toUpperCase() as any,
+    // 5. Crear registro en memoria (mock)
+    const shipping = {
+      id: `mock-${this.nextId++}`,
+      orderId: dto.order_id,
+      userId: dto.user_id,
+      trackingNumber,
+      deliveryStreet: dto.delivery_address.street,
+      deliveryCity: dto.delivery_address.city,
+      deliveryState: dto.delivery_address.state,
+      deliveryPostalCode: dto.delivery_address.postal_code,
+      deliveryCountry: dto.delivery_address.country,
+      transportType: dto.transport_type.toUpperCase(),
+      status: 'CREATED',
+      totalCost,
+      currency: 'ARS',
+      estimatedDeliveryAt: estimatedDelivery,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      products: dto.products.map(p => ({
+        productId: p.id,
+        quantity: p.quantity,
+      })),
+      logs: [{
+        timestamp: new Date(),
         status: 'CREATED',
-        totalCost,
-        currency: 'ARS',
-        estimatedDeliveryAt: estimatedDelivery,
-        products: {
-          create: dto.products.map((p) => ({
-            productId: p.id,
-            quantity: p.quantity,
-          })),
-        },
-        logs: {
-          create: {
-            status: 'CREATED',
-            message: `Shipment created with tracking number: ${trackingNumber}`,
-          },
-        },
-      },
-    });
+        message: `Shipment created with tracking number: ${trackingNumber}`,
+      }]
+    };
+
+    // Guardar en memoria
+    this.mockShipments.push(shipping);
 
     return {
       shipping_id: shipping.id,
@@ -181,31 +189,32 @@ export class ShippingService {
     limit: number;
   }): Promise<ListShippingResponseDto> {
     const { userId, status, fromDate, toDate, page, limit } = filters;
-    const skip = (page - 1) * limit;
 
-    const where: any = {};
-    if (userId) where.userId = Number(userId);
-    if (status) where.status = status.toUpperCase();
-    if (fromDate || toDate) {
-      where.createdAt = {};
-      if (fromDate) where.createdAt.gte = new Date(fromDate);
-      if (toDate) where.createdAt.lte = new Date(toDate);
+    // Filtrar en memoria
+    let filteredShipments = this.mockShipments;
+
+    if (userId) {
+      filteredShipments = filteredShipments.filter(s => s.userId === userId);
+    }
+    if (status) {
+      filteredShipments = filteredShipments.filter(s => s.status.toLowerCase() === status.toLowerCase());
+    }
+    if (fromDate) {
+      const fromDateObj = new Date(fromDate);
+      filteredShipments = filteredShipments.filter(s => s.createdAt >= fromDateObj);
+    }
+    if (toDate) {
+      const toDateObj = new Date(toDate);
+      filteredShipments = filteredShipments.filter(s => s.createdAt <= toDateObj);
     }
 
-    const [shipments, total] = await Promise.all([
-      this.prisma.shipping.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          products: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      this.prisma.shipping.count({ where }),
-    ]);
+    // Ordenar por fecha de creación (más recientes primero)
+    filteredShipments = filteredShipments
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const total = filteredShipments.length;
+    const skip = (page - 1) * limit;
+    const shipments = filteredShipments.slice(skip, skip + limit);
 
     return {
       shipments: shipments.map((s) => ({
@@ -231,17 +240,7 @@ export class ShippingService {
   }
 
   async getShippingDetail(id: string): Promise<ShippingDetailDto> {
-    const shipping = await this.prisma.shipping.findUnique({
-      where: { id },
-      include: {
-        products: true,
-        logs: {
-          orderBy: {
-            timestamp: 'desc',
-          },
-        },
-      },
-    });
+    const shipping = this.mockShipments.find(s => s.id === id);
 
     if (!shipping) {
       throw new NotFoundException('Shipping not found');
@@ -261,9 +260,9 @@ export class ShippingService {
       departure_address: shipping.departureStreet
         ? {
             street: shipping.departureStreet,
-            city: shipping.departureCity!,
-            state: shipping.departureState!,
-            postal_code: shipping.departurePostalCode!,
+            city: shipping.departureCity,
+            state: shipping.departureState,
+            postal_code: shipping.departurePostalCode,
             country: shipping.departureCountry,
           }
         : undefined,
@@ -289,13 +288,13 @@ export class ShippingService {
   }
 
   async cancelShipping(id: string): Promise<CancelShippingResponseDto> {
-    const shipping = await this.prisma.shipping.findUnique({
-      where: { id },
-    });
+    const shippingIndex = this.mockShipments.findIndex(s => s.id === id);
 
-    if (!shipping) {
+    if (shippingIndex === -1) {
       throw new NotFoundException('Shipping not found');
     }
+
+    const shipping = this.mockShipments[shippingIndex];
 
     if (!['CREATED', 'RESERVED'].includes(shipping.status)) {
       throw new BadRequestException(
@@ -303,19 +302,23 @@ export class ShippingService {
       );
     }
 
-    const updated = await this.prisma.shipping.update({
-      where: { id },
-      data: {
-        status: 'CANCELLED',
-        cancelledAt: new Date(),
-        logs: {
-          create: {
-            status: 'CANCELLED',
-            message: 'Shipment cancelled by user',
-          },
-        },
-      },
-    });
+    // Actualizar en memoria
+    const updated = {
+      ...shipping,
+      status: 'CANCELLED',
+      cancelledAt: new Date(),
+      updatedAt: new Date(),
+      logs: [
+        ...shipping.logs,
+        {
+          timestamp: new Date(),
+          status: 'CANCELLED',
+          message: 'Shipment cancelled by user',
+        }
+      ]
+    };
+
+    this.mockShipments[shippingIndex] = updated;
 
     return {
       shipping_id: updated.id,

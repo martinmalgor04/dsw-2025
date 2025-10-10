@@ -1,0 +1,31 @@
+name: Validate OpenAPI
+
+on:
+  pull_request:
+  push:
+    branches: [main, apitest]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install swagger-cli
+        run: npm install -g @apidevtools/swagger-cli
+
+      - name: Validate Compras OpenAPI definition
+        run: swagger-cli validate ./compras/openapi.yaml
+
+      - name: Validate Logistica OpenAPI definition
+        run: swagger-cli validate ./logistica/openapi.yaml
+
+      - name: Validate Stock OpenAPI definition
+        run: swagger-cli validate ./stock/openapi.yaml

@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TransportMethodsController } from './transport-methods.controller';
 import { TransportMethodsService } from './transport-methods.service';
-import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [],
   controllers: [TransportMethodsController],
   providers: [TransportMethodsService],
 })

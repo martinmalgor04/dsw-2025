@@ -18,6 +18,7 @@ lerna-debug.log*
 # ===================================
 /dist
 /build
+/test
 *.js
 *.js.map
 !jest.config.js
@@ -175,6 +176,7 @@ mock-data/
 # CI/CD
 # ===================================
 .github/workflows/*.local.yml
+
 
 # ===================================
 # Package manager locks (opcional, según equipo)

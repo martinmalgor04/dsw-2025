@@ -20,10 +20,18 @@ export class ProductCostDto {
   cost: number;
 }
 
+export class CostBreakdownDto {
+  products_cost: number;
+  shipping_cost: number;
+  distance_km: number;
+  weight_kg: number;
+}
+
 export class CalculateCostResponseDto {
   currency: string;
   total_cost: number;
   transport_type: string;
   products: ProductCostDto[];
+  breakdown?: CostBreakdownDto;
 }
 

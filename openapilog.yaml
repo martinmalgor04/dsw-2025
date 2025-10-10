@@ -1,14 +1,43 @@
 openapi: 3.0.3
 info:
-  title: Logistics/Transportation API
+  title: 📦 API de Logística - Grupo 12 TPI 2025
   version: "1.0.0"
-  description: API to quote, create, and manage shipments.
+  description: |
+    **API de Logística y Transporte** para el proyecto TPI 2025
+    
+    Esta API proporciona funcionalidades completas para la gestión de envíos y logística:
+    
+    - 💰 **Cálculo de costos** de envío con productos y distancias
+    - 🚚 **Gestión de envíos** con tracking y estados
+    - 🚛 **Métodos de transporte** disponibles
+    - 📊 **Seguimiento y monitoreo** de envíos
+    
+    **Desarrollado por:** Grupo 12 - Desarrollo de Software 2025
+    
+    **Integración con otros módulos:**
+    - **Stock Module**: Consulta de productos, peso, dimensiones y ubicación de almacén
+    - **Order Management**: Gestión de pedidos y usuarios
+    - **Frontend**: Interfaz de usuario para clientes
+    
+    **Flujo de trabajo:**
+    1. Cliente selecciona productos y dirección de entrega
+    2. Sistema calcula costos de envío para diferentes métodos de transporte
+    3. Cliente elige método de transporte preferido
+    4. Sistema crea envío con tracking number
+    5. Seguimiento en tiempo real del estado del envío
+  contact:
+    name: Grupo 12 - TPI 2025
+    url: https://github.com/FRRe-DS/2025-12-TPI
+    email: grupo12@tpi.com
   termsOfService: 'http://frre.utn.edu.ar/terminos'
   license:
-    name: Apache-2.0
-    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
 servers:
   - url: https://api.logistica-utn.com
+    description: Servidor de producción
+  - url: http://localhost:3000
+    description: Servidor de desarrollo local
 
 paths:
   # ===========================
@@ -16,21 +45,25 @@ paths:
   # ===========================
   /shipping/cost:
     post:
-      summary: Calculate shipping cost
+      tags:
+        - "🛒 Compras → Logística"
+      summary: 💰 Calcular costo de envío
       description: |
-        Quotes cost for a shipment without creating any resources.
-        Used by Order Management module to show shipping options to customers before purchase.
+        **REQUEST: Compras → Logística**
         
-        Integration Flow:
-        1. Order Management sends only: delivery_address + product IDs with quantities
-        2. Logistics queries Stock module for EACH product:
-           - GET /products/{id} → returns weight, dimensions, warehouse_postal_code
-        3. Logistics calculates:
-           - Total weight = sum(product.weight * quantity)
-           - Total volume = sum(product dimensions * quantity)
-           - Distance = from warehouse_postal_code to delivery_address.postal_code
-        4. Returns estimated cost based on weight, volume, distance, and transport type
-        5. NO data is persisted (quote only)
+        **Cálculo de costos de envío** sin crear recursos permanentes.
+        El módulo de **Compras** utiliza este endpoint para mostrar opciones de envío a los clientes antes de finalizar la compra.
+        
+        **Flujo de Comunicación entre Módulos:**
+        1. **Compras** envía: dirección de entrega + IDs de productos con cantidades
+        2. **Logística** consulta al módulo **Stock** para CADA producto:
+           - GET /products/{id} → retorna peso, dimensiones, código postal del almacén
+        3. **Logística** calcula:
+           - Peso total = suma(producto.peso * cantidad)
+           - Volumen total = suma(dimensiones del producto * cantidad)
+           - Distancia = desde warehouse_postal_code hasta delivery_address.postal_code
+        4. **Logística** retorna costo estimado a **Compras**
+        5. **Compras** muestra opciones al cliente (NO se persisten datos)
       security:
         - bearerAuth: []
       requestBody:
@@ -85,12 +118,27 @@ paths:
   # ===========================
   /shipping/transport-methods:
     get:
-      summary: Get available transport methods
+      tags:
+        - "🛒 Compras → Logística"
+      summary: 🚛 Obtener métodos de transporte
       description: |
-        Returns the list of available transport methods that can be used for shipping.
-        Used by Order Management portal to display shipping options to customers.
+        **REQUEST: Compras → Logística**
         
-        Returns basic information about each transport type (air, sea, rail, road).
+        **Obtiene la lista de métodos de transporte disponibles** que pueden utilizarse para envíos.
+        El módulo de **Compras** utiliza este endpoint para mostrar opciones de envío a los clientes durante el proceso de checkout.
+        
+        **Flujo de Comunicación:**
+        1. **Compras** consulta métodos disponibles a **Logística**
+        2. **Logística** retorna lista con tipos y tiempos estimados
+        3. **Compras** muestra opciones al cliente (Air: 1-3 días, Road: 3-7 días, etc.)
+        4. Cliente selecciona método preferido
+        5. **Compras** usa método seleccionado en cálculo de costos
+        
+        **Métodos disponibles:**
+        - **Air**: Más rápido (1-3 días) pero más costoso
+        - **Road**: Velocidad media (3-7 días), más flexible
+        - **Rail**: Medio-lento (5-10 días), bueno para carga pesada
+        - **Sea**: Más lento (15-30 días) pero más económico para grandes volúmenes
       security:
         - bearerAuth: []
       responses:
@@ -126,38 +174,39 @@ paths:
   # ===========================
   /shipping:
     post:
-      summary: Create shipment
+      tags:
+        - "🛒 Compras → Logística"
+      summary: 🚚 Crear envío
       description: |
-        Creates a new shipment for an order with customer-selected transport method.
+        **REQUEST: Compras → Logística**
         
-        Customer Checkout Flow:
-        1. Customer adds products to cart
-        2. Customer enters delivery address at checkout
-        3. Portal shows transport options:
-           - Queries GET /shipping/transport-methods
-           - Queries POST /shipping/cost for each option
-           - Displays: "Air Freight: $45.50 (1-3 days)" etc.
-        4. Customer selects preferred transport method (e.g., "air")
-        5. Customer completes payment → Order #123 created
-        6. Portal calls this endpoint with customer's selection
+        **Crea un nuevo envío** para una orden con el método de transporte seleccionado por el cliente.
+        El módulo de **Compras** utiliza este endpoint después de que el cliente confirma la compra.
         
-        Integration Flow:
-        1. Order Management sends:
-           - order_id, user_id, delivery_address, transport_type (customer choice), product IDs
-        2. Logistics queries Stock module for EACH product:
-           - GET /products/{id} → returns weight, dimensions, warehouse_postal_code
-        3. Logistics validates:
-           - All products exist in Stock
-           - Sufficient stock available
-           - Selected transport_type is valid
-        4. Logistics calculates final shipping cost using customer's transport_type
-        5. Creates shipment record with status 'created'
-        6. Returns shipping_id to Order Management
-        7. Order Management links shipping_id to Order #123
+        **Flujo de Comunicación entre Módulos:**
         
-        Note: Stock module is the source of truth for:
-        - Product dimensions and weight
-        - Warehouse location (departure address)
+        **1. Proceso de Compras (Frontend):**
+        - Cliente agrega productos al carrito
+        - Cliente ingresa dirección de entrega
+        - **Compras** consulta GET /shipping/transport-methods
+        - **Compras** consulta POST /shipping/cost para cada opción
+        - Cliente ve: "Air Freight: $45.50 (1-3 días)" etc.
+        - Cliente selecciona método y completa pago
+        - **Compras** crea orden #123
+        
+        **2. Comunicación entre Módulos:**
+        1. **Compras** → **Logística**: Envía order_id, user_id, delivery_address, transport_type, product IDs
+        2. **Logística** → **Stock**: Consulta GET /products/{id} para cada producto
+        3. **Stock** → **Logística**: Retorna peso, dimensiones, warehouse_postal_code
+        4. **Logística** valida:
+           - Productos existen en Stock
+           - Stock suficiente disponible
+           - transport_type válido
+        5. **Logística** calcula costo final y crea envío
+        6. **Logística** → **Compras**: Retorna shipping_id y tracking_number
+        7. **Compras** vincula shipping_id a Orden #123
+        
+        **Nota:** El módulo **Stock** es la fuente de verdad para peso, dimensiones y ubicación de almacén.
       security:
         - bearerAuth: []
       requestBody:
@@ -212,16 +261,30 @@ paths:
     # LIST SHIPMENTS WITH FILTERS
     # ===========================
     get:
-      summary: List shipments with filters
+      tags:
+        - "🔍 Logística → Consultas Internas"
+      summary: 📋 Listar envíos
       description: |
-        Returns a paginated list of shipments with optional filters.
+        **CONSULTA INTERNA: Logística**
         
-        Use cases:
-        - Get all shipments for a specific user (Order Management module)
-        - Filter by status for operational reports
-        - Date range queries for analytics
+        **Retorna una lista paginada de envíos** con filtros opcionales.
+        Utilizado internamente por el sistema de logística para administración y reportes.
         
-        All filters are optional. Without filters, returns all shipments (paginated).
+        **Casos de uso internos:**
+        - **Administración**: Visualizar todos los envíos del sistema
+        - **Reportes operativos**: Filtrar por estado, fechas, usuarios
+        - **Análisis**: Consultas por rango de fechas para métricas
+        - **Soporte**: Buscar envíos específicos para atención al cliente
+        
+        **Filtros disponibles:**
+        - **user_id**: Filtrar por ID de usuario
+        - **status**: Filtrar por estado del envío
+        - **from_date**: Filtrar envíos creados desde esta fecha
+        - **to_date**: Filtrar envíos creados hasta esta fecha
+        - **page**: Número de página para paginación
+        - **limit**: Cantidad de resultados por página
+        
+        **Nota:** Todos los filtros son opcionales. Sin filtros, retorna todos los envíos (paginado).
       security:
         - bearerAuth: []
       parameters:
@@ -316,17 +379,37 @@ paths:
   # ===========================
   /shipping/{shipping_id}:
     get:
-      summary: Get shipment details
+      tags:
+        - "🛒 Compras → Logística"
+      summary: 🔍 Obtener detalle de envío
       description: |
-        Retrieves complete details of a specific shipment including:
-        - Current status
-        - Full delivery and departure addresses
-        - Associated products
-        - Tracking information
-        - Complete status change history (logs)
-        - Cost and transport information
+        **REQUEST: Compras → Logística**
         
-        Used by Order Management to show shipment details to customers.
+        **Obtiene detalles completos** de un envío específico incluyendo estado, tracking y historial.
+        El módulo de **Compras** utiliza este endpoint para mostrar el estado del envío a los clientes.
+        
+        **Flujo de Comunicación:**
+        1. Cliente consulta estado de su envío en **Compras**
+        2. **Compras** → **Logística**: Envía shipping_id
+        3. **Logística** retorna información completa del envío
+        4. **Compras** muestra estado actualizado al cliente
+        
+        **Información incluida:**
+        - **Estado actual** del envío
+        - **Direcciones completas** de entrega y salida
+        - **Productos asociados** con cantidades
+        - **Información de tracking** (número de seguimiento, transportista)
+        - **Historial completo** de cambios de estado (logs)
+        - **Información de costo** y transporte
+        
+        **Estados del envío:**
+        - **created**: Registro de envío creado, aún no despachado
+        - **reserved**: Inventario reservado, esperando despacho
+        - **in_transit**: Paquete en tránsito hacia destino
+        - **arrived**: Paquete llegó a instalación de destino
+        - **in_distribution**: En distribución a dirección final
+        - **delivered**: Entregado exitosamente al cliente
+        - **cancelled**: Envío cancelado
       security:
         - bearerAuth: []
       parameters:
@@ -401,17 +484,35 @@ paths:
   # ===========================
   /shipping/{shipping_id}/cancel:
     post:
-      summary: Cancel a shipment
+      tags:
+        - "🔍 Logística → Consultas Internas"
+      summary: ❌ Cancelar envío
       description: |
-        Cancels an existing shipment that has not yet been dispatched.
+        **CONSULTA INTERNA: Logística**
         
-        Restrictions:
-        - Can only cancel shipments with status 'created' or 'reserved'
-        - Once in 'in_transit' or later stages, cannot be cancelled
+        **Cancela un envío existente** que aún no ha sido despachado.
+        Utilizado internamente por el sistema de logística para gestión de cancelaciones.
         
-        Integration impact:
-        - Notifies Order Management module
-        - Triggers inventory stock return in Inventory module
+        **Flujo de Cancelación:**
+        1. **Logística** valida que el envío puede ser cancelado
+        2. **Logística** cambia estado a 'cancelled'
+        3. **Logística** → **Stock**: Notifica cancelación (para devolución de inventario)
+        4. **Logística** → **Compras**: Notifica cancelación (para reembolso)
+        
+        **Restricciones:**
+        - Solo se pueden cancelar envíos con estado 'created' o 'reserved'
+        - Una vez en estado 'in_transit' o etapas posteriores, no se puede cancelar
+        
+        **Estados que permiten cancelación:**
+        - **created**: Envío creado pero no despachado
+        - **reserved**: Inventario reservado, esperando despacho
+        
+        **Estados que NO permiten cancelación:**
+        - **in_transit**: Ya en tránsito
+        - **arrived**: Ya llegó al destino
+        - **in_distribution**: En distribución
+        - **delivered**: Ya entregado
+        - **cancelled**: Ya cancelado
       security:
         - bearerAuth: []
       parameters:
@@ -459,6 +560,49 @@ paths:
 # COMPONENTS
 # ===========================
 components:
+  tags:
+    - name: "🛒 Compras → Logística"
+      description: |
+        **Requests desde el módulo de Compras hacia Logística**
+        
+        Este grupo incluye las operaciones que el módulo de **Compras** realiza hacia Logística:
+        - **Cálculo de costos** antes de finalizar la compra
+        - **Creación de envíos** después de confirmar la compra
+        - **Consulta de métodos de transporte** para mostrar opciones al cliente
+        - **Seguimiento de envíos** para mostrar estado al cliente
+        
+        **Flujo típico:**
+        1. Cliente selecciona productos → Compras consulta costos de envío
+        2. Cliente elige método de transporte → Compras confirma compra
+        3. Compras crea envío en Logística → Recibe tracking number
+        4. Cliente consulta estado → Compras obtiene detalles del envío
+    
+    - name: "📦 Stock → Logística"
+      description: |
+        **Requests desde el módulo de Stock hacia Logística**
+        
+        Este grupo incluye las operaciones que el módulo de **Stock** realiza hacia Logística:
+        - **Validación de productos** antes de crear envíos
+        - **Consulta de información** de productos para cálculos
+        - **Actualización de inventario** después de envíos
+        
+        **Flujo típico:**
+        1. Stock valida disponibilidad de productos
+        2. Stock proporciona peso y dimensiones para cálculos
+        3. Stock actualiza inventario después de envíos confirmados
+    
+    - name: "🔍 Logística → Consultas Internas"
+      description: |
+        **Operaciones internas del módulo de Logística**
+        
+        Este grupo incluye operaciones que Logística realiza internamente o para consultas directas:
+        - **Listado de envíos** con filtros
+        - **Detalles específicos** de envíos
+        - **Cancelación de envíos** (solo en estados tempranos)
+        - **Métodos de transporte** disponibles
+        
+        **Uso:** Principalmente para administración y consultas directas del sistema de logística.
+
   securitySchemes:
     bearerAuth:
       type: http
