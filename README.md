@@ -1,327 +1,226 @@
-# 📦 Microservicio de Logística - Grupo 12
+# 📦 Módulo de Transporte, Logística y Seguimiento
 
 > **Trabajo Práctico Integrador - Desarrollo de Software 2025**  
-> **UTN FRRE - Facultad Regional Resistencia**
+> **UTN FRRE - Facultad Regional Resistencia - Grupo 12**
 
-## 🚀 Instalación
+## 🎯 Descripción del Proyecto
 
+Sistema de gestión logística que opera en modelo punto a punto (A→B): retira mercadería en depósitos de Stock y entrega directamente al cliente final, sin sucursales intermedias ni centros de distribución propios.
+
+### Responsabilidades del Módulo:
+- ✅ Cotizar costo y tiempo de envío
+- ✅ Crear y gestionar envíos post-compra
+- ✅ Planificar retiros en depósitos de Stock
+- ✅ Coordinar y ejecutar retiros físicos
+- ✅ Planificar rutas de entrega optimizadas
+- ✅ Ejecutar entregas con evidencia digital
+- ✅ Gestionar problemas, reintentos y reprogramaciones
+- ✅ Procesar cancelaciones (dentro de ventana permitida)
+- ✅ Gestionar devoluciones a Stock
+- ✅ Mantener trazabilidad completa
+- ✅ Generar documentación operativa
+
+## 🏗️ Arquitectura
+
+### Ecosistema Completo:
+- **Portal de Compras**: Venta, cobro, gestión de catálogo
+- **Stock**: Gestión de inventario y reservas
+- **Logística** (este módulo): Transporte y seguimiento
+
+### Stack Tecnológico:
+- **Backend**: NestJS + TypeScript + Prisma + PostgreSQL
+- **Frontend**: SvelteKit + Tailwind CSS
+- **Cache**: Redis
+- **Documentación**: OpenAPI/Swagger
+- **Testing**: Jest
+- **DevOps**: Docker + GitHub Actions
+
+## 📁 Estructura del Proyecto
+
+```
+logisticaG12/  (MONOREPO)
+│
+├── backend/                    # Backend (NestJS)
+│   ├── src/
+│   │   ├── shipping/          # Envíos
+│   │   ├── config/            # Configuración
+│   │   ├── vehicles/          # Vehículos
+│   │   ├── routes/            # Rutas
+│   │   └── integrations/      # Cliente Stock
+│   ├── prisma/
+│   │   ├── schema.prisma      # Modelo de datos
+│   │   └── migrations/
+│   ├── Dockerfile
+│   └── package.json
+│
+├── frontend/                   # Frontend (SvelteKit)
+│   ├── src/
+│   │   ├── routes/            # Páginas
+│   │   │   ├── dashboard/
+│   │   │   ├── shipments/
+│   │   │   ├── config/
+│   │   │   └── track/
+│   │   └── lib/
+│   │       ├── components/    # Componentes UI
+│   │       └── middleware/    # Capa de servicios
+│   │           ├── services/  # API calls al backend
+│   │           ├── stores/    # Estado global
+│   │           ├── mappers/   # Transformadores DTO ↔ UI
+│   │           ├── validators/# Validaciones cliente
+│   │           ├── errors/    # Manejo de errores
+│   │           └── utils/     # Utilidades
+│   ├── Dockerfile
+│   └── package.json
+│
+├── docs/                       # Documentación
+│   ├── architecture/
+│   ├── api/
+│   ├── database/
+│   └── deployment/
+│
+├── .github/
+│   └── workflows/              # CI/CD
+│
+├── docker-compose.yml
+├── README.md
+└── CONTRIBUTING.md
+```
+
+## 🚀 Instalación y Configuración
+
+### Prerrequisitos
+- Node.js 18+
+- Docker y Docker Compose
+- Git
+
+### Configuración Local
+
+1. **Clonar el repositorio:**
 ```bash
-# Instalar dependencias
-npm install
+git clone https://github.com/FRRe-DS/2025-12-TPI.git
+cd 2025-12-TPI
+```
 
-# Configurar variables de entorno
-cp .env.example .env
+2. **Configurar variables de entorno:**
+```bash
+cp env.example .env
+# Editar .env con tus configuraciones
+```
 
-# Levantar Docker (PostgreSQL + Redis)
+3. **Levantar servicios de base de datos:**
+```bash
 docker-compose up -d
+```
 
-# Configurar base de datos
+4. **Configurar backend:**
+```bash
+cd backend
+npm install
 npx prisma generate
 npx prisma migrate dev
+npx prisma db seed
+```
 
-# Ejecutar en desarrollo
+5. **Ejecutar en modo desarrollo:**
+```bash
+# Backend
+cd backend
 npm run start:dev
+
+# Frontend (cuando esté implementado)
+cd frontend
+npm install
+npm run dev
 ```
 
-## 📡 API Endpoints
+## 🔗 APIs y Endpoints
 
-### 1. Calcular Costo de Envío
-
-**POST** `/shipping/cost`
-
-Calcula el costo de envío sin crear ningún registro.
-
-**Request Body:**
-```json
-{
-  "delivery_address": {
-    "street": "Av. Dirac 1234",
-    "city": "Resistencia",
-    "state": "Chaco",
-    "postal_code": "H3500ABC",
-    "country": "AR"
-  },
-  "products": [
-    {
-      "id": 1,
-      "quantity": 2
-    },
-    {
-      "id": 2,
-      "quantity": 1
-    }
-  ]
-}
+### APIs que EXPONEMOS:
+```
+POST /shipping/cost     → Cotizar envío
+POST /shipping          → Crear envío
+GET /shipping/{id}      → Consultar estado
+POST /shipping/{id}/cancel → Cancelar envío
+GET /shipping/{id}/pod  → Obtener POD
 ```
 
-**Response 200:**
-```json
-{
-  "currency": "ARS",
-  "total_cost": 45.5,
-  "transport_type": "air",
-  "products": [
-    {
-      "id": 1,
-      "cost": 20.0
-    },
-    {
-      "id": 2,
-      "cost": 25.5
-    }
-  ]
-}
+### APIs que CONSUMIMOS:
+```
+GET /productos/{id}     → Consultar producto (Stock)
+GET /reservas/{id}      → Validar reserva (Stock)
 ```
 
----
+## 🔄 Flujo de Estados
 
-### 2. Obtener Métodos de Transporte
+```
+created → pickup_scheduled → picking_up → picked_up → 
+out_for_delivery → delivered ✅
 
-**GET** `/shipping/transport-methods`
-
-Retorna la lista de métodos de transporte disponibles.
-
-**Response 200:**
-```json
-{
-  "transport_methods": [
-    {
-      "type": "air",
-      "name": "Air Freight",
-      "estimated_days": "1-3"
-    },
-    {
-      "type": "road",
-      "name": "Road Transport",
-      "estimated_days": "3-7"
-    },
-    {
-      "type": "rail",
-      "name": "Rail Freight",
-      "estimated_days": "5-10"
-    },
-    {
-      "type": "sea",
-      "name": "Sea Freight",
-      "estimated_days": "15-30"
-    }
-  ]
-}
+Desvíos:
+created → cancelled ❌
+pickup_scheduled → cancelled ❌
+out_for_delivery → delivery_failed → out_for_delivery (reintento)
+delivery_failed → returning → returned ❌
 ```
 
----
+## 🌿 Estrategia de Branches
 
-### 3. Crear Envío
+### Branches Permanentes:
+- `main` → Producción (código estable, protegida)
+- `dev` → Integración continua (donde se mergea todo)
 
-**POST** `/shipping`
+### Branches Temporales:
+- `feature/<scope>-<descripcion>` → Nueva funcionalidad
+- `fix/<scope>-<descripcion>` → Corrección de bug
+- `chore/<descripcion>` → Tareas de mantenimiento
+- `docs/<tema>` → Documentación
 
-Crea un nuevo envío asociado a una orden.
+## 📋 Sprints Planificados
 
-**Request Body:**
-```json
-{
-  "order_id": 123,
-  "user_id": 456,
-  "delivery_address": {
-    "street": "Av. Siempre Viva 123",
-    "city": "Resistencia",
-    "state": "Chaco",
-    "postal_code": "H3500ABC",
-    "country": "AR"
-  },
-  "transport_type": "air",
-  "products": [
-    {
-      "id": 1,
-      "quantity": 1
-    },
-    {
-      "id": 2,
-      "quantity": 2
-    }
-  ]
-}
+1. **Sprint 1**: Fundación Arquitectónica
+2. **Sprint 2**: Creación y Gestión de Envíos
+3. **Sprint 3**: Tracking y Estados
+4. **Sprint 4**: Planificación y Rutas
+5. **Sprint 5**: Refinamiento e Integración
+6. **Sprint 6**: Polish y Entrega
+
+## 🛠️ Comandos Útiles
+
+### Backend
+```bash
+cd backend
+npm run start:dev      # Desarrollo
+npm run build          # Compilar
+npm run test           # Tests
+npm run test:e2e       # Tests E2E
+npx prisma studio      # Interfaz BD
+npx prisma migrate dev # Migraciones
 ```
 
-**Response 201:**
-```json
-{
-  "shipping_id": "uuid-123-456",
-  "status": "created",
-  "transport_type": "air",
-  "estimated_delivery_at": "2025-10-01T00:00:00Z"
-}
+### Docker
+```bash
+docker-compose up -d   # Levantar servicios
+docker-compose down    # Detener servicios
+docker-compose logs    # Ver logs
 ```
 
----
+## 📚 Documentación
 
-### 4. Listar Envíos
-
-**GET** `/shipping`
-
-Obtiene una lista paginada de envíos con filtros opcionales.
-
-**Query Parameters:**
-- `user_id` (opcional): Filtrar por ID de usuario
-- `status` (opcional): Filtrar por estado (created, in_transit, delivered, etc.)
-- `from_date` (opcional): Fecha desde (ISO 8601)
-- `to_date` (opcional): Fecha hasta (ISO 8601)
-- `page` (opcional, default: 1): Número de página
-- `limit` (opcional, default: 20): Resultados por página
-
-**Ejemplo:** `GET /shipping?user_id=456&status=in_transit&page=1&limit=20`
-
-**Response 200:**
-```json
-{
-  "shipments": [
-    {
-      "shipping_id": "uuid-123",
-      "order_id": 123,
-      "user_id": 456,
-      "products": [
-        {
-          "product_id": 12,
-          "quantity": 2
-        }
-      ],
-      "status": "in_distribution",
-      "transport_type": "air",
-      "estimated_delivery_at": "2025-10-01T00:00:00Z",
-      "created_at": "2025-09-01T10:00:00Z"
-    }
-  ],
-  "pagination": {
-    "current_page": 1,
-    "total_pages": 5,
-    "total_items": 87,
-    "items_per_page": 20
-  }
-}
-```
-
----
-
-### 5. Obtener Detalle de Envío
-
-**GET** `/shipping/:id`
-
-Obtiene información completa de un envío específico, incluyendo historial de logs.
-
-**Ejemplo:** `GET /shipping/uuid-123`
-
-**Response 200:**
-```json
-{
-  "shipping_id": "uuid-123",
-  "order_id": 123,
-  "user_id": 456,
-  "delivery_address": {
-    "street": "Av. Siempre Viva 123",
-    "city": "Resistencia",
-    "state": "Chaco",
-    "postal_code": "H3500ABC",
-    "country": "AR"
-  },
-  "departure_address": {
-    "street": "Warehouse Central",
-    "city": "Resistencia",
-    "state": "Chaco",
-    "postal_code": "H3500XYZ",
-    "country": "AR"
-  },
-  "products": [
-    {
-      "product_id": 12,
-      "quantity": 2
-    }
-  ],
-  "status": "in_distribution",
-  "transport_type": "air",
-  "tracking_number": "LOG-AR-123456789",
-  "carrier_name": "Express Logistics SA",
-  "total_cost": 45.5,
-  "currency": "ARS",
-  "estimated_delivery_at": "2025-10-01T00:00:00Z",
-  "created_at": "2025-09-01T10:00:00Z",
-  "updated_at": "2025-09-15T09:29:00Z",
-  "logs": [
-    {
-      "timestamp": "2025-09-15T09:29:00Z",
-      "status": "in_distribution",
-      "message": "Shipment is in distribution"
-    },
-    {
-      "timestamp": "2025-09-01T10:00:00Z",
-      "status": "created",
-      "message": "Shipment created"
-    }
-  ]
-}
-```
-
----
-
-### 6. Cancelar Envío
-
-**POST** `/shipping/:id/cancel`
-
-Cancela un envío. Solo se puede cancelar si está en estado `created` o `reserved`.
-
-**Ejemplo:** `POST /shipping/uuid-123/cancel`
-
-**Response 200:**
-```json
-{
-  "shipping_id": "uuid-123",
-  "status": "cancelled",
-  "cancelled_at": "2025-09-18T19:00:00Z"
-}
-```
-
-**Response 400 (Error):**
-```json
-{
-  "code": "bad_request",
-  "message": "Shipment cannot be cancelled. Current status 'in_transit' does not allow cancellation."
-}
-```
-
----
-
-## 🗄️ Estados del Envío
-
-- `created`: Envío creado
-- `reserved`: Inventario reservado
-- `in_transit`: En tránsito
-- `arrived`: Llegó a destino
-- `in_distribution`: En distribución local
-- `delivered`: Entregado
-- `cancelled`: Cancelado
-
----
-
-## 🚚 Tipos de Transporte
-
-- `air`: Aéreo (1-3 días)
-- `road`: Terrestre (3-7 días)
-- `rail`: Ferroviario (5-10 días)
-- `sea`: Marítimo (15-30 días)
-
----
-
-## 📄 Licencia
-
-Apache-2.0
-
----
+- [API Testing Guide](./API-TESTING.md)
+- [OpenAPI Specification](./openapilog.yaml)
+- [Project Context](./memory/project-context.md)
+- [Constitution](./memory/constitution.md)
 
 ## 👥 Equipo
 
 **Grupo 12 - Desarrollo de Software 2025 - UTN FRRE**
 
-- [Integrantes del grupo]
+## 📄 Licencia
 
----
+Apache-2.0
 
-**Repositorio:** https://github.com/FRRe-DS/2025-12-TPI
+## 🔗 Enlaces
+
+- **Repositorio**: https://github.com/FRRe-DS/2025-12-TPI
+- **Documentación**: [Ver docs/](./docs/)
+- **Issues**: https://github.com/FRRe-DS/2025-12-TPI/issues

@@ -1,5 +1,5 @@
 # ===================================
-# GITIGNORE - Logística Grupo 12
+# GITIGNORE - Solo Código Fuente
 # TPI Desarrollo de Software 2025
 # ===================================
 
@@ -13,12 +13,19 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+# Backend dependencies
+backend/node_modules/
+backend/npm-debug.log*
+
+# Frontend dependencies (cuando se implemente)
+frontend/node_modules/
+frontend/npm-debug.log*
+
 # ===================================
 # Compiled output
 # ===================================
 /dist
 /build
-/test
 *.js
 *.js.map
 !jest.config.js
@@ -48,9 +55,6 @@ lerna-debug.log*
 .env.production
 .env.*.local
 
-# IMPORTANTE: Mantener archivos de ejemplo
-!.env.example
-
 # ===================================
 # IDEs and editors
 # ===================================
@@ -61,12 +65,8 @@ lerna-debug.log*
 *.launch
 .settings/
 *.sublime-workspace
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
+.vscode/
+.history/
 
 # ===================================
 # OS
@@ -80,13 +80,15 @@ Thumbs.db
 # ===================================
 # Docker
 # ===================================
+docker-compose.yml
 docker-compose.override.yml
+Dockerfile*
 .dockerignore
 
 # ===================================
 # Logs
 # ===================================
-logs
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -97,9 +99,7 @@ lerna-debug.log*
 # ===================================
 # Prisma
 # ===================================
-prisma/migrations/**/migration.sql
-# Mantener carpeta migrations pero ignorar contenido específico
-!prisma/migrations/.gitkeep
+prisma/migrations/
 
 # ===================================
 # Temporary files
@@ -129,10 +129,15 @@ dist/
 dump.rdb
 
 # ===================================
-# Documentation builds
+# Documentation (except README.md)
 # ===================================
-docs/build/
-docs/.vuepress/dist/
+docs/
+*.md
+!README.md
+API-TESTING.md
+CLAUDE.md
+memory/
+specs/
 
 # ===================================
 # Certificates & Keys
@@ -159,29 +164,56 @@ docs/.vuepress/dist/
 *.7z
 
 # ===================================
-# Proyecto específico - Archivos de trabajo
+# Project specific files
 # ===================================
-# PDFs del proyecto (ya están en el repo)
-# DS-2025 - TPI-v1.pdf ya está trackeado
+# PDFs
+*.pdf
 
-# Postman collections locales (si hay modificaciones)
-*.postman_collection.local.json
+# Postman collections
+*.postman_collection.json
 
-# Archivos de prueba temporales
+# Test data
 test-data/
 mock-data/
 *.mock.json
 
+# Scripts
+*.sh
+test-api.sh
+
+# Configuration files
+portainer-*.yml
+openapilog.yaml
+
 # ===================================
 # CI/CD
 # ===================================
-.github/workflows/*.local.yml
-
+.github/
 
 # ===================================
-# Package manager locks (opcional, según equipo)
+# Development Tools
 # ===================================
-# Descomentar si el equipo decide no versionar lockfiles
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# GitHub Spec Kit (herramienta de desarrollo local)
+spec-kit/
+spec-kit-env/
+spec-development/
+specs/
+memory/
+CLAUDE.md
+activate-spec-kit.sh
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# ===================================
+# Package manager locks
+# ===================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ===================================
+# License and other non-code files
+# ===================================
+LICENSE
+.gitattributes

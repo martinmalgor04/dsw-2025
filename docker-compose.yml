@@ -25,6 +25,40 @@ services:
     networks:
       - logistica-network
 
+  # Backend service (cuando esté listo para producción)
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: logistica-backend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/logistica_db
+  #     - REDIS_URL=redis://redis:6379
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   networks:
+  #     - logistica-network
+
+  # Frontend service (cuando esté implementado)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: logistica-frontend
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - VITE_API_URL=http://backend:3000
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - logistica-network
+
 volumes:
   postgres_data:
   redis_data:
