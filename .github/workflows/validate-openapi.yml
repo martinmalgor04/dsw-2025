@@ -3,7 +3,7 @@ name: Validate OpenAPI
 on:
   pull_request:
   push:
-    branches: [main, apitest]
+    branches: [main, apitest,dev]
 
 jobs:
   validate:
