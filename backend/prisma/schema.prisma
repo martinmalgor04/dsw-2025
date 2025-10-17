@@ -1,0 +1,166 @@
+// ===================================
+// SCHEMA DE PRISMA - LOGÍSTICA GRUPO 12
+// TPI Desarrollo de Software 2025
+// ===================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// ENUMS
+// ===================================
+
+enum ShippingStatus {
+  CREATED
+  RESERVED
+  IN_TRANSIT
+  ARRIVED
+  IN_DISTRIBUTION
+  DELIVERED
+  CANCELLED
+}
+
+enum TransportType {
+  AIR
+  SEA
+  RAIL
+  ROAD
+}
+
+// ===================================
+// MODELOS
+// ===================================
+
+// Tabla principal de envíos
+model Shipping {
+  id                    String          @id @default(uuid())
+  orderId               Int
+  userId                Int
+  
+  // Dirección de entrega
+  deliveryStreet        String
+  deliveryCity          String
+  deliveryState         String
+  deliveryPostalCode    String
+  deliveryCountry       String          @default("AR")
+  
+  // Dirección de origen (almacén)
+  departureStreet       String?
+  departureCity         String?
+  departureState        String?
+  departurePostalCode   String?
+  departureCountry      String          @default("AR")
+  
+  // Estado y seguimiento
+  status                ShippingStatus  @default(CREATED)
+  transportType         TransportType
+  trackingNumber        String?         @unique
+  carrierName           String?
+  
+  // Costos
+  totalCost             Decimal         @db.Decimal(10, 2)
+  currency              String          @default("ARS")
+  
+  // Fechas
+  estimatedDeliveryAt   DateTime
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  cancelledAt           DateTime?
+  
+  // Relaciones
+  products              ShippingProduct[]
+  logs                  ShippingLog[]
+  
+  @@map("shipments")
+}
+
+// Productos incluidos en el envío
+model ShippingProduct {
+  id          String   @id @default(uuid())
+  shippingId  String
+  productId   Int      // ID del producto en el módulo de Stock
+  quantity    Int
+  
+  shipping    Shipping @relation(fields: [shippingId], references: [id], onDelete: Cascade)
+  
+  @@map("shipping_products")
+}
+
+// Logs de auditoría (historial de cambios de estado)
+model ShippingLog {
+  id          String         @id @default(uuid())
+  shippingId  String
+  status      ShippingStatus
+  message     String
+  timestamp   DateTime       @default(now())
+  
+  shipping    Shipping       @relation(fields: [shippingId], references: [id], onDelete: Cascade)
+  
+  @@map("shipping_logs")
+}
+
+// Métodos de transporte disponibles (RF-001)
+model TransportMethod {
+  id              String          @id @default(uuid()) @db.Uuid
+  code            String          @unique @db.VarChar(20)
+  name            String          @db.VarChar(100)
+  description     String?         @db.Text
+  averageSpeed    Int             // km/h - velocidad promedio
+  estimatedDays   String          @db.VarChar(20) // Formato: "1-3", "3-7", etc.
+  baseCostPerKm   Decimal         @db.Decimal(10, 2)
+  baseCostPerKg   Decimal         @db.Decimal(10, 2)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
+  
+  // Relaciones
+  tariffConfigs   TariffConfig[]
+  
+  @@map("transport_methods")
+  @@index([code])
+  @@index([isActive], name: "idx_transport_methods_active")
+}
+
+// Zonas de cobertura (RF-001)
+model CoverageZone {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String    @db.VarChar(100)
+  description   String?   @db.Text
+  postalCodes   String[]  @map("postal_codes") // Array de códigos postales argentinos
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  
+  @@map("coverage_zones")
+  @@index([isActive], name: "idx_coverage_zones_active")
+}
+
+// Configuración de tarifas (RF-001)
+model TariffConfig {
+  id                  String         @id @default(uuid()) @db.Uuid
+  transportMethodId   String         @map("transport_method_id") @db.Uuid
+  baseTariff          Decimal        @map("base_tariff") @db.Decimal(10, 2)
+  costPerKg           Decimal        @map("cost_per_kg") @db.Decimal(10, 2)
+  costPerKm           Decimal        @map("cost_per_km") @db.Decimal(10, 2)
+  volumetricFactor    Int            @map("volumetric_factor") // Factor volumétrico configurable
+  environment         String         @default("development") @db.VarChar(20)
+  isActive            Boolean        @default(true) @map("is_active")
+  validFrom           DateTime       @default(now()) @map("valid_from") @db.Timestamptz()
+  validTo             DateTime?      @map("valid_to") @db.Timestamptz()
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+  
+  // Relaciones
+  transportMethod     TransportMethod @relation(fields: [transportMethodId], references: [id], onDelete: Cascade)
+  
+  @@map("tariff_configs")
+  @@index([transportMethodId], name: "idx_tariff_configs_transport_method")
+  @@index([environment], name: "idx_tariff_configs_environment")
+  @@index([isActive], name: "idx_tariff_configs_active")
+}
