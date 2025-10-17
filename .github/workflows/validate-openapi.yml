@@ -1,14 +1,24 @@
-name: Validate OpenAPI
+name: Validate OpenAPI Specifications
 
 on:
   pull_request:
+    branches: [main, dev]
+    paths:
+      - 'openapilog.yaml'
+      - 'openapiint.yml'
+      - '.github/workflows/validate-openapi.yml'
   push:
-    branches: [main, apitest,dev]
+    branches: [main, dev]
+    paths:
+      - 'openapilog.yaml'
+      - 'openapiint.yml'
+      - '.github/workflows/validate-openapi.yml'
 
 jobs:
-  validate:
+  validate-openapi:
+    name: Validate OpenAPI Files
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,16 +26,40 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install swagger-cli
         run: npm install -g @apidevtools/swagger-cli
 
-      - name: Validate Compras OpenAPI definition
-        run: swagger-cli validate ./compras/openapi.yaml
+      - name: Validate External API (openapilog.yaml)
+        run: |
+          echo "🔍 Validating external API specification..."
+          swagger-cli validate ./openapilog.yaml
+          echo "✅ External API specification is valid"
 
-      - name: Validate Logistica OpenAPI definition
-        run: swagger-cli validate ./logistica/openapi.yaml
+      - name: Validate Internal API (openapiint.yml)
+        run: |
+          echo "🔍 Validating internal API specification..."
+          swagger-cli validate ./openapiint.yml
+          echo "✅ Internal API specification is valid"
 
-      - name: Validate Stock OpenAPI definition
-        run: swagger-cli validate ./stock/openapi.yaml
+      - name: Check API consistency
+        run: |
+          echo "🔍 Checking API consistency..."
+          # Verificar que ambos archivos existen
+          if [ ! -f "./openapilog.yaml" ]; then
+            echo "❌ openapilog.yaml not found"
+            exit 1
+          fi
+          if [ ! -f "./openapiint.yml" ]; then
+            echo "❌ openapiint.yml not found"
+            exit 1
+          fi
+          echo "✅ Both API specifications found"
+
+      - name: Summary
+        run: |
+          echo "🎉 All OpenAPI specifications are valid!"
+          echo "📋 External API: openapilog.yaml"
+          echo "📋 Internal API: openapiint.yml"

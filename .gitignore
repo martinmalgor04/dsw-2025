@@ -186,11 +186,6 @@ portainer-*.yml
 openapilog.yaml
 
 # ===================================
-# CI/CD
-# ===================================
-.github/
-
-# ===================================
 # Development Tools
 # ===================================
 # GitHub Spec Kit (herramienta de desarrollo local)

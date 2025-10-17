@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Base de datos PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: logistica-postgres
@@ -15,6 +16,7 @@ services:
     networks:
       - logistica-network
 
+  # Cache Redis
   redis:
     image: redis:7-alpine
     container_name: logistica-redis
@@ -25,39 +27,45 @@ services:
     networks:
       - logistica-network
 
-  # Backend service (cuando esté listo para producción)
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: logistica-backend
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - NODE_ENV=production
-  #     - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/logistica_db
-  #     - REDIS_URL=redis://redis:6379
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #   networks:
-  #     - logistica-network
+  # Backend service (desarrollo)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: logistica-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/logistica_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - logistica-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
 
-  # Frontend service (cuando esté implementado)
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: logistica-frontend
-  #   ports:
-  #     - "3001:3001"
-  #   environment:
-  #     - NODE_ENV=production
-  #     - VITE_API_URL=http://backend:3000
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - logistica-network
+  # Frontend service (desarrollo)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: logistica-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - logistica-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
