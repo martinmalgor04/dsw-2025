@@ -37,15 +37,10 @@ async function main() {
     },
   ];
 
-  for (const method of transportMethods) {
-    await prisma.transportMethod.upsert({
-      where: { type: method.type as any },
-      update: {},
-      create: method as any,
-    });
-  }
-
-  console.log('✅ Transport methods created');
+  // Transport methods ya están insertados via MCP de Supabase
+  // Ver RF-001: Servicio de Configuración Base
+  console.log('⏭️  Transport methods ya insertados via MCP');
+  
   console.log('🎉 Seeding completed!');
 }
 
