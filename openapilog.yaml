@@ -39,6 +39,49 @@ servers:
   - url: http://localhost:3000
     description: Servidor de desarrollo local
 
+tags:
+  - name: "🛒 Compras → Logística"
+    description: |
+      **Requests desde el módulo de Compras hacia Logística**
+      
+      Este grupo incluye las operaciones que el módulo de **Compras** realiza hacia Logística:
+      - **Cálculo de costos** antes de finalizar la compra
+      - **Creación de envíos** después de confirmar la compra
+      - **Consulta de métodos de transporte** para mostrar opciones al cliente
+      - **Seguimiento de envíos** para mostrar estado al cliente
+      
+      **Flujo típico:**
+      1. Cliente selecciona productos → Compras consulta costos de envío
+      2. Cliente elige método de transporte → Compras confirma compra
+      3. Compras crea envío en Logística → Recibe tracking number
+      4. Cliente consulta estado → Compras obtiene detalles del envío
+  
+  - name: "📦 Stock → Logística"
+    description: |
+      **Requests desde el módulo de Stock hacia Logística**
+      
+      Este grupo incluye las operaciones que el módulo de **Stock** realiza hacia Logística:
+      - **Validación de productos** antes de crear envíos
+      - **Consulta de información** de productos para cálculos
+      - **Actualización de inventario** después de envíos
+      
+      **Flujo típico:**
+      1. Stock valida disponibilidad de productos
+      2. Stock proporciona peso y dimensiones para cálculos
+      3. Stock actualiza inventario después de envíos confirmados
+  
+  - name: "🔍 Logística → Consultas Internas"
+    description: |
+      **Operaciones internas del módulo de Logística**
+      
+      Este grupo incluye operaciones que Logística realiza internamente o para consultas directas:
+      - **Listado de envíos** con filtros
+      - **Detalles específicos** de envíos
+      - **Cancelación de envíos** (solo en estados tempranos)
+      - **Métodos de transporte** disponibles
+      
+      **Uso:** Principalmente para administración y consultas directas del sistema de logística.
+
 paths:
   # ===========================
   # SHIPPING COST CALCULATION
@@ -560,49 +603,6 @@ paths:
 # COMPONENTS
 # ===========================
 components:
-  tags:
-    - name: "🛒 Compras → Logística"
-      description: |
-        **Requests desde el módulo de Compras hacia Logística**
-        
-        Este grupo incluye las operaciones que el módulo de **Compras** realiza hacia Logística:
-        - **Cálculo de costos** antes de finalizar la compra
-        - **Creación de envíos** después de confirmar la compra
-        - **Consulta de métodos de transporte** para mostrar opciones al cliente
-        - **Seguimiento de envíos** para mostrar estado al cliente
-        
-        **Flujo típico:**
-        1. Cliente selecciona productos → Compras consulta costos de envío
-        2. Cliente elige método de transporte → Compras confirma compra
-        3. Compras crea envío en Logística → Recibe tracking number
-        4. Cliente consulta estado → Compras obtiene detalles del envío
-    
-    - name: "📦 Stock → Logística"
-      description: |
-        **Requests desde el módulo de Stock hacia Logística**
-        
-        Este grupo incluye las operaciones que el módulo de **Stock** realiza hacia Logística:
-        - **Validación de productos** antes de crear envíos
-        - **Consulta de información** de productos para cálculos
-        - **Actualización de inventario** después de envíos
-        
-        **Flujo típico:**
-        1. Stock valida disponibilidad de productos
-        2. Stock proporciona peso y dimensiones para cálculos
-        3. Stock actualiza inventario después de envíos confirmados
-    
-    - name: "🔍 Logística → Consultas Internas"
-      description: |
-        **Operaciones internas del módulo de Logística**
-        
-        Este grupo incluye operaciones que Logística realiza internamente o para consultas directas:
-        - **Listado de envíos** con filtros
-        - **Detalles específicos** de envíos
-        - **Cancelación de envíos** (solo en estados tempranos)
-        - **Métodos de transporte** disponibles
-        
-        **Uso:** Principalmente para administración y consultas directas del sistema de logística.
-
   securitySchemes:
     bearerAuth:
       type: http
