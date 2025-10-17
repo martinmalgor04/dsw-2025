@@ -1,51 +1,58 @@
-# Multi-stage build for NestJS backend
-FROM node:20-alpine AS base
+# ===================================
+# DOCKERFILE PARA BACKEND - RF-001
+# TPI Desarrollo de Software 2025
+# ===================================
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY backend/package*.json ./
-RUN npm ci --only=production
+# Copiar archivos de dependencias
+COPY package*.json ./
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY backend/ .
+# Instalar todas las dependencias (incluyendo dev para build)
+RUN npm ci && npm cache clean --force
 
-# Generate Prisma client
+# Copiar código fuente
+COPY . .
+
+# Generar cliente de Prisma
 RUN npx prisma generate
 
-# Build the application
+# Compilar aplicación
 RUN npm run build
 
-# Production image, copy all the files and run the app
-FROM base AS runner
+# ===================================
+# PRODUCTION STAGE
+# ===================================
+
+FROM node:20-alpine AS production
+
 WORKDIR /app
 
-ENV NODE_ENV=production
+# Instalar dependencias de producción
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
-
-# Copy the built application
+# Copiar código compilado
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Create a non-root user
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Cambiar ownership
+RUN chown -R nestjs:nodejs /app
 USER nestjs
 
+# Exponer puerto
 EXPOSE 3000
-
-ENV PORT=3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
+# Comando de inicio
 CMD ["node", "dist/main.js"]

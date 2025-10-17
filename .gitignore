@@ -44,6 +44,7 @@ frontend/npm-debug.log*
 /.nyc_output
 *.test.js
 *.spec.js
+backend/TESTING.md
 
 # ===================================
 # Environment Variables
@@ -212,3 +213,4 @@ pnpm-lock.yaml
 # ===================================
 LICENSE
 .gitattributes
+.gitignore
