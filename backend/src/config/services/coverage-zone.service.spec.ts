@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { CoverageZoneService } from '../../../config/services/coverage-zone.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { CoverageZoneService } from './coverage-zone.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('CoverageZoneService', () => {
   let service: CoverageZoneService;

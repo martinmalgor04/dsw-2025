@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ConflictException } from '@nestjs/common';
-import { TransportMethodService } from '../../../config/services/transport-method.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { TransportMethodService } from './transport-method.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('TransportMethodService', () => {
   let service: TransportMethodService;
