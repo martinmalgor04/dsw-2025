@@ -7,6 +7,7 @@ on:
       - 'backend/**'
       - 'frontend/**'
       - 'docker-compose.yml'
+      - 'backend/docker-compose.microservices.yml'
       - '.github/workflows/docker-build-push.yml'
   pull_request:
     branches: [main, dev]
@@ -14,6 +15,7 @@ on:
       - 'backend/**'
       - 'frontend/**'
       - 'docker-compose.yml'
+      - 'backend/docker-compose.microservices.yml'
       - '.github/workflows/docker-build-push.yml'
 
 env:
@@ -21,16 +23,99 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
-    name: Build and Push Docker Images
+  # Build shared libraries first
+  build-shared:
+    name: Build Shared Libraries
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Build shared libraries
+        working-directory: backend
+        run: npm run build:shared
+
+      - name: Cache shared libraries
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/shared/*/dist
+            backend/node_modules
+          key: ${{ runner.os }}-shared-${{ hashFiles('backend/shared/**/package.json') }}
+
+  # Build and test microservices
+  build-and-test-microservices:
+    name: Build & Test Microservices
+    runs-on: ubuntu-latest
+    needs: build-shared
+
+    strategy:
+      matrix:
+        service:
+          - config-service
+          - stock-integration-service
+          - shipping-service
+          - operator-interface-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Restore shared libraries cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/shared/*/dist
+            backend/node_modules
+          key: ${{ runner.os }}-shared-${{ hashFiles('backend/shared/**/package.json') }}
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Build ${{ matrix.service }}
+        working-directory: backend
+        run: npm run build --workspace=services/${{ matrix.service }}
+
+      - name: Run tests for ${{ matrix.service }}
+        working-directory: backend
+        run: npm run test --workspace=services/${{ matrix.service }}
+
+  # Build and push Docker images for microservices
+  build-and-push-microservices:
+    name: Build & Push Microservice Images
+    runs-on: ubuntu-latest
+    needs: build-and-test-microservices
     permissions:
       contents: read
       packages: write
 
     strategy:
       matrix:
-        service: [backend, frontend]
+        service:
+          - config-service
+          - stock-integration-service
+          - shipping-service
+          - operator-interface-service
 
     steps:
       - name: Checkout repository
@@ -61,8 +146,58 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.service }}
-          file: ./${{ matrix.service }}/Dockerfile
+          context: ./backend
+          file: ./backend/services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Image digest
+        run: echo ${{ steps.build.outputs.digest }}
+
+  # Build and push frontend (if exists)
+  build-and-push-frontend:
+    name: Build & Push Frontend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    if: hashFiles('frontend/Dockerfile') != ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -76,12 +211,17 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-and-push-microservices, build-and-push-frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     strategy:
       matrix:
-        service: [backend, frontend]
+        service:
+          - config-service
+          - stock-integration-service
+          - shipping-service
+          - operator-interface-service
+          - frontend
 
     steps:
       - name: Run Trivy vulnerability scanner
@@ -99,29 +239,35 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [build-and-push, security-scan]
+    needs: [build-and-push-microservices, build-and-push-frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     environment: staging
 
     steps:
-      - name: Deploy to staging
+      - name: Deploy microservices to staging
         run: |
-          echo "🚀 Deploying to staging environment..."
-          echo "📦 Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:dev"
-          echo "📦 Frontend image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:dev"
+          echo "🚀 Deploying microservices to staging environment..."
+          echo "📦 Config Service: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-config-service:dev"
+          echo "📦 Stock Integration: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-stock-integration-service:dev"
+          echo "📦 Shipping Service: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shipping-service:dev"
+          echo "📦 Operator Interface: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator-interface-service:dev"
+          echo "📦 Frontend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:dev"
           echo "✅ Staging deployment completed"
 
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build-and-push, security-scan]
+    needs: [build-and-push-microservices, build-and-push-frontend, security-scan]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
 
     steps:
-      - name: Deploy to production
+      - name: Deploy microservices to production
         run: |
-          echo "🚀 Deploying to production environment..."
-          echo "📦 Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest"
-          echo "📦 Frontend image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest"
+          echo "🚀 Deploying microservices to production environment..."
+          echo "📦 Config Service: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-config-service:latest"
+          echo "📦 Stock Integration: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-stock-integration-service:latest"
+          echo "📦 Shipping Service: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shipping-service:latest"
+          echo "📦 Operator Interface: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-operator-interface-service:latest"
+          echo "📦 Frontend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest"
           echo "✅ Production deployment completed"
