@@ -1,50 +1,73 @@
-# 🧪 Scripts de Testing - RF-001: Servicio de Configuración Base
+# 🧪 Scripts - Microservicios Logística
 
-Este directorio contiene scripts automatizados para probar la API del módulo de configuración implementado en RF-001.
+Este directorio contiene scripts para el desarrollo y testing de la arquitectura de microservicios.
 
 ## 📁 Archivos Disponibles
 
-### 🚀 Script Maestro
-- **`run-all-tests.sh`** - Script principal con menú interactivo para ejecutar todos los tests
+### 🐳 Script Principal
+- **`microservices.sh`** - Script maestro para gestión de microservicios
 
-### 🧪 Scripts de Testing
-- **`test-api-local.sh`** - Tests completos de la API local (localhost:3000)
-- **`test-api-external.sh`** - Tests de la API externa (servidor desplegado)
+### 🧪 Scripts de Testing (Legacy)
+- **`run-all-tests.sh`** - Script principal con menú interactivo para ejecutar todos los tests
+- **`test-api-local.sh`** - Tests completos de la API local
+- **`test-api-external.sh`** - Tests de la API externa
 - **`test-api-internal.sh`** - Tests específicos de endpoints internos
 
 ## 🛠️ Uso
 
-### Ejecutar Script Maestro (Recomendado)
+### 🐳 Gestión de Microservicios (Nuevo)
+
+#### Iniciar todos los servicios
+```bash
+cd backend
+./scripts/microservices.sh dev
+```
+
+#### Gestión individual de servicios
+```bash
+# Iniciar un servicio específico
+./scripts/microservices.sh dev-service config-service
+
+# Ver logs de un servicio
+./scripts/microservices.sh logs-service shipping-service
+
+# Ver estado de todos los servicios
+./scripts/microservices.sh status
+
+# Health check de todos los servicios
+./scripts/microservices.sh health
+```
+
+#### Compilación y testing
+```bash
+# Compilar shared libraries y servicios
+./scripts/microservices.sh build
+
+# Ejecutar tests de todos los servicios
+./scripts/microservices.sh test
+
+# Limpiar containers y volúmenes
+./scripts/microservices.sh clean
+```
+
+### 🧪 Scripts de Testing (Legacy)
+
+#### Ejecutar Script Maestro
 ```bash
 cd backend/scripts
 ./run-all-tests.sh
 ```
 
-### Ejecutar Tests Específicos
-
-#### Tests API Local
+#### Tests Específicos
 ```bash
-cd backend/scripts
+# Tests API Local
 ./test-api-local.sh
-```
 
-#### Tests API Externa
-```bash
-# Opción 1: Editar archivo de configuración
-nano scripts/testing-config.sh
-# Cambiar: EXTERNAL_URL=https://tu-servidor.com
-
-# Opción 2: Variable de entorno
+# Tests API Externa
 export EXTERNAL_URL=https://tu-servidor.com
-
-# Ejecutar tests
-cd backend/scripts
 ./test-api-external.sh
-```
 
-#### Tests API Interna
-```bash
-cd backend/scripts
+# Tests API Interna
 ./test-api-internal.sh
 ```
 
@@ -97,17 +120,18 @@ Los scripts crean automáticamente:
 
 ## 🔧 Requisitos
 
-### Para Tests Locales
-- ✅ Servidor corriendo en `localhost:3000`
-- ✅ Base de datos conectada
+### Para Microservicios
+- ✅ Docker y Docker Compose instalados
+- ✅ Node.js 18+ y npm
+- ✅ Puertos disponibles: 3001-3004, 5432, 6379
+
+### Para Tests Legacy
+- ✅ Servidor corriendo en `localhost:3004` (Operator Interface)
+- ✅ Base de datos PostgreSQL conectada
 - ✅ Dependencias instaladas (`npm install`)
 
-### Para Tests Externos
-- ✅ Servidor desplegado y accesible
-- ✅ Variable `EXTERNAL_URL` configurada
-- ✅ Conectividad de red
-
 ### Herramientas Requeridas
+- ✅ `docker` y `docker-compose` - Para orquestación
 - ✅ `curl` - Para hacer requests HTTP
 - ✅ `jq` - Para formatear JSON (opcional)
 - ✅ `bash` - Para ejecutar scripts
@@ -135,56 +159,89 @@ Los scripts crean automáticamente:
 
 ## 🚨 Troubleshooting
 
-### Servidor No Responde
+### Microservicios No Responden
 ```bash
-# Verificar que el servidor esté corriendo
-curl http://localhost:3000/health
+# Verificar estado de servicios
+./scripts/microservices.sh status
 
-# Si no responde, iniciar servidor
-cd backend
-npm run start:dev
+# Ver logs de todos los servicios
+./scripts/microservices.sh logs
+
+# Ver logs de un servicio específico
+./scripts/microservices.sh logs-service config-service
+
+# Health check
+./scripts/microservices.sh health
 ```
 
-### Tests Externos Fallan
+### Errores de Docker
 ```bash
-# Verificar conectividad
-curl https://tu-servidor.com/health
+# Limpiar y reiniciar
+./scripts/microservices.sh clean
+./scripts/microservices.sh dev
 
-# Verificar configuración
-echo $EXTERNAL_URL
+# Verificar Docker
+docker --version
+docker-compose --version
 ```
 
 ### Errores de Permisos
 ```bash
 # Hacer scripts ejecutables
-chmod +x *.sh
+chmod +x scripts/*.sh
+```
+
+### Problemas de Compilación
+```bash
+# Limpiar y recompilar
+./scripts/microservices.sh clean
+./scripts/microservices.sh build
 ```
 
 ## 📝 Logs y Debugging
 
-### Ver Logs del Servidor
+### Ver Logs en Tiempo Real
 ```bash
-cd backend
-npm run start:dev
+# Todos los servicios
+./scripts/microservices.sh logs
+
+# Servicio específico
+./scripts/microservices.sh logs-service shipping-service
 ```
 
 ### Ver Documentación API
-- **Local**: http://localhost:3000/api/docs
-- **Externa**: https://tu-servidor.com/api/docs
+- **Operator Interface**: http://localhost:3004/api/docs
+- **Config Service**: http://localhost:3003/api/docs
+- **Stock Integration**: http://localhost:3002/api/docs
+- **Shipping Service**: http://localhost:3001/api/docs
 
 ### Debugging de Scripts
 ```bash
 # Ejecutar con debug
-bash -x test-api-local.sh
+bash -x scripts/microservices.sh dev
 ```
 
-## 🎯 RF-001: Criterios de Aceptación
+## 🎯 Arquitectura de Microservicios
 
-Los scripts verifican:
-- ✅ **CA001**: Configuración por ambiente
-- ✅ **CA002**: Endpoints específicos funcionando
-- ✅ **CA003**: Impacto en puntaje (Arquitectura + Acceso Datos)
+Los scripts gestionan:
+- ✅ **Microservicios**: 4 servicios independientes
+- ✅ **Base de datos compartida**: PostgreSQL
+- ✅ **Cache compartido**: Redis
+- ✅ **Orchestration**: Docker Compose
+- ✅ **Health checks**: Monitoreo automático
+- ✅ **Development workflow**: Scripts unificados
+
+### 📊 Puertos de Servicios
+
+| Servicio | Puerto | Health Check |
+|----------|--------|--------------|
+| Operator Interface | 3004 | http://localhost:3004/health |
+| Config Service | 3003 | http://localhost:3003/health |
+| Stock Integration | 3002 | http://localhost:3002/health |
+| Shipping Service | 3001 | http://localhost:3001/health |
+| PostgreSQL | 5432 | - |
+| Redis | 6379 | - |
 
 ---
 
-**¡Happy Testing! 🚀**
+**¡Happy Microservices Development! 🚀**
