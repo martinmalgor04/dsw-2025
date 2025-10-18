@@ -255,6 +255,7 @@ export class StockIntegrationService {
         this.logger.warn(`Request failed (attempt ${attempt}/${maxRetries}): ${error.message}`);
         
         if (attempt === maxRetries) {
+          // Último intento fallido: relanzar error
           throw error;
         }
 
@@ -263,6 +264,10 @@ export class StockIntegrationService {
         await this.sleep(delay);
       }
     }
+
+    // TypeScript: esta línea no debería ser alcanzable debido al 'throw' anterior
+    // pero se agrega para satisfacer el chequeo estricto de retorno.
+    throw new Error('Unreachable: makeRequestWithRetry exhausted without throwing');
   }
 
   /**

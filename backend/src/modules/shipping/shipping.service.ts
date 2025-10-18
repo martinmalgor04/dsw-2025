@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { MockDataService } from '../../common/services/mock-data.service';
-import { StockIntegrationService } from '../../src/stock-integration/services/stock-integration.service';
+import { StockIntegrationService } from '../../stock-integration/services/stock-integration.service';
 import {
   CalculateCostRequestDto,
   CalculateCostResponseDto,
