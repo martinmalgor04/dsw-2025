@@ -17,6 +17,14 @@ lerna-debug.log*
 backend/node_modules/
 backend/npm-debug.log*
 
+# Backend build artifacts
+backend/dist/
+backend/coverage/
+
+# Backend environment files
+backend/.env
+backend/.env.*
+
 # Frontend dependencies (cuando se implemente)
 frontend/node_modules/
 frontend/npm-debug.log*
