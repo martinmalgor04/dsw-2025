@@ -4,9 +4,15 @@ import { AppService } from './app.service';
 import { ShippingModule } from './modules/shipping/shipping.module';
 import { TransportMethodsModule } from './modules/transport-methods/transport-methods.module';
 import { ConfigModule } from './config/config.module';
+import { StockIntegrationModule } from './src/stock-integration/stock-integration.module';
 
 @Module({
-  imports: [ShippingModule, TransportMethodsModule, ConfigModule],
+  imports: [
+    ShippingModule, 
+    TransportMethodsModule, 
+    ConfigModule,
+    StockIntegrationModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

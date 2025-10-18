@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { MockDataService } from '../../common/services/mock-data.service';
+import { StockIntegrationService } from '../../src/stock-integration/services/stock-integration.service';
 import {
   CalculateCostRequestDto,
   CalculateCostResponseDto,
@@ -18,6 +19,7 @@ import {
 export class ShippingService {
   constructor(
     private mockData: MockDataService,
+    private stockIntegration: StockIntegrationService,
   ) {}
 
   // Mock storage para testing (en memoria)
@@ -27,45 +29,73 @@ export class ShippingService {
   async calculateCost(
     dto: CalculateCostRequestDto,
   ): Promise<CalculateCostResponseDto> {
-    // 1. Obtener información de productos desde mock
-    const productIds = dto.products.map(p => p.id);
-    const stockInfo = await this.mockData.getStockInfo(productIds);
-    
-    // 2. Calcular peso total
+    // 1. Obtener información de productos desde Stock API
     let totalWeight = 0;
     const productCosts: { id: number; cost: number }[] = [];
     
-    for (let i = 0; i < dto.products.length; i++) {
-      const product = dto.products[i];
-      const stock = stockInfo.find(s => s.id === product.id);
-      
-      if (!stock || !stock.available || !stock.weight || !stock.price) {
-        throw new BadRequestException(`Product ${product.id} not available or missing data`);
+    for (const product of dto.products) {
+      try {
+        // Intentar obtener datos reales del producto desde Stock API
+        const stockProduct = await this.stockIntegration.getProductById(product.id);
+        
+        if (stockProduct && stockProduct.pesoKg && stockProduct.precio) {
+          const productWeight = stockProduct.pesoKg * product.quantity;
+          totalWeight += productWeight;
+          
+          productCosts.push({
+            id: product.id,
+            cost: stockProduct.precio * product.quantity,
+          });
+        } else {
+          // Fallback a mock data si Stock API no tiene el producto
+          const mockStock = await this.mockData.getStockInfo([product.id]);
+          const stock = mockStock.find(s => s.id === product.id);
+          
+          if (!stock || !stock.available || !stock.weight || !stock.price) {
+            throw new BadRequestException(`Product ${product.id} not available or missing data`);
+          }
+          
+          const productWeight = stock.weight * product.quantity;
+          totalWeight += productWeight;
+          
+          productCosts.push({
+            id: product.id,
+            cost: stock.price * product.quantity,
+          });
+        }
+      } catch (error) {
+        // Si hay error con Stock API, usar mock data como fallback
+        const mockStock = await this.mockData.getStockInfo([product.id]);
+        const stock = mockStock.find(s => s.id === product.id);
+        
+        if (!stock || !stock.available || !stock.weight || !stock.price) {
+          throw new BadRequestException(`Product ${product.id} not available or missing data`);
+        }
+        
+        const productWeight = stock.weight * product.quantity;
+        totalWeight += productWeight;
+        
+        productCosts.push({
+          id: product.id,
+          cost: stock.price * product.quantity,
+        });
       }
-      
-      const productWeight = stock.weight * product.quantity;
-      totalWeight += productWeight;
-      
-      productCosts.push({
-        id: product.id,
-        cost: stock.price * product.quantity,
-      });
     }
     
-    // 3. Calcular distancia usando mock
+    // 2. Calcular distancia usando mock
     const distanceInfo = await this.mockData.getDistanceInfo(
       dto.delivery_address.postal_code,
       'C1000ABC' // Origen fijo para testing
     );
     
-    // 4. Calcular costo de envío
+    // 3. Calcular costo de envío
     const shippingCost = this.mockData.calculateShippingCost(
       distanceInfo.distance_km,
       totalWeight,
       'STANDARD' // Tipo por defecto para testing
     );
     
-    // 5. Calcular costo total (productos + envío)
+    // 4. Calcular costo total (productos + envío)
     const productTotal = productCosts.reduce((sum, p) => sum + p.cost, 0);
     const totalCost = productTotal + shippingCost.total_cost;
 
