@@ -17,6 +17,7 @@ import { HealthModule } from './health.module';
       isGlobal: true,
       ttl: 300, // 5 minutes
       max: 100, // maximum number of items in cache
+      store: 'memory',
     }),
     HttpModule.register({
       timeout: 10000,

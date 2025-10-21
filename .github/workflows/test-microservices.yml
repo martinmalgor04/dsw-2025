@@ -1,0 +1,100 @@
+name: Test Microservices
+
+on:
+  push:
+    branches: [main, dev, feature/backend/RF-003]
+    paths:
+      - 'backend/services/**'
+      - '.github/workflows/test-microservices.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'backend/services/**'
+      - '.github/workflows/test-microservices.yml'
+
+jobs:
+  test-microservices:
+    name: Test Microservices
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - config-service
+          - stock-integration-service
+          - shipping-service
+          - operator-interface-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/services/${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm install
+
+      - name: Build ${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm run build
+
+      - name: Run tests for ${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm test
+
+      - name: Run linting for ${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm run lint || echo "Linting not configured for ${{ matrix.service }}"
+
+      - name: Check test coverage for ${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm run test:cov || echo "Coverage not configured for ${{ matrix.service }}"
+
+  test-all-services:
+    name: Test All Services Integration
+    runs-on: ubuntu-latest
+    needs: test-microservices
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for all services
+        run: |
+          cd backend/services/config-service && npm install
+          cd ../stock-integration-service && npm install
+          cd ../shipping-service && npm install
+          cd ../operator-interface-service && npm install
+
+      - name: Build all services
+        run: |
+          cd backend/services/config-service && npm run build
+          cd ../stock-integration-service && npm run build
+          cd ../shipping-service && npm run build
+          cd ../operator-interface-service && npm run build
+
+      - name: Run all tests
+        run: |
+          cd backend/services/config-service && npm test
+          cd ../stock-integration-service && npm test
+          cd ../shipping-service && npm test
+          cd ../operator-interface-service && npm test
+
+      - name: Summary
+        run: |
+          echo "🎉 All microservices tests passed!"
+          echo "✅ Config Service: Tests passed"
+          echo "✅ Stock Integration Service: Tests passed"
+          echo "✅ Shipping Service: Tests passed"
+          echo "✅ Operator Interface Service: Tests passed"

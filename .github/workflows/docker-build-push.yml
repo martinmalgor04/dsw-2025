@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: npm ci
+        run: npm install
 
       - name: Build shared libraries
         working-directory: backend
@@ -90,15 +90,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: npm ci
+        run: npm install
 
       - name: Build ${{ matrix.service }}
-        working-directory: backend
-        run: npm run build --workspace=services/${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm run build
 
       - name: Run tests for ${{ matrix.service }}
-        working-directory: backend
-        run: npm run test --workspace=services/${{ matrix.service }}
+        working-directory: backend/services/${{ matrix.service }}
+        run: npm test
 
   # Build and push Docker images for microservices
   build-and-push-microservices:
@@ -146,7 +146,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./backend/services/${{ matrix.service }}
           file: ./backend/services/${{ matrix.service }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}

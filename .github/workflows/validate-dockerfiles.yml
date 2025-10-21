@@ -1,0 +1,81 @@
+name: Validate Dockerfiles
+
+on:
+  push:
+    branches: [main, dev, feature/backend/RF-003]
+    paths:
+      - 'backend/services/**/Dockerfile'
+      - '.github/workflows/validate-dockerfiles.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'backend/services/**/Dockerfile'
+      - '.github/workflows/validate-dockerfiles.yml'
+
+jobs:
+  validate-dockerfiles:
+    name: Validate Dockerfiles
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - config-service
+          - stock-integration-service
+          - shipping-service
+          - operator-interface-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate Dockerfile for ${{ matrix.service }}
+        run: |
+          echo "🔍 Validating Dockerfile for ${{ matrix.service }}..."
+          if [ ! -f "backend/services/${{ matrix.service }}/Dockerfile" ]; then
+            echo "❌ Dockerfile not found for ${{ matrix.service }}"
+            exit 1
+          fi
+          echo "✅ Dockerfile found for ${{ matrix.service }}"
+
+      - name: Check Dockerfile syntax
+        run: |
+          echo "🔍 Checking Dockerfile syntax for ${{ matrix.service }}..."
+          docker buildx build --dry-run -f backend/services/${{ matrix.service }}/Dockerfile backend/services/${{ matrix.service }}
+          echo "✅ Dockerfile syntax is valid for ${{ matrix.service }}"
+
+      - name: Check for required files
+        run: |
+          echo "🔍 Checking required files for ${{ matrix.service }}..."
+          cd backend/services/${{ matrix.service }}
+          
+          # Check for package.json
+          if [ ! -f "package.json" ]; then
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          echo "✅ package.json found"
+          
+          # Check for main.ts
+          if [ ! -f "src/main.ts" ]; then
+            echo "❌ src/main.ts not found"
+            exit 1
+          fi
+          echo "✅ src/main.ts found"
+          
+          # Check for app.module.ts
+          if [ ! -f "src/app.module.ts" ]; then
+            echo "❌ src/app.module.ts not found"
+            exit 1
+          fi
+          echo "✅ src/app.module.ts found"
+
+      - name: Summary
+        run: |
+          echo "🎉 Dockerfile validation completed for ${{ matrix.service }}!"
+          echo "✅ Dockerfile syntax is valid"
+          echo "✅ Required files are present"
+          echo "✅ Ready for Docker build"

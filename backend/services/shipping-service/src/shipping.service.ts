@@ -2,6 +2,10 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { MockDataService } from './services/mock-data.service';
+import { DistanceCalculationService } from './services/distance-calculation.service';
+import { TariffCalculationService } from './services/tariff-calculation.service';
+import { PostalCodeValidationService } from './services/postal-code-validation.service';
+import { TransportType } from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 import {
   CalculateCostRequestDto,
@@ -26,6 +30,9 @@ export class ShippingService {
     private mockData: MockDataService,
     private configService: ConfigService,
     private httpService: HttpService,
+    private distanceService: DistanceCalculationService,
+    private tariffService: TariffCalculationService,
+    private postalValidator: PostalCodeValidationService,
   ) {
     this.stockServiceUrl = this.configService.get<string>('STOCK_SERVICE_URL', 'http://localhost:3002');
   }
@@ -37,77 +44,42 @@ export class ShippingService {
   async calculateCost(
     dto: CalculateCostRequestDto,
   ): Promise<CalculateCostResponseDto> {
-    // 1. Obtener información de productos desde Stock API
+    // Validate postal code
+    const postal = this.postalValidator.validate(dto.delivery_address.postal_code);
+    if (!postal.isValid) throw new BadRequestException(postal.errors.join(', '));
+
+    // Fetch stock info (temporary mock until stock-integration-service endpoint is wired)
+    const productIds = dto.products.map((p) => p.id);
+    const stockInfo = await this.mockData.getStockInfo(productIds);
+
+    // Weight and product totals
     let totalWeight = 0;
     const productCosts: { id: number; cost: number }[] = [];
-    
-    for (const product of dto.products) {
-      try {
-        // Intentar obtener datos reales del producto desde Stock API
-        // TODO: Implementar HTTP call al stock-integration-service
-        // const stockProduct = await this.httpService.get(`${this.stockServiceUrl}/products/${product.id}`).toPromise();
-        const stockProduct = { pesoKg: 1, precio: 100, largo: 10, ancho: 10, alto: 10 }; // Mock temporal
-        
-        if (stockProduct && stockProduct.pesoKg && stockProduct.precio) {
-          const productWeight = stockProduct.pesoKg * product.quantity;
-          totalWeight += productWeight;
-          
-          productCosts.push({
-            id: product.id,
-            cost: stockProduct.precio * product.quantity,
-          });
-        } else {
-          // Fallback a mock data si Stock API no tiene el producto
-          const mockStock = await this.mockData.getStockInfo([product.id]);
-          const stock = mockStock.find(s => s.id === product.id);
-          
-          if (!stock || !stock.available || !stock.weight || !stock.price) {
-            throw new BadRequestException(`Product ${product.id} not available or missing data`);
-          }
-          
-          const productWeight = stock.weight * product.quantity;
-          totalWeight += productWeight;
-          
-          productCosts.push({
-            id: product.id,
-            cost: stock.price * product.quantity,
-          });
-        }
-      } catch (error) {
-        // Si hay error con Stock API, usar mock data como fallback
-        const mockStock = await this.mockData.getStockInfo([product.id]);
-        const stock = mockStock.find(s => s.id === product.id);
-        
-        if (!stock || !stock.available || !stock.weight || !stock.price) {
-          throw new BadRequestException(`Product ${product.id} not available or missing data`);
-        }
-        
-        const productWeight = stock.weight * product.quantity;
-        totalWeight += productWeight;
-        
-        productCosts.push({
-          id: product.id,
-          cost: stock.price * product.quantity,
-        });
+    for (const item of dto.products) {
+      const stock = stockInfo.find((s) => s.id === item.id);
+      if (!stock || !stock.available || !stock.weight || !stock.price) {
+        throw new BadRequestException(`Product ${item.id} not available or missing data`);
       }
+      totalWeight += stock.weight * item.quantity;
+      productCosts.push({ id: item.id, cost: stock.price * item.quantity });
     }
-    
-    // 2. Calcular distancia usando mock
-    const distanceInfo = await this.mockData.getDistanceInfo(
+
+    // Distance
+    const distanceRes = await this.distanceService.calculateDistance(
       dto.delivery_address.postal_code,
-      'C1000ABC' // Origen fijo para testing
+      'C1000ABC',
     );
-    
-    // 3. Calcular costo de envío
-    const shippingCost = this.mockData.calculateShippingCost(
-      distanceInfo.distance_km,
-      totalWeight,
-      'STANDARD' // Tipo por defecto para testing
-    );
-    
-    // 4. Calcular costo total (productos + envío)
+
+    // Tariff calculation (using STANDARD as default transport type)
+    const tariff = await this.tariffService.calculateTariff({
+      transportType: TransportType.ROAD,
+      billableWeight: totalWeight,
+      distance: distanceRes.distance,
+      environment: this.configService.get('NODE_ENV') || 'development',
+    });
+
     const productTotal = productCosts.reduce((sum, p) => sum + p.cost, 0);
-    const totalCost = productTotal + shippingCost.total_cost;
+    const totalCost = productTotal + tariff.totalCost;
 
     return {
       currency: 'ARS',
@@ -116,10 +88,10 @@ export class ShippingService {
       products: productCosts,
       breakdown: {
         products_cost: productTotal,
-        shipping_cost: shippingCost.total_cost,
-        distance_km: distanceInfo.distance_km,
-        weight_kg: totalWeight
-      }
+        shipping_cost: tariff.totalCost,
+        distance_km: distanceRes.distance,
+        weight_kg: totalWeight,
+      },
     };
   }
 

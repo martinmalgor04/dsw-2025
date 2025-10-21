@@ -16,14 +16,20 @@ lerna-debug.log*
 # Backend dependencies
 backend/node_modules/
 backend/npm-debug.log*
+backend/services/*/node_modules/
+backend/services/*/npm-debug.log*
 
 # Backend build artifacts
 backend/dist/
 backend/coverage/
+backend/services/*/dist/
+backend/services/*/coverage/
 
 # Backend environment files
 backend/.env
 backend/.env.*
+backend/services/*/.env
+backend/services/*/.env.*
 
 # Frontend dependencies (cuando se implemente)
 frontend/node_modules/
@@ -186,9 +192,16 @@ test-data/
 mock-data/
 *.mock.json
 
-# Scripts
-*.sh
-test-api.sh
+# Scripts (ignore operational scripts)
+backend/scripts/operate-backend.sh
+backend/scripts/*.sh
+
+# Test files that shouldn't be committed
+test-api 2.sh
+
+# GitHub Actions artifacts
+.github/workflows/*.yml.bak
+.github/workflows/*.yaml.bak
 
 # Configuration files
 portainer-*.yml

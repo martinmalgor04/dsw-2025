@@ -21,7 +21,7 @@
     "@logistics/database": "file:../../shared/database",
     "@logistics/types": "file:../../shared/types",
     "@logistics/utils": "file:../../shared/utils",
-    "@nestjs/axios": "^3.0.3",
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^3.1.1",
@@ -33,8 +33,10 @@
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "dotenv": "^16.4.5",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "swagger-ui-dist": "^5.21.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -67,14 +69,14 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
       "src/**/*.(t|j)s"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
-    "moduleNameMapping": {
+    "moduleNameMapper": {
       "^@logistics/(.*)$": "<rootDir>/../../shared/$1/src"
     }
   }
