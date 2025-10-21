@@ -16,9 +16,16 @@ import {
   Shield,
   User,
   Package,
-  BrainCircuit,
-  Info
+  Info,
+  ClipboardList,
+  Calendar,
+  Users,
+  BookOpen,
+  Route,
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 interface SidebarProps {
   activeTab: string;
@@ -37,31 +44,85 @@ export function Sidebar({
   isMobileOpen,
   setIsMobileOpen
 }: SidebarProps) {
-  const isConfigPage = activeTab.startsWith('config-');
-  const [configExpanded, setConfigExpanded] = useState(isConfigPage);
+  // Estado para controlar qué secciones están expandidas
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  // Expandir automáticamente configuración si estamos en una subpágina
+  // Expandir automáticamente la sección cuando se selecciona un sub-item
   useEffect(() => {
-    if (isConfigPage) {
-      setConfigExpanded(true);
+    const section = menuSections.find(section =>
+      section.items.some(item => item.id === activeTab)
+    );
+    if (section) {
+      setExpandedSections(prev => ({ ...prev, [section.id]: true }));
     }
-  }, [isConfigPage]);
+  }, [activeTab]);
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  // Items principales sin subsecciones
+  const mainMenuItems = [
+    { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
+    { id: 'analytics', label: 'Analíticas', icon: BarChart3 },
   ];
 
-  const configSubItems = [
-    { id: 'config-zonas', label: 'Zonas de cobertura', icon: MapPin },
-    { id: 'config-vehiculos', label: 'Vehículos', icon: Truck },
-    { id: 'config-ventanas', label: 'Ventanas operativas', icon: Clock },
-    { id: 'config-cotizacion', label: 'Reglas de cotización', icon: DollarSign },
-    { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon },
-    { id: 'config-roles', label: 'Roles y permisos', icon: Shield },
-    { id: 'config-usuarios', label: 'Usuarios', icon: User },
-    { id: 'config-transporte', label: 'Tipos de transporte', icon: Package },
+  // Secciones con subsecciones
+  const menuSections = [
+    {
+      id: 'operaciones',
+      label: 'Operaciones',
+      icon: ClipboardList,
+      items: [
+        { id: 'operaciones-seguimiento', label: 'Seguimiento de envíos', icon: Package },
+        { id: 'operaciones-hojas-ruta', label: 'Hojas de ruta / Despachos', icon: Route },
+        { id: 'operaciones-incidencias', label: 'Incidencias y no-entregas', icon: AlertTriangle },
+      ]
+    },
+    {
+      id: 'planificacion',
+      label: 'Planificación',
+      icon: Calendar,
+      items: [
+        { id: 'config-ventanas', label: 'Ventanas operativas', icon: Clock },
+        { id: 'config-zonas', label: 'Zonas de cobertura', icon: MapPin },
+      ]
+    },
+    {
+      id: 'tarifas',
+      label: 'Tarifas',
+      icon: DollarSign,
+      items: [
+        { id: 'config-cotizacion', label: 'Reglas de cotización', icon: DollarSign },
+      ]
+    },
+    {
+      id: 'recursos',
+      label: 'Recursos',
+      icon: Users,
+      items: [
+        { id: 'config-vehiculos', label: 'Vehículos', icon: Truck },
+        { id: 'recursos-conductores', label: 'Conductores', icon: User },
+      ]
+    },
+    {
+      id: 'catalogos',
+      label: 'Catálogos',
+      icon: BookOpen,
+      items: [
+        { id: 'config-transporte', label: 'Tipos de transporte', icon: Package },
+        { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon },
+      ]
+    },
+    {
+      id: 'administracion',
+      label: 'Administración',
+      icon: Shield,
+      items: [
+        { id: 'config-usuarios', label: 'Usuarios', icon: User },
+        { id: 'config-roles', label: 'Roles y permisos', icon: Shield },
+      ]
+    },
   ];
+
+  // Item final de configuración
+  const configMenuItem = { id: 'configuracion-sistema', label: 'Configuración', icon: Settings };
 
   // Glassmorphism styles using inline styles
   const glassStyle = {
@@ -79,35 +140,33 @@ export function Sidebar({
     }
   };
 
-  const handleConfigClick = () => {
+  const handleSectionClick = (sectionId: string) => {
     if (isCollapsed) {
       setIsCollapsed(false);
     }
-    setConfigExpanded(!configExpanded);
+    setExpandedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
 
-  const isConfigActive = activeTab.startsWith('config-');
+  const isSectionActive = (sectionId: string) => {
+    const section = menuSections.find(s => s.id === sectionId);
+    return section?.items.some(item => item.id === activeTab) || false;
+  };
 
   const sidebarContent = (
     <>
       {/* Header */}
       <div className={`p-6 border-b border-white/20 ${isCollapsed ? 'px-4' : ''}`}>
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
-            <BrainCircuit className="w-6 h-6 text-white" />
+        <div className="flex items-center justify-center">
+          <div className={`flex items-center justify-center ${isCollapsed ? 'w-12 h-12' : 'w-32 h-32'}`}>
+            <img src={logo} alt="PEPACK Logo" className="w-full h-full object-contain" />
           </div>
-          {!isCollapsed && (
-            <div className="overflow-hidden">
-              <h1 className="text-lg text-gray-800 whitespace-nowrap">LogiX</h1>
-              <p className="text-xs text-gray-600 whitespace-nowrap">Sistema de Logística</p>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
-        {menuItems.map((item) => {
+        {/* Items principales (Panel y Analíticas) */}
+        {mainMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
 
@@ -116,7 +175,7 @@ export function Sidebar({
               key={item.id}
               onClick={() => handleMenuItemClick(item.id)}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isActive
-                ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white transform translate-x-1'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
                 : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
                 }`}
               title={isCollapsed ? item.label : undefined}
@@ -134,59 +193,87 @@ export function Sidebar({
           );
         })}
 
-        {/* Configuración con submenú */}
-        <div>
-          <button
-            onClick={handleConfigClick}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isConfigActive
-              ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white transform translate-x-1'
-              : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
-              }`}
-            title={isCollapsed ? 'Configuración' : undefined}
-          >
-            <Settings className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <>
-                <span className="flex-1 whitespace-nowrap">Configuración</span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${configExpanded ? 'rotate-180' : ''
-                    }`}
-                />
-              </>
-            )}
+        {/* Secciones con subsecciones */}
+        {menuSections.map((section) => {
+          const SectionIcon = section.icon;
+          const isActive = isSectionActive(section.id);
+          const isExpanded = expandedSections[section.id];
 
-            {/* Tooltip for collapsed state */}
-            {isCollapsed && (
-              <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-                Configuración
-              </div>
-            )}
-          </button>
+          return (
+            <div key={section.id}>
+              <button
+                onClick={() => handleSectionClick(section.id)}
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isActive
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
+                  : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
+                  }`}
+                title={isCollapsed ? section.label : undefined}
+              >
+                <SectionIcon className="w-5 h-5 flex-shrink-0" />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 whitespace-nowrap">{section.label}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''
+                        }`}
+                    />
+                  </>
+                )}
 
-          {/* Submenú de Configuración */}
-          {!isCollapsed && configExpanded && (
-            <div className="mt-2 ml-4 space-y-1 animate-fade-in">
-              {configSubItems.map((subItem) => {
-                const SubIcon = subItem.icon;
-                const isActive = activeTab === subItem.id;
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                    {section.label}
+                  </div>
+                )}
+              </button>
 
-                return (
-                  <button
-                    key={subItem.id}
-                    onClick={() => handleMenuItemClick(subItem.id)}
-                    className={`w-full flex items-center gap-2 pl-8 pr-3 py-2.5 rounded-lg transition-all duration-200 border-l-2 ${isActive
-                      ? 'bg-gradient-to-r from-purple-100 to-teal-100 text-purple-700 shadow-sm border-purple-500'
-                      : 'text-gray-600 hover:bg-white/30 hover:text-gray-800 border-transparent hover:border-purple-300'
-                      }`}
-                  >
-                    <SubIcon className="w-4 h-4 flex-shrink-0" />
-                    <span className="whitespace-nowrap text-sm">{subItem.label}</span>
-                  </button>
-                );
-              })}
+              {/* Submenú de la sección */}
+              {!isCollapsed && isExpanded && (
+                <div className="mt-2 ml-4 space-y-1 animate-fade-in">
+                  {section.items.map((subItem) => {
+                    const SubIcon = subItem.icon;
+                    const isSubActive = activeTab === subItem.id;
+
+                    return (
+                      <button
+                        key={subItem.id}
+                        onClick={() => handleMenuItemClick(subItem.id)}
+                        className={`w-full flex items-center gap-2 pl-8 pr-3 py-2.5 rounded-lg transition-all duration-200 border-l-2 ${isSubActive
+                          ? 'bg-gradient-to-r from-purple-100 to-teal-100 text-purple-700 shadow-sm border-purple-500'
+                          : 'text-gray-600 hover:bg-white/30 hover:text-gray-800 border-transparent hover:border-purple-300'
+                          }`}
+                      >
+                        <SubIcon className="w-4 h-4 flex-shrink-0" />
+                        <span className="whitespace-nowrap text-sm">{subItem.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Item final de Configuración */}
+        <button
+          onClick={() => handleMenuItemClick(configMenuItem.id)}
+          className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${activeTab === configMenuItem.id
+            ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
+            : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
+            }`}
+          title={isCollapsed ? configMenuItem.label : undefined}
+        >
+          <Settings className="w-5 h-5 flex-shrink-0" />
+          {!isCollapsed && <span className="whitespace-nowrap">{configMenuItem.label}</span>}
+
+          {/* Tooltip for collapsed state */}
+          {isCollapsed && (
+            <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+              {configMenuItem.label}
             </div>
           )}
-        </div>
+        </button>
       </nav>
 
       {/* Backend Status */}
@@ -208,7 +295,7 @@ export function Sidebar({
       {/* Collapse Toggle Button - Desktop Only */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 z-10"
         title={isCollapsed ? 'Expandir' : 'Contraer'}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -244,7 +331,7 @@ export function Sidebar({
         {/* Mobile Close Button */}
         <button
           onClick={() => setIsMobileOpen(false)}
-          className="absolute -right-12 top-4 w-10 h-10 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center text-white shadow-lg"
+          className="absolute -right-12 top-4 w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full flex items-center justify-center text-white shadow-lg"
         >
           <X className="w-5 h-5" />
         </button>
