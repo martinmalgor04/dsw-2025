@@ -46,7 +46,6 @@ export default function App() {
       {/* Background Pattern */}
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-0 right-0 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
       </div>
 
@@ -55,12 +54,12 @@ export default function App() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white shadow-lg"
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-white shadow-lg"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-lg bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-            LogiX
+          <h1 className="text-lg bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+            PEPACK
           </h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>

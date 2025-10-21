@@ -158,7 +158,7 @@ export function Sidebar({
       <div className={`p-6 border-b border-white/20 ${isCollapsed ? 'px-4' : ''}`}>
         <div className="flex items-center justify-center">
           <div className={`flex items-center justify-center ${isCollapsed ? 'w-12 h-12' : 'w-32 h-32'}`}>
-            <img src={logo} alt="LogiX Logo" className="w-full h-full object-contain" />
+            <img src={logo} alt="PEPACK Logo" className="w-full h-full object-contain" />
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ export function Sidebar({
               key={item.id}
               onClick={() => handleMenuItemClick(item.id)}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isActive
-                ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white transform translate-x-1'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
                 : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
                 }`}
               title={isCollapsed ? item.label : undefined}
@@ -204,7 +204,7 @@ export function Sidebar({
               <button
                 onClick={() => handleSectionClick(section.id)}
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isActive
-                  ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white transform translate-x-1'
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
                   : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
                   }`}
                 title={isCollapsed ? section.label : undefined}
@@ -259,7 +259,7 @@ export function Sidebar({
         <button
           onClick={() => handleMenuItemClick(configMenuItem.id)}
           className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${activeTab === configMenuItem.id
-            ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white transform translate-x-1'
+            ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
             : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
             }`}
           title={isCollapsed ? configMenuItem.label : undefined}
@@ -295,7 +295,7 @@ export function Sidebar({
       {/* Collapse Toggle Button - Desktop Only */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 z-10"
         title={isCollapsed ? 'Expandir' : 'Contraer'}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -331,7 +331,7 @@ export function Sidebar({
         {/* Mobile Close Button */}
         <button
           onClick={() => setIsMobileOpen(false)}
-          className="absolute -right-12 top-4 w-10 h-10 bg-gradient-to-br from-purple-500 to-teal-500 rounded-full flex items-center justify-center text-white shadow-lg"
+          className="absolute -right-12 top-4 w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full flex items-center justify-center text-white shadow-lg"
         >
           <X className="w-5 h-5" />
         </button>

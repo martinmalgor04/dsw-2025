@@ -13,38 +13,37 @@ interface ConfigurationProps {
 }
 
 export function Configuration({ activeSubPage }: ConfigurationProps) {
-
   const getTitleBySubPage = () => {
     const titles: Record<string, string> = {
-      'config-zonas': 'Zonas de cobertura',
-      'config-vehiculos': 'Vehículos',
-      'config-ventanas': 'Ventanas operativas',
-      'config-cotizacion': 'Reglas de cotización',
-      'config-motivos': 'Motivos de no entrega',
-      'config-roles': 'Roles y permisos',
-      'config-usuarios': 'Usuarios',
-      'config-transporte': 'Tipos de transporte',
+      "config-zonas": "Zonas de cobertura",
+      "config-vehiculos": "Vehiculos",
+      "config-ventanas": "Ventanas operativas",
+      "config-cotizacion": "Reglas de cotizacion",
+      "config-motivos": "Motivos de no entrega",
+      "config-roles": "Roles y permisos",
+      "config-usuarios": "Usuarios",
+      "config-transporte": "Tipos de transporte",
     };
-    return titles[activeSubPage] || 'Configuración';
+    return titles[activeSubPage] || "Configuracion";
   };
 
   const renderSubPage = () => {
     switch (activeSubPage) {
-      case 'config-zonas':
+      case "config-zonas":
         return <ZonasCobertura />;
-      case 'config-vehiculos':
+      case "config-vehiculos":
         return <Vehiculos />;
-      case 'config-ventanas':
+      case "config-ventanas":
         return <VentanasOperativas />;
-      case 'config-cotizacion':
+      case "config-cotizacion":
         return <ReglasCotizacion />;
-      case 'config-motivos':
+      case "config-motivos":
         return <MotivosNoEntrega />;
-      case 'config-roles':
+      case "config-roles":
         return <RolesPermisos />;
-      case 'config-usuarios':
+      case "config-usuarios":
         return <UsuariosConfig />;
-      case 'config-transporte':
+      case "config-transporte":
         return <TiposTransporte />;
       default:
         return <ZonasCobertura />;
@@ -53,18 +52,13 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb Header */}
+      {/* Page Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm mb-3">
-          <span className="text-gray-500">Configuración</span>
-          <span className="text-gray-400">/</span>
-          <span className="text-purple-700">{getTitleBySubPage()}</span>
-        </div>
-        <h1 className="bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl md:text-4xl font-semibold text-purple-600 tracking-tight">
           {getTitleBySubPage()}
         </h1>
-        <p className="text-gray-600 mt-1">
-          Gestiona la configuración de {getTitleBySubPage().toLowerCase()}
+        <p className="text-gray-600 mt-2 text-base md:text-lg">
+          Gestiona la configuracion de {getTitleBySubPage().toLowerCase()}
         </p>
       </div>
 

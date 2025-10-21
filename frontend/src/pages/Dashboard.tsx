@@ -393,7 +393,7 @@ export function Dashboard() {
             }`}>
             {modeInfo.mode === 'backend'
               ? 'Sistema completo de gestión logística con optimización de rutas y seguimiento en tiempo real.'
-              : 'Estás experimentando la interfaz completa de LogiX con datos realistas. Todas las funcionalidades están disponibles para pruebas.'
+              : 'Estás experimentando la interfaz completa de PEPACK con datos realistas. Todas las funcionalidades están disponibles para pruebas.'
             }
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -435,7 +435,7 @@ export function Dashboard() {
           </div>
           <button
             onClick={refreshData}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
+            className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
           >
             Try Again
           </button>
@@ -449,8 +449,8 @@ export function Dashboard() {
       {/* Header with Backend Status */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-            LogiX - Gestión Logística
+          <h1 className="text-3xl bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+            PEPACK - Gestión Logística
           </h1>
           <p className="text-gray-600 mt-1">Sistema inteligente de gestión logística y seguimiento de entregas.</p>
         </div>
@@ -566,8 +566,8 @@ export function Dashboard() {
               />
               <defs>
                 <linearGradient id="gradient1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="#14B8A6" stopOpacity={0.1} />
+                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
             </AreaChart>
@@ -632,7 +632,7 @@ export function Dashboard() {
                   <div className="flex items-center gap-2">
                     <div className="w-16 h-2 bg-gray-200 rounded-full">
                       <div
-                        className="h-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full transition-all duration-300"
+                        className="h-2 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full transition-all duration-300"
                         style={{ width: `${pedido.progreso}%` }}
                       ></div>
                     </div>
