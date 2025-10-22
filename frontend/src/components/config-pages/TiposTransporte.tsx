@@ -33,6 +33,7 @@ interface TipoTransporte {
   capacidadKg: number;
   capacidadM3: number;
   rangoSoportado: string;
+  multiplicadorCosto: number;
   requiereFrio: boolean;
   activo: boolean;
   icono: string;
@@ -41,55 +42,60 @@ interface TipoTransporte {
 const mockTipos: TipoTransporte[] = [
   {
     id: "1",
-    codigo: "bike",
+    codigo: "Bicicleta",
     nombre: "Bicicleta",
     capacidadKg: 20,
     capacidadM3: 0.3,
     rangoSoportado: "0 - 10 km",
+    multiplicadorCosto: 0.6,
     requiereFrio: false,
     activo: true,
     icono: "bike",
   },
   {
     id: "2",
-    codigo: "moto",
+    codigo: "Moto",
     nombre: "Motocicleta",
     capacidadKg: 50,
     capacidadM3: 0.5,
-    rangoSoportado: "10 - 100 km",
+    rangoSoportado: "0 - 10 km",
+    multiplicadorCosto: 0.8,
     requiereFrio: false,
     activo: true,
     icono: "bike",
   },
   {
     id: "3",
-    codigo: "van",
+    codigo: "Van",
     nombre: "Camioneta",
     capacidadKg: 1000,
     capacidadM3: 10,
     rangoSoportado: "100 - 500 km",
+    multiplicadorCosto: 1,
     requiereFrio: false,
     activo: true,
     icono: "car",
   },
   {
     id: "4",
-    codigo: "truck",
-    nombre: "Camión",
+    codigo: "Camion",
+    nombre: "Camion",
     capacidadKg: 5000,
     capacidadM3: 40,
-    rangoSoportado: "500 - 1500 km",
+    rangoSoportado: "1000 - 2000 km",
+    multiplicadorCosto: 1.4,
     requiereFrio: false,
     activo: true,
     icono: "truck",
   },
   {
     id: "5",
-    codigo: "refrigerated",
+    codigo: "Refrigerado",
     nombre: "Refrigerado",
     capacidadKg: 3000,
     capacidadM3: 25,
-    rangoSoportado: "1500 - +9999 km",
+    rangoSoportado: "1000 - 2000 km",
+    multiplicadorCosto: 1.7,
     requiereFrio: true,
     activo: true,
     icono: "truck",
@@ -99,7 +105,7 @@ const mockTipos: TipoTransporte[] = [
 const iconosDisponibles = [
   { value: "bike", label: "Bicicleta", icon: Bike },
   { value: "car", label: "Auto", icon: Car },
-  { value: "truck", label: "Camión", icon: Truck },
+  { value: "truck", label: "Camion", icon: Truck },
   { value: "package", label: "Paquete", icon: Package },
 ];
 
@@ -107,8 +113,8 @@ const rangoOpciones = [
   "0 - 10 km",
   "10 - 100 km",
   "100 - 500 km",
-  "500 - 1500 km",
-  "1500 - +9999 km",
+  "500 - 1000 km",
+  "1000 - 2000 km",
 ];
 
 export function TiposTransporte() {
@@ -124,18 +130,22 @@ export function TiposTransporte() {
     nombre: "",
     capacidadKg: 0,
     capacidadM3: 0,
-    rangoSoportado: "0 - 10 km",
+    rangoSoportado: rangoOpciones[0],
+    multiplicadorCosto: 1,
     requiereFrio: false,
     activo: true,
     icono: "truck",
   });
 
   const filteredTipos = tipos.filter((tipo) => {
-    const matchesSearch = 
-      tipo.codigo.toLowerCase().includes(searchValue.toLowerCase()) ||
-      tipo.nombre.toLowerCase().includes(searchValue.toLowerCase()) ||
-      tipo.rangoSoportado.toLowerCase().includes(searchValue.toLowerCase());
-    const matchesEstado = filterEstado === "todos" || 
+    const search = searchValue.toLowerCase();
+    const matchesSearch =
+      tipo.codigo.toLowerCase().includes(search) ||
+      tipo.nombre.toLowerCase().includes(search) ||
+      tipo.rangoSoportado.toLowerCase().includes(search) ||
+      tipo.multiplicadorCosto.toString().includes(searchValue);
+    const matchesEstado =
+      filterEstado === "todos" ||
       (filterEstado === "activo" && tipo.activo) ||
       (filterEstado === "inactivo" && !tipo.activo);
     return matchesSearch && matchesEstado;
@@ -148,7 +158,8 @@ export function TiposTransporte() {
       nombre: "",
       capacidadKg: 0,
       capacidadM3: 0,
-      rangoSoportado: "0 - 10 km",
+      rangoSoportado: rangoOpciones[0],
+      multiplicadorCosto: 1,
       requiereFrio: false,
       activo: true,
       icono: "truck",
@@ -179,8 +190,13 @@ export function TiposTransporte() {
       return;
     }
 
+    if (formData.multiplicadorCosto <= 0) {
+      toast.error("El multiplicador debe ser mayor a 0");
+      return;
+    }
+
     const codigoExiste = tipos.some(
-      t => t.codigo.toLowerCase() === formData.codigo.toLowerCase() && t.id !== editingTipo?.id
+      (t) => t.codigo.toLowerCase() === formData.codigo.toLowerCase() && t.id !== editingTipo?.id
     );
 
     if (codigoExiste) {
@@ -189,17 +205,17 @@ export function TiposTransporte() {
     }
 
     if (editingTipo) {
-      setTipos(tipos.map(t => 
-        t.id === editingTipo.id ? { ...t, ...formData } : t
-      ));
+      setTipos((prev) =>
+        prev.map((t) => (t.id === editingTipo.id ? { ...t, ...formData } : t))
+      );
       toast.success("Tipo de transporte actualizado correctamente");
     } else {
-      const newTipo: TipoTransporte = {
+      const nuevoTipo: TipoTransporte = {
         id: String(Date.now()),
         ...formData,
         codigo: formData.codigo.toLowerCase(),
       };
-      setTipos([...tipos, newTipo]);
+      setTipos((prev) => [...prev, nuevoTipo]);
       toast.success("Tipo de transporte creado correctamente");
     }
     setIsModalOpen(false);
@@ -207,13 +223,14 @@ export function TiposTransporte() {
 
   const handleDelete = () => {
     if (deleteTipo) {
-      setTipos(tipos.filter(t => t.id !== deleteTipo.id));
+      setTipos((prev) => prev.filter((t) => t.id !== deleteTipo.id));
       toast.success("Tipo de transporte eliminado correctamente");
       setDeleteTipo(null);
     }
   };
+
   const getIconComponent = (iconName: string) => {
-    const iconMap: Record<string, any> = {
+    const iconMap: Record<string, React.ElementType> = {
       bike: Bike,
       car: Car,
       truck: Truck,
@@ -264,9 +281,14 @@ export function TiposTransporte() {
       cell: ({ row }) => row.original.rangoSoportado,
     },
     {
+      accessorKey: "multiplicadorCosto",
+      header: createSortableHeader("Multiplicador costo"),
+      cell: ({ row }) => row.original.multiplicadorCosto.toFixed(2),
+    },
+    {
       accessorKey: "requiereFrio",
-      header: "Frí­o",
-      cell: ({ row }) => 
+      header: "Frío",
+      cell: ({ row }) =>
         row.original.requiereFrio ? (
           <Snowflake className="w-4 h-4 text-blue-500" />
         ) : (
@@ -298,7 +320,7 @@ export function TiposTransporte() {
               <Edit className="mr-2 h-4 w-4" />
               Editar
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => setDeleteTipo(row.original)}
               className="text-red-600"
             >
@@ -312,7 +334,7 @@ export function TiposTransporte() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6">
       <Toolbar
         searchValue={searchValue}
         onSearchChange={setSearchValue}
@@ -324,19 +346,19 @@ export function TiposTransporte() {
             value: filterEstado,
             options: [
               { label: "Todos", value: "todos" },
-              { label: "Activo", value: "activo" },
-              { label: "Inactivo", value: "inactivo" },
+              { label: "Activos", value: "activo" },
+              { label: "Inactivos", value: "inactivo" },
             ],
             onChange: setFilterEstado,
           },
         ]}
       />
 
-      {filteredTipos.length === 0 ? (
+      {tipos.length === 0 ? (
         <EmptyState
           icon={Package}
           title="No hay tipos de transporte"
-          description="Configura los tipos de transporte disponibles"
+          description="Agrega una modalidad para comenzar a configurar tus reglas de despacho."
           actionLabel="Nuevo tipo"
           onAction={handleNew}
         />
@@ -344,39 +366,39 @@ export function TiposTransporte() {
         <DataTable columns={columns} data={filteredTipos} />
       )}
 
-      {/* Modal Nueva/Editar */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="backdrop-blur-xl bg-white/95 max-w-xl">
+        <DialogContent className="backdrop-blur-xl bg-white/95 max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editingTipo ? "Editar tipo de transporte" : "Nuevo tipo de transporte"}
             </DialogTitle>
             <DialogDescription>
-              {editingTipo ? "Modifica la informaciÃ³n del tipo de transporte" : "Define las caracterÃ­sticas de un nuevo tipo de transporte"}
+              Define la capacidad, cobertura y multiplicadores del medio de transporte.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="codigo">CÃ³digo *</Label>
-              <Input
-                id="codigo"
-                value={formData.codigo}
-                onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toLowerCase() })}
-                placeholder="Ej: bike, van, truck"
-                className="bg-white/80"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nombre">Nombre *</Label>
-              <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                placeholder="Ej: Camioneta"
-                className="bg-white/80"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="codigo">CÃ³digo *</Label>
+                <Input
+                  id="codigo"
+                  value={formData.codigo}
+                  onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toLowerCase() })}
+                  placeholder="Ej: bike, van, truck"
+                  className="bg-white/80"
+                />
+              </div>
+              <div>
+                <Label htmlFor="nombre">Nombre *</Label>
+                <Input
+                  id="nombre"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  placeholder="Ej: Camioneta"
+                  className="bg-white/80"
+                />
+              </div>
             </div>
 
             <div>
@@ -404,7 +426,7 @@ export function TiposTransporte() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="capacidadKg">Capacidad tÃ­pica (kg)</Label>
                 <Input
@@ -425,6 +447,18 @@ export function TiposTransporte() {
                   step="0.1"
                   value={formData.capacidadM3}
                   onChange={(e) => setFormData({ ...formData, capacidadM3: Number(e.target.value) })}
+                  className="bg-white/80"
+                />
+              </div>
+              <div>
+                <Label htmlFor="multiplicadorCosto">Multiplicador costo *</Label>
+                <Input
+                  id="multiplicadorCosto"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={formData.multiplicadorCosto}
+                  onChange={(e) => setFormData({ ...formData, multiplicadorCosto: Number(e.target.value) })}
                   className="bg-white/80"
                 />
               </div>
@@ -487,7 +521,6 @@ export function TiposTransporte() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         open={!!deleteTipo}
         onOpenChange={(open) => !open && setDeleteTipo(null)}
@@ -500,11 +533,6 @@ export function TiposTransporte() {
     </div>
   );
 }
-
-
-
-
-
 
 
 
