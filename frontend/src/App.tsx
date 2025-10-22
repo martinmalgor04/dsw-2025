@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { Dashboard } from "./pages/Dashboard";
@@ -19,6 +19,7 @@ export default function App() {
     if (path === "/") return "dashboard";
     if (path === "/analitica") return "analytics";
     if (path.startsWith("/config")) return path.replace("/config-", "config-");
+    if (path.startsWith("/recursos")) return path.replace("/recursos-", "recursos-");
     return "dashboard";
   };
 
@@ -31,6 +32,8 @@ export default function App() {
       navigate("/analitica");
     } else if (tabId.startsWith("config-")) {
       navigate(`/config-${tabId.replace("config-", "")}`);
+    } else if (tabId.startsWith("recursos-")) {
+      navigate(`/recursos-${tabId.replace("recursos-", "")}`);
     }
   };
 
@@ -43,12 +46,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50">
-      {/* Background Pattern */}
-      <div className="fixed inset-0 opacity-30 pointer-events-none">
-        <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-      </div>
-
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-30 p-4" style={glassStyle}>
         <div className="flex items-center justify-between">
@@ -79,14 +76,14 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/analitica" element={<Analitica />} />
-            <Route path="/config-zonas" element={<Configuration activeSubPage="config-zonas" />} />
             <Route path="/config-vehiculos" element={<Configuration activeSubPage="config-vehiculos" />} />
-            <Route path="/config-ventanas" element={<Configuration activeSubPage="config-ventanas" />} />
             <Route path="/config-cotizacion" element={<Configuration activeSubPage="config-cotizacion" />} />
             <Route path="/config-motivos" element={<Configuration activeSubPage="config-motivos" />} />
             <Route path="/config-roles" element={<Configuration activeSubPage="config-roles" />} />
             <Route path="/config-usuarios" element={<Configuration activeSubPage="config-usuarios" />} />
+            <Route path="/config-centros-stock" element={<Configuration activeSubPage="config-centros-stock" />} />
             <Route path="/config-transporte" element={<Configuration activeSubPage="config-transporte" />} />
+            <Route path="/recursos-conductores" element={<Configuration activeSubPage="recursos-conductores" />} />
           </Routes>
         </main>
       </div>

@@ -6,11 +6,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Menu,
   X,
-  MapPin,
   Truck,
-  Clock,
   DollarSign,
   XOctagon,
   Shield,
@@ -18,12 +15,11 @@ import {
   Package,
   Info,
   ClipboardList,
-  Calendar,
   Users,
   BookOpen,
   Route,
-  FileText,
-  AlertTriangle
+  AlertTriangle,
+  Warehouse
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -76,15 +72,6 @@ export function Sidebar({
       ]
     },
     {
-      id: 'planificacion',
-      label: 'Planificación',
-      icon: Calendar,
-      items: [
-        { id: 'config-ventanas', label: 'Ventanas operativas', icon: Clock },
-        { id: 'config-zonas', label: 'Zonas de cobertura', icon: MapPin },
-      ]
-    },
-    {
       id: 'tarifas',
       label: 'Tarifas',
       icon: DollarSign,
@@ -106,6 +93,7 @@ export function Sidebar({
       label: 'Catálogos',
       icon: BookOpen,
       items: [
+        { id: 'config-centros-stock', label: 'Centros de stock', icon: Warehouse },
         { id: 'config-transporte', label: 'Tipos de transporte', icon: Package },
         { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon },
       ]
