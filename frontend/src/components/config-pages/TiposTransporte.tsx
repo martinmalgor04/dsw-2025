@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Edit, Trash2, Package, Bike, Truck, Car, Snowflake } from "lucide-react";
 import { DataTable, createSortableHeader } from "../config/DataTable";
@@ -11,7 +11,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { Checkbox } from "../ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -33,7 +32,7 @@ interface TipoTransporte {
   nombre: string;
   capacidadKg: number;
   capacidadM3: number;
-  slaSoportado: string[];
+  rangoSoportado: string;
   requiereFrio: boolean;
   activo: boolean;
   icono: string;
@@ -46,7 +45,7 @@ const mockTipos: TipoTransporte[] = [
     nombre: "Bicicleta",
     capacidadKg: 20,
     capacidadM3: 0.3,
-    slaSoportado: ["same-day"],
+    rangoSoportado: "0 - 10 km",
     requiereFrio: false,
     activo: true,
     icono: "bike",
@@ -57,7 +56,7 @@ const mockTipos: TipoTransporte[] = [
     nombre: "Motocicleta",
     capacidadKg: 50,
     capacidadM3: 0.5,
-    slaSoportado: ["same-day", "next-day"],
+    rangoSoportado: "10 - 100 km",
     requiereFrio: false,
     activo: true,
     icono: "bike",
@@ -68,7 +67,7 @@ const mockTipos: TipoTransporte[] = [
     nombre: "Camioneta",
     capacidadKg: 1000,
     capacidadM3: 10,
-    slaSoportado: ["same-day", "next-day"],
+    rangoSoportado: "100 - 500 km",
     requiereFrio: false,
     activo: true,
     icono: "car",
@@ -79,7 +78,7 @@ const mockTipos: TipoTransporte[] = [
     nombre: "Camión",
     capacidadKg: 5000,
     capacidadM3: 40,
-    slaSoportado: ["next-day", "standard"],
+    rangoSoportado: "500 - 1500 km",
     requiereFrio: false,
     activo: true,
     icono: "truck",
@@ -90,7 +89,7 @@ const mockTipos: TipoTransporte[] = [
     nombre: "Refrigerado",
     capacidadKg: 3000,
     capacidadM3: 25,
-    slaSoportado: ["next-day", "standard"],
+    rangoSoportado: "1500 - +9999 km",
     requiereFrio: true,
     activo: true,
     icono: "truck",
@@ -104,10 +103,12 @@ const iconosDisponibles = [
   { value: "package", label: "Paquete", icon: Package },
 ];
 
-const slaOpciones = [
-  { value: "same-day", label: "Same-day" },
-  { value: "next-day", label: "Next-day" },
-  { value: "standard", label: "Standard" },
+const rangoOpciones = [
+  "0 - 10 km",
+  "10 - 100 km",
+  "100 - 500 km",
+  "500 - 1500 km",
+  "1500 - +9999 km",
 ];
 
 export function TiposTransporte() {
@@ -123,7 +124,7 @@ export function TiposTransporte() {
     nombre: "",
     capacidadKg: 0,
     capacidadM3: 0,
-    slaSoportado: [] as string[],
+    rangoSoportado: "0 - 10 km",
     requiereFrio: false,
     activo: true,
     icono: "truck",
@@ -132,7 +133,8 @@ export function TiposTransporte() {
   const filteredTipos = tipos.filter((tipo) => {
     const matchesSearch = 
       tipo.codigo.toLowerCase().includes(searchValue.toLowerCase()) ||
-      tipo.nombre.toLowerCase().includes(searchValue.toLowerCase());
+      tipo.nombre.toLowerCase().includes(searchValue.toLowerCase()) ||
+      tipo.rangoSoportado.toLowerCase().includes(searchValue.toLowerCase());
     const matchesEstado = filterEstado === "todos" || 
       (filterEstado === "activo" && tipo.activo) ||
       (filterEstado === "inactivo" && !tipo.activo);
@@ -146,7 +148,7 @@ export function TiposTransporte() {
       nombre: "",
       capacidadKg: 0,
       capacidadM3: 0,
-      slaSoportado: [],
+      rangoSoportado: "0 - 10 km",
       requiereFrio: false,
       activo: true,
       icono: "truck",
@@ -156,7 +158,8 @@ export function TiposTransporte() {
 
   const handleEdit = (tipo: TipoTransporte) => {
     setEditingTipo(tipo);
-    setFormData(tipo);
+    const { id, ...rest } = tipo;
+    setFormData(rest);
     setIsModalOpen(true);
   };
 
@@ -168,6 +171,11 @@ export function TiposTransporte() {
 
     if (formData.capacidadKg < 0 || formData.capacidadM3 < 0) {
       toast.error("Las capacidades deben ser mayores o iguales a 0");
+      return;
+    }
+
+    if (!formData.rangoSoportado.trim()) {
+      toast.error("Define un rango soportado");
       return;
     }
 
@@ -204,16 +212,6 @@ export function TiposTransporte() {
       setDeleteTipo(null);
     }
   };
-
-  const toggleSLA = (sla: string) => {
-    setFormData(prev => ({
-      ...prev,
-      slaSoportado: prev.slaSoportado.includes(sla)
-        ? prev.slaSoportado.filter(s => s !== sla)
-        : [...prev.slaSoportado, sla]
-    }));
-  };
-
   const getIconComponent = (iconName: string) => {
     const iconMap: Record<string, any> = {
       bike: Bike,
@@ -252,33 +250,22 @@ export function TiposTransporte() {
     },
     {
       accessorKey: "capacidadKg",
-      header: createSortableHeader("Cap. típica (kg)"),
+      header: createSortableHeader("Cap. tí­pica (kg)"),
       cell: ({ row }) => `${row.original.capacidadKg.toLocaleString()} kg`,
     },
     {
       accessorKey: "capacidadM3",
-      header: "Cap. típica (m³)",
-      cell: ({ row }) => `${row.original.capacidadM3} m³`,
+      header: "Cap. tí­pica (m^³)",
+      cell: ({ row }) => `${row.original.capacidadM3} m^³`,
     },
     {
-      accessorKey: "slaSoportado",
-      header: "SLA soportado",
-      cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.slaSoportado.map((sla) => (
-            <span
-              key={sla}
-              className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs"
-            >
-              {sla}
-            </span>
-          ))}
-        </div>
-      ),
+      accessorKey: "rangoSoportado",
+      header: "Rango soportado",
+      cell: ({ row }) => row.original.rangoSoportado,
     },
     {
       accessorKey: "requiereFrio",
-      header: "Frío",
+      header: "Frí­o",
       cell: ({ row }) => 
         row.original.requiereFrio ? (
           <Snowflake className="w-4 h-4 text-blue-500" />
@@ -365,13 +352,13 @@ export function TiposTransporte() {
               {editingTipo ? "Editar tipo de transporte" : "Nuevo tipo de transporte"}
             </DialogTitle>
             <DialogDescription>
-              {editingTipo ? "Modifica la información del tipo de transporte" : "Define las características de un nuevo tipo de transporte"}
+              {editingTipo ? "Modifica la informaciÃ³n del tipo de transporte" : "Define las caracterÃ­sticas de un nuevo tipo de transporte"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="codigo">Código *</Label>
+              <Label htmlFor="codigo">CÃ³digo *</Label>
               <Input
                 id="codigo"
                 value={formData.codigo}
@@ -419,7 +406,7 @@ export function TiposTransporte() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="capacidadKg">Capacidad típica (kg)</Label>
+                <Label htmlFor="capacidadKg">Capacidad tÃ­pica (kg)</Label>
                 <Input
                   id="capacidadKg"
                   type="number"
@@ -430,7 +417,7 @@ export function TiposTransporte() {
                 />
               </div>
               <div>
-                <Label htmlFor="capacidadM3">Capacidad típica (m³)</Label>
+                <Label htmlFor="capacidadM3">Capacidad tÃ­pica (mÂ³)</Label>
                 <Input
                   id="capacidadM3"
                   type="number"
@@ -444,21 +431,22 @@ export function TiposTransporte() {
             </div>
 
             <div>
-              <Label className="mb-3 block">SLA soportado *</Label>
-              <div className="space-y-2">
-                {slaOpciones.map((sla) => (
-                  <div key={sla.value} className="flex items-center gap-2">
-                    <Checkbox
-                      id={sla.value}
-                      checked={formData.slaSoportado.includes(sla.value)}
-                      onCheckedChange={() => toggleSLA(sla.value)}
-                    />
-                    <Label htmlFor={sla.value} className="cursor-pointer">
-                      {sla.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              <Label htmlFor="rangoSoportado">Rango soportado *</Label>
+              <Select
+                value={formData.rangoSoportado}
+                onValueChange={(value) => setFormData({ ...formData, rangoSoportado: value })}
+              >
+                <SelectTrigger id="rangoSoportado" className="bg-white/80">
+                  <SelectValue placeholder="Selecciona un rango" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rangoOpciones.map((rango) => (
+                    <SelectItem key={rango} value={rango}>
+                      {rango}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center justify-between">
@@ -470,7 +458,7 @@ export function TiposTransporte() {
                 />
                 <Label htmlFor="requiereFrio" className="flex items-center gap-2">
                   <Snowflake className="w-4 h-4 text-blue-500" />
-                  Requiere refrigeración
+                  Requiere refrigeraciÃ³n
                 </Label>
               </div>
 
@@ -504,7 +492,7 @@ export function TiposTransporte() {
         open={!!deleteTipo}
         onOpenChange={(open) => !open && setDeleteTipo(null)}
         title="Eliminar tipo de transporte"
-        description={`¿Estás seguro de que deseas eliminar el tipo "${deleteTipo?.nombre}"?`}
+        description={`Â¿EstÃ¡s seguro de que deseas eliminar el tipo "${deleteTipo?.nombre}"?`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
         variant="danger"
@@ -512,3 +500,11 @@ export function TiposTransporte() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
