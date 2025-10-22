@@ -1,5 +1,5 @@
 # ===================================
-# GITIGNORE - Solo Código Fuente
+# GITIGNORE - Logística Grupo 12
 # TPI Desarrollo de Software 2025
 # ===================================
 
@@ -12,28 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-
-# Backend dependencies
-backend/node_modules/
-backend/npm-debug.log*
-backend/services/*/node_modules/
-backend/services/*/npm-debug.log*
-
-# Backend build artifacts
-backend/dist/
-backend/coverage/
-backend/services/*/dist/
-backend/services/*/coverage/
-
-# Backend environment files
-backend/.env
-backend/.env.*
-backend/services/*/.env
-backend/services/*/.env.*
-
-# Frontend dependencies (cuando se implemente)
-frontend/node_modules/
-frontend/npm-debug.log*
 
 # ===================================
 # Compiled output
@@ -58,7 +36,6 @@ frontend/npm-debug.log*
 /.nyc_output
 *.test.js
 *.spec.js
-backend/TESTING.md
 
 # ===================================
 # Environment Variables
@@ -70,6 +47,9 @@ backend/TESTING.md
 .env.production
 .env.*.local
 
+# IMPORTANTE: Mantener archivos de ejemplo
+!.env.example
+
 # ===================================
 # IDEs and editors
 # ===================================
@@ -80,8 +60,12 @@ backend/TESTING.md
 *.launch
 .settings/
 *.sublime-workspace
-.vscode/
-.history/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
 # ===================================
 # OS
@@ -95,15 +79,13 @@ Thumbs.db
 # ===================================
 # Docker
 # ===================================
-docker-compose.yml
 docker-compose.override.yml
-Dockerfile*
 .dockerignore
 
 # ===================================
 # Logs
 # ===================================
-logs/
+logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -114,7 +96,9 @@ lerna-debug.log*
 # ===================================
 # Prisma
 # ===================================
-prisma/migrations/
+prisma/migrations/**/migration.sql
+# Mantener carpeta migrations pero ignorar contenido específico
+!prisma/migrations/.gitkeep
 
 # ===================================
 # Temporary files
@@ -144,24 +128,10 @@ dist/
 dump.rdb
 
 # ===================================
-# Documentation (except README.md and backend/docs)
+# Documentation builds
 # ===================================
-docs/
-*.md
-!README.md
-!backend/docs/**/*.md
-!backend/shared/database/scripts/README.md
-API-TESTING.md
-CLAUDE.md
-memory/
-specs/
-
-# ===================================
-# Internal Database Documentation (exclude implementation guides)
-# ===================================
-backend/shared/database/IMPLEMENTATION_RF004.md
-backend/shared/database/DEPLOYMENT_SUPABASE.md
-backend/shared/database/SCHEMA_GUIDE.md
+docs/build/
+docs/.vuepress/dist/
 
 # ===================================
 # Certificates & Keys
@@ -188,59 +158,33 @@ backend/shared/database/SCHEMA_GUIDE.md
 *.7z
 
 # ===================================
-# Project specific files
+# Proyecto específico - Archivos de trabajo
 # ===================================
-# PDFs
-*.pdf
+# PDFs del proyecto (ya están en el repo)
+# DS-2025 - TPI-v1.pdf ya está trackeado
 
-# Postman collections
-*.postman_collection.json
+# Postman collections locales (si hay modificaciones)
+*.postman_collection.local.json
 
-# Test data
+# Archivos de prueba temporales
 test-data/
 mock-data/
 *.mock.json
 
-# Scripts (ignore operational scripts)
-backend/scripts/operate-backend.sh
-backend/scripts/*.sh
-
-# Test files that shouldn't be committed
-test-api 2.sh
-
-# GitHub Actions artifacts
-.github/workflows/*.yml.bak
-.github/workflows/*.yaml.bak
-
-# Configuration files
-portainer-*.yml
-openapilog.yaml
+# ===================================
+# CI/CD
+# ===================================
+.github/workflows/*.local.yml
 
 # ===================================
-# Development Tools
+# Package manager locks (opcional, según equipo)
 # ===================================
-# GitHub Spec Kit (herramienta de desarrollo local)
-spec-kit/
-spec-kit-env/
-spec-development/
-specs/
-memory/
-CLAUDE.md
-activate-spec-kit.sh
-*.pyc
-__pycache__/
-.pytest_cache/
+# Descomentar si el equipo decide no versionar lockfiles
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
 
-# ===================================
-# Package manager locks
-# ===================================
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# ===================================
-# License and other non-code files
-# ===================================
-LICENSE
-.gitattributes
-.gitignore
+frontend/node_modules
+frontend/dist
+frontend/.next
+frontend/out
