@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Menu,
   X,
   Truck,
   DollarSign,
@@ -19,8 +18,8 @@ import {
   Users,
   BookOpen,
   Route,
-  FileText,
-  AlertTriangle
+  AlertTriangle,
+  Warehouse
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -94,6 +93,7 @@ export function Sidebar({
       label: 'Catálogos',
       icon: BookOpen,
       items: [
+        { id: 'config-centros-stock', label: 'Centros de stock', icon: Warehouse },
         { id: 'config-transporte', label: 'Tipos de transporte', icon: Package },
         { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon },
       ]

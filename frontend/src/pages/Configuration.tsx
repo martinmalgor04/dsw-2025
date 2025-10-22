@@ -5,6 +5,7 @@ import { MotivosNoEntrega } from "../components/config-pages/MotivosNoEntrega";
 import { RolesPermisos } from "../components/config-pages/RolesPermisos";
 import { UsuariosConfig } from "../components/config-pages/UsuariosConfig";
 import { TiposTransporte } from "../components/config-pages/TiposTransporte";
+import { CentrosStock } from "../components/config-pages/CentrosStock";
 
 interface ConfigurationProps {
   activeSubPage: string;
@@ -19,6 +20,7 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
       "config-roles": "Roles y permisos",
       "config-usuarios": "Usuarios",
       "config-transporte": "Tipos de transporte",
+      "config-centros-stock": "Centros de stock",
     };
     return titles[activeSubPage] || "Reglas de cotizacion";
   };
@@ -37,6 +39,8 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
         return <UsuariosConfig />;
       case "config-transporte":
         return <TiposTransporte />;
+      case "config-centros-stock":
+        return <CentrosStock />;
       default:
         return <ReglasCotizacion />;
     }

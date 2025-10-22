@@ -84,6 +84,7 @@ export default function App() {
             <Route path="/config-motivos" element={<Configuration activeSubPage="config-motivos" />} />
             <Route path="/config-roles" element={<Configuration activeSubPage="config-roles" />} />
             <Route path="/config-usuarios" element={<Configuration activeSubPage="config-usuarios" />} />
+            <Route path="/config-centros-stock" element={<Configuration activeSubPage="config-centros-stock" />} />
             <Route path="/config-transporte" element={<Configuration activeSubPage="config-transporte" />} />
           </Routes>
         </main>
