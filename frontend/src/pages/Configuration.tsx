@@ -6,6 +6,7 @@ import { RolesPermisos } from "../components/config-pages/RolesPermisos";
 import { UsuariosConfig } from "../components/config-pages/UsuariosConfig";
 import { TiposTransporte } from "../components/config-pages/TiposTransporte";
 import { CentrosStock } from "../components/config-pages/CentrosStock";
+import { Conductores } from "../components/config-pages/Conductores";
 
 interface ConfigurationProps {
   activeSubPage: string;
@@ -21,6 +22,7 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
       "config-usuarios": "Usuarios",
       "config-transporte": "Tipos de transporte",
       "config-centros-stock": "Centros de stock",
+      "recursos-conductores": "Conductores",
     };
     return titles[activeSubPage] || "Reglas de cotizacion";
   };
@@ -41,6 +43,8 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
         return <TiposTransporte />;
       case "config-centros-stock":
         return <CentrosStock />;
+      case "recursos-conductores":
+        return <Conductores />;
       default:
         return <ReglasCotizacion />;
     }

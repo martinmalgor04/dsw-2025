@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { Dashboard } from "./pages/Dashboard";
@@ -19,6 +19,7 @@ export default function App() {
     if (path === "/") return "dashboard";
     if (path === "/analitica") return "analytics";
     if (path.startsWith("/config")) return path.replace("/config-", "config-");
+    if (path.startsWith("/recursos")) return path.replace("/recursos-", "recursos-");
     return "dashboard";
   };
 
@@ -31,6 +32,8 @@ export default function App() {
       navigate("/analitica");
     } else if (tabId.startsWith("config-")) {
       navigate(`/config-${tabId.replace("config-", "")}`);
+    } else if (tabId.startsWith("recursos-")) {
+      navigate(`/recursos-${tabId.replace("recursos-", "")}`);
     }
   };
 
@@ -80,6 +83,7 @@ export default function App() {
             <Route path="/config-usuarios" element={<Configuration activeSubPage="config-usuarios" />} />
             <Route path="/config-centros-stock" element={<Configuration activeSubPage="config-centros-stock" />} />
             <Route path="/config-transporte" element={<Configuration activeSubPage="config-transporte" />} />
+            <Route path="/recursos-conductores" element={<Configuration activeSubPage="recursos-conductores" />} />
           </Routes>
         </main>
       </div>
