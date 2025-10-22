@@ -144,15 +144,24 @@ dist/
 dump.rdb
 
 # ===================================
-# Documentation (except README.md)
+# Documentation (except README.md and backend/docs)
 # ===================================
 docs/
 *.md
 !README.md
+!backend/docs/**/*.md
+!backend/shared/database/scripts/README.md
 API-TESTING.md
 CLAUDE.md
 memory/
 specs/
+
+# ===================================
+# Internal Database Documentation (exclude implementation guides)
+# ===================================
+backend/shared/database/IMPLEMENTATION_RF004.md
+backend/shared/database/DEPLOYMENT_SUPABASE.md
+backend/shared/database/SCHEMA_GUIDE.md
 
 # ===================================
 # Certificates & Keys
