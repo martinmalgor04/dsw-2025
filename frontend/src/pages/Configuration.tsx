@@ -1,7 +1,5 @@
 import React from "react";
-import { ZonasCobertura } from "../components/config-pages/ZonasCobertura";
 import { Vehiculos } from "../components/config-pages/Vehiculos";
-import { VentanasOperativas } from "../components/config-pages/VentanasOperativas";
 import { ReglasCotizacion } from "../components/config-pages/ReglasCotizacion";
 import { MotivosNoEntrega } from "../components/config-pages/MotivosNoEntrega";
 import { RolesPermisos } from "../components/config-pages/RolesPermisos";
@@ -15,26 +13,20 @@ interface ConfigurationProps {
 export function Configuration({ activeSubPage }: ConfigurationProps) {
   const getTitleBySubPage = () => {
     const titles: Record<string, string> = {
-      "config-zonas": "Zonas de cobertura",
       "config-vehiculos": "Vehiculos",
-      "config-ventanas": "Ventanas operativas",
       "config-cotizacion": "Reglas de cotizacion",
       "config-motivos": "Motivos de no entrega",
       "config-roles": "Roles y permisos",
       "config-usuarios": "Usuarios",
       "config-transporte": "Tipos de transporte",
     };
-    return titles[activeSubPage] || "Configuracion";
+    return titles[activeSubPage] || "Reglas de cotizacion";
   };
 
   const renderSubPage = () => {
     switch (activeSubPage) {
-      case "config-zonas":
-        return <ZonasCobertura />;
       case "config-vehiculos":
         return <Vehiculos />;
-      case "config-ventanas":
-        return <VentanasOperativas />;
       case "config-cotizacion":
         return <ReglasCotizacion />;
       case "config-motivos":
@@ -46,7 +38,7 @@ export function Configuration({ activeSubPage }: ConfigurationProps) {
       case "config-transporte":
         return <TiposTransporte />;
       default:
-        return <ZonasCobertura />;
+        return <ReglasCotizacion />;
     }
   };
 

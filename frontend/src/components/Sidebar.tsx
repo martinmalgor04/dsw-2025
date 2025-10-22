@@ -8,9 +8,7 @@ import {
   ChevronDown,
   Menu,
   X,
-  MapPin,
   Truck,
-  Clock,
   DollarSign,
   XOctagon,
   Shield,
@@ -18,7 +16,6 @@ import {
   Package,
   Info,
   ClipboardList,
-  Calendar,
   Users,
   BookOpen,
   Route,
@@ -73,15 +70,6 @@ export function Sidebar({
         { id: 'operaciones-seguimiento', label: 'Seguimiento de envíos', icon: Package },
         { id: 'operaciones-hojas-ruta', label: 'Hojas de ruta / Despachos', icon: Route },
         { id: 'operaciones-incidencias', label: 'Incidencias y no-entregas', icon: AlertTriangle },
-      ]
-    },
-    {
-      id: 'planificacion',
-      label: 'Planificación',
-      icon: Calendar,
-      items: [
-        { id: 'config-ventanas', label: 'Ventanas operativas', icon: Clock },
-        { id: 'config-zonas', label: 'Zonas de cobertura', icon: MapPin },
       ]
     },
     {

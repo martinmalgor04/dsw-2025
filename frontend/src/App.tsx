@@ -79,9 +79,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/analitica" element={<Analitica />} />
-            <Route path="/config-zonas" element={<Configuration activeSubPage="config-zonas" />} />
             <Route path="/config-vehiculos" element={<Configuration activeSubPage="config-vehiculos" />} />
-            <Route path="/config-ventanas" element={<Configuration activeSubPage="config-ventanas" />} />
             <Route path="/config-cotizacion" element={<Configuration activeSubPage="config-cotizacion" />} />
             <Route path="/config-motivos" element={<Configuration activeSubPage="config-motivos" />} />
             <Route path="/config-roles" element={<Configuration activeSubPage="config-roles" />} />
