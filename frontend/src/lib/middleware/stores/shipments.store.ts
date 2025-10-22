@@ -1,4 +1,13 @@
-import { shipmentService, ShipmentDTO, ShipmentFilters, CreateShipmentDTO, UpdateShipmentDTO } from '../services/shipment.service';
+import {
+  shipmentService,
+  ShipmentDTO,
+  ShipmentFilters,
+  CreateShipmentDTO,
+  UpdateShipmentDTO,
+  CalculateCostResponseDTO,
+  ProductDTO,
+  AddressDTO,
+} from '../services/shipment.service';
 
 export interface PaginationState { page: number; pageSize: number; }
 
@@ -7,6 +16,8 @@ export interface ShipmentsState {
   selected: ShipmentDTO | null;
   filters: ShipmentFilters;
   isLoading: boolean;
+  isQuoting: boolean; // Estado de carga para la cotización
+  quoteResult: CalculateCostResponseDTO | null; // Resultado de la cotización
   error: string | null;
   pagination: PaginationState;
   total?: number;
@@ -17,6 +28,8 @@ let state: ShipmentsState = {
   selected: null,
   filters: {},
   isLoading: false,
+  isQuoting: false,
+  quoteResult: null,
   error: null,
   pagination: { page: 1, pageSize: 10 },
   total: undefined,
@@ -60,5 +73,19 @@ export const shipmentsStore = {
     try { await shipmentService.deleteShipment(id); await this.load(); }
     catch (e: any) { this.setError(e?.message || 'Error eliminando envío'); }
     finally { this.setLoading(false); }
+  },
+  async quote(delivery_address: AddressDTO, products: ProductDTO[]) {
+    state = { ...state, isQuoting: true, error: null, quoteResult: null };
+    notify();
+    try {
+      const result = await shipmentService.calculateQuote(delivery_address, products);
+      state = { ...state, quoteResult: result };
+      notify();
+    }
+    catch (e: any) { this.setError(e?.message || 'Error al calcular la cotización'); }
+    finally {
+      state = { ...state, isQuoting: false };
+      notify();
+    }
   },
 };

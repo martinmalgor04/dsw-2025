@@ -188,3 +188,20 @@ frontend/node_modules
 frontend/dist
 frontend/.next
 frontend/out
+
+# ===================================
+# Spec Kit & AI-related files
+# ===================================
+/spec-kit/
+/specs/
+/commands/
+/memory/
+/activate-spec-kit.sh
+/agent-file-template.md
+/checklist-template.md
+/CLAUDE.md
+/constitution.md
+/HUYCONTEXT.MD
+/plan-template.md
+/spec-template.md
+/tasks-template.md

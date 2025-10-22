@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { shipmentsStore } from '../shipments.store';
 import type { ShipmentsState } from '../shipments.store';
-import type { CreateShipmentDTO, UpdateShipmentDTO } from '../../services/shipment.service';
+import type { CreateShipmentDTO, UpdateShipmentDTO, ProductDTO, AddressDTO } from '../../services/shipment.service';
 
 export function useShipments() {
   const [state, setState] = useState<ShipmentsState>({
@@ -9,6 +9,8 @@ export function useShipments() {
     selected: null,
     filters: {},
     isLoading: false,
+    isQuoting: false,
+    quoteResult: null,
     error: null,
     pagination: { page: 1, pageSize: 10 },
     total: undefined,
@@ -28,5 +30,6 @@ export function useShipments() {
     update: (id: string, dto: UpdateShipmentDTO) => shipmentsStore.update(id, dto),
     remove: (id: string) => shipmentsStore.remove(id),
     setFilters: (f: any) => shipmentsStore.setFilters(f),
+    quote: (delivery_address: AddressDTO, products: ProductDTO[]) => shipmentsStore.quote(delivery_address, products),
   };
 }
