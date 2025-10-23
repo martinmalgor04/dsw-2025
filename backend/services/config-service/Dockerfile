@@ -1,8 +1,12 @@
 # Dockerfile para config-service
 FROM node:18-alpine AS base
 
-# Instalar herramientas básicas
-RUN apk add --no-cache curl
+# Instalar herramientas básicas y OpenSSL para Prisma
+RUN apk add --no-cache \
+    curl \
+    openssl \
+    openssl-dev \
+    libc6-compat
 
 # Crear directorio de la aplicación
 WORKDIR /app
