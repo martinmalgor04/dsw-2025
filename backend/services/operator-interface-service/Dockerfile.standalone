@@ -1,0 +1,36 @@
+# Dockerfile standalone para operator-interface-service
+FROM node:18-alpine AS base
+
+# Instalar herramientas básicas y OpenSSL para Prisma
+RUN apk add --no-cache \
+    curl \
+    openssl \
+    openssl-dev \
+    libc6-compat
+
+# Crear directorio de la aplicación
+WORKDIR /app
+
+# Copiar archivos de configuración del servicio
+COPY package*.json ./
+COPY nest-cli.json ./
+COPY tsconfig.json ./
+COPY tsconfig.build.json ./
+
+# Etapa de desarrollo
+FROM base AS development
+
+# Instalar dependencias del servicio
+RUN npm ci --legacy-peer-deps
+
+# Instalar TypeScript globalmente
+RUN npm install -g typescript
+
+# Copiar código fuente del servicio
+COPY src/ ./src/
+
+# Exponer puerto (usa la variable de entorno PORT o 3004 por defecto)
+EXPOSE ${PORT:-3004}
+
+# Comando por defecto (compila y luego ejecuta)
+CMD ["sh", "-c", "npm run build && npm run start:prod"]
