@@ -212,5 +212,3 @@ Ver `CONTRIBUTING.md` en la raíz del proyecto.
 
 ---
 
-**¿Problemas?** Contacta al equipo de desarrollo o abre un issue en GitHub.
-
