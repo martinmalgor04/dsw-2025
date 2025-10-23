@@ -19,10 +19,10 @@ COPY tsconfig.json ./
 COPY shared/ ./shared/
 
 # Copiar configuración del servicio
-COPY package*.json ./
-COPY nest-cli.json ./
-COPY tsconfig.json ./
-COPY tsconfig.build.json ./
+COPY services/operator-interface-service/package*.json ./services/operator-interface-service/
+COPY services/operator-interface-service/nest-cli.json ./services/operator-interface-service/
+COPY services/operator-interface-service/tsconfig.json ./services/operator-interface-service/
+COPY services/operator-interface-service/tsconfig.build.json ./services/operator-interface-service/
 
 # Etapa de desarrollo
 FROM base AS development
@@ -38,14 +38,17 @@ RUN cd shared/database && npm install && npm run build
 RUN cd shared/utils && npm install && npm run build
 
 # Instalar dependencias del servicio
-WORKDIR /app
+WORKDIR /app/services/operator-interface-service
 RUN npm ci --legacy-peer-deps
 
+# Volver al directorio raíz
+WORKDIR /app
+
 # Copiar código fuente del servicio
-COPY src/ ./src/
+COPY services/operator-interface-service/src/ ./services/operator-interface-service/src/
 
 # Establecer directorio de trabajo del servicio
-WORKDIR /app
+WORKDIR /app/services/operator-interface-service
 
 # Exponer puerto (usa la variable de entorno PORT o 3004 por defecto)
 EXPOSE ${PORT:-3004}
