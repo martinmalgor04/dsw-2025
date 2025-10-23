@@ -32,23 +32,23 @@ export interface DriverFilters {
 
 class DriverService {
   async getDrivers(filters?: DriverFilters): Promise<DriverDTO[]> {
-    return httpClient.get('/drivers', { params: filters });
+    return httpClient.get('/fleet/drivers', { params: filters });
   }
 
   async getDriver(id: string): Promise<DriverDTO> {
-    return httpClient.get(`/drivers/${id}`);
+    return httpClient.get(`/fleet/drivers/${id}`);
   }
 
   async createDriver(dto: CreateDriverDTO): Promise<DriverDTO> {
-    return httpClient.post('/drivers', dto);
+    return httpClient.post('/fleet/drivers', dto);
   }
 
   async updateDriver(id: string, dto: UpdateDriverDTO): Promise<DriverDTO> {
-    return httpClient.patch(`/drivers/${id}`, dto);
+    return httpClient.patch(`/fleet/drivers/${id}`, dto);
   }
 
   async deleteDriver(id: string): Promise<void> {
-    return httpClient.delete(`/drivers/${id}`);
+    return httpClient.delete(`/fleet/drivers/${id}`);
   }
 }
 

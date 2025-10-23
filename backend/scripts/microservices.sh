@@ -49,9 +49,9 @@ check_docker() {
 build_shared() {
     log "Compilando bibliotecas compartidas..."
     
-    cd shared/database && npm run build
-    cd ../types && npm run build
-    cd ../utils && npm run build
+    cd shared/database && npm install && npm run build
+    cd ../types && npm install && npm run build
+    cd ../utils && npm install && npm run build
     cd ../..
     
     success "Bibliotecas compartidas compiladas"

@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigManagementModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
+import { FleetModule } from './fleet/fleet.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     PrismaModule,
     ConfigManagementModule,
     HealthModule,
+    FleetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

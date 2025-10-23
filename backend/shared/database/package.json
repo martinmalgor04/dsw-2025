@@ -1,26 +1,24 @@
 {
   "name": "@logistics/database",
   "version": "1.0.0",
-  "description": "Shared database module with Prisma client",
+  "description": "Prisma ORM configuration and database service",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rimraf dist",
-    "prepack": "npm run build"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.1.1",
     "@prisma/client": "^5.22.0",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^3.1.1"
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
-    "rimraf": "^6.0.1"
-  },
-  "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/config": "^3.0.0"
+    "@types/node": "^20.3.1",
+    "prisma": "^5.22.0",
+    "typescript": "~5.1.3"
   }
 }

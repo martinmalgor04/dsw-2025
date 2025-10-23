@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
-import { PrismaService } from '@logistics/database';
+import { PrismaService, TransportMethod } from '@logistics/database';
 import { CreateTransportMethodDto } from '../dto/create-transport-method.dto';
 import { UpdateTransportMethodDto } from '../dto/update-transport-method.dto';
 
@@ -12,7 +12,7 @@ export class TransportMethodService {
   /**
    * Obtiene todos los métodos de transporte
    */
-  async findAll() {
+  async findAll(): Promise<TransportMethod[]> {
     this.logger.log('Obteniendo todos los métodos de transporte');
     return this.prisma.transportMethod.findMany({
       orderBy: { createdAt: 'desc' },
@@ -27,7 +27,7 @@ export class TransportMethodService {
   /**
    * Obtiene un método de transporte por ID
    */
-  async findOne(id: string) {
+  async findOne(id: string): Promise<TransportMethod> {
     this.logger.log(`Obteniendo método de transporte con ID: ${id}`);
     const transportMethod = await this.prisma.transportMethod.findUnique({
       where: { id },
@@ -48,7 +48,7 @@ export class TransportMethodService {
   /**
    * Obtiene un método de transporte por código
    */
-  async findByCode(code: string) {
+  async findByCode(code: string): Promise<TransportMethod> {
     this.logger.log(`Obteniendo método de transporte con código: ${code}`);
     const transportMethod = await this.prisma.transportMethod.findUnique({
       where: { code },
@@ -69,7 +69,7 @@ export class TransportMethodService {
   /**
    * Crea un nuevo método de transporte
    */
-  async create(createTransportMethodDto: CreateTransportMethodDto) {
+  async create(createTransportMethodDto: CreateTransportMethodDto): Promise<TransportMethod> {
     this.logger.log(`Creando nuevo método de transporte: ${createTransportMethodDto.name}`);
 
     // Verificar que el código no exista
@@ -89,7 +89,7 @@ export class TransportMethodService {
   /**
    * Actualiza un método de transporte existente
    */
-  async update(id: string, updateTransportMethodDto: UpdateTransportMethodDto) {
+  async update(id: string, updateTransportMethodDto: UpdateTransportMethodDto): Promise<TransportMethod> {
     this.logger.log(`Actualizando método de transporte con ID: ${id}`);
 
     // Verificar que existe
@@ -115,7 +115,7 @@ export class TransportMethodService {
   /**
    * Elimina (soft delete) un método de transporte
    */
-  async remove(id: string) {
+  async remove(id: string): Promise<TransportMethod> {
     this.logger.log(`Desactivando método de transporte con ID: ${id}`);
 
     // Verificar que existe

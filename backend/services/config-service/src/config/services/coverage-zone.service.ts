@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { PrismaService } from '@logistics/database';
+import { PrismaService, CoverageZone } from '@logistics/database';
 import { CreateCoverageZoneDto } from '../dto/create-coverage-zone.dto';
 import { UpdateCoverageZoneDto } from '../dto/update-coverage-zone.dto';
 
@@ -12,7 +12,7 @@ export class CoverageZoneService {
   /**
    * Obtiene todas las zonas de cobertura
    */
-  async findAll() {
+  async findAll(): Promise<CoverageZone[]> {
     this.logger.log('Obteniendo todas las zonas de cobertura');
     return this.prisma.coverageZone.findMany({
       orderBy: { createdAt: 'desc' },
@@ -22,7 +22,7 @@ export class CoverageZoneService {
   /**
    * Obtiene una zona de cobertura por ID
    */
-  async findOne(id: string) {
+  async findOne(id: string): Promise<CoverageZone> {
     this.logger.log(`Obteniendo zona de cobertura con ID: ${id}`);
     const zone = await this.prisma.coverageZone.findUnique({
       where: { id },
@@ -38,7 +38,7 @@ export class CoverageZoneService {
   /**
    * Busca zonas de cobertura que incluyan un código postal específico
    */
-  async findByPostalCode(postalCode: string) {
+  async findByPostalCode(postalCode: string): Promise<CoverageZone[]> {
     this.logger.log(`Buscando zonas de cobertura para código postal: ${postalCode}`);
     return this.prisma.coverageZone.findMany({
       where: {
@@ -53,7 +53,7 @@ export class CoverageZoneService {
   /**
    * Crea una nueva zona de cobertura
    */
-  async create(createCoverageZoneDto: CreateCoverageZoneDto) {
+  async create(createCoverageZoneDto: CreateCoverageZoneDto): Promise<CoverageZone> {
     this.logger.log(`Creando nueva zona de cobertura: ${createCoverageZoneDto.name}`);
 
     return this.prisma.coverageZone.create({
@@ -64,7 +64,7 @@ export class CoverageZoneService {
   /**
    * Actualiza una zona de cobertura existente
    */
-  async update(id: string, updateCoverageZoneDto: UpdateCoverageZoneDto) {
+  async update(id: string, updateCoverageZoneDto: UpdateCoverageZoneDto): Promise<CoverageZone> {
     this.logger.log(`Actualizando zona de cobertura con ID: ${id}`);
 
     // Verificar que existe
@@ -79,7 +79,7 @@ export class CoverageZoneService {
   /**
    * Elimina (soft delete) una zona de cobertura
    */
-  async remove(id: string) {
+  async remove(id: string): Promise<CoverageZone> {
     this.logger.log(`Desactivando zona de cobertura con ID: ${id}`);
 
     // Verificar que existe

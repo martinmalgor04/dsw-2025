@@ -1,4 +1,7 @@
 import { httpClient } from '../http/http-client';
+import { TransportMethod } from './config.service';
+import { DriverDTO } from './driver.service';
+import { VehicleDTO } from './vehicle.service';
 
 export interface RouteDTO {
   id: string;
@@ -7,10 +10,9 @@ export interface RouteDTO {
   status: string;
   startDate: string;
   endDate?: string;
-  transportMethodId: string;
-  vehicleId?: string;
-  driverId?: string;
-  coverageZoneId?: string;
+  transportMethod: TransportMethod;
+  vehicle?: VehicleDTO;
+  driver?: DriverDTO;
 }
 
 export interface CreateRouteDTO {
@@ -50,31 +52,31 @@ export interface CreateRouteStopDTO {
 
 class RouteService {
   async getRoutes(): Promise<RouteDTO[]> {
-    return httpClient.get('/routes');
+    return httpClient.get('/fleet/routes');
   }
 
   async getRoute(id: string): Promise<RouteDTO> {
-    return httpClient.get(`/routes/${id}`);
+    return httpClient.get(`/fleet/routes/${id}`);
   }
 
   async createRoute(dto: CreateRouteDTO): Promise<RouteDTO> {
-    return httpClient.post('/routes', dto);
+    return httpClient.post('/fleet/routes', dto);
   }
 
   async updateRoute(id: string, dto: UpdateRouteDTO): Promise<RouteDTO> {
-    return httpClient.patch(`/routes/${id}`, dto);
+    return httpClient.patch(`/fleet/routes/${id}`, dto);
   }
 
   async deleteRoute(id: string): Promise<void> {
-    return httpClient.delete(`/routes/${id}`);
+    return httpClient.delete(`/fleet/routes/${id}`);
   }
 
   async getRouteStops(routeId: string): Promise<RouteStopDTO[]> {
-    return httpClient.get(`/routes/${routeId}/stops`);
+    return httpClient.get(`/fleet/routes/${routeId}/stops`);
   }
 
   async addRouteStop(routeId: string, dto: CreateRouteStopDTO): Promise<RouteStopDTO> {
-    return httpClient.post(`/routes/${routeId}/stops`, dto);
+    return httpClient.post(`/fleet/routes/${routeId}/stops`, dto);
   }
 }
 

@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { TransportMethod } from '@logistics/database';
 import { TransportMethodService } from './services/transport-method.service';
 import { CreateTransportMethodDto } from './dto/create-transport-method.dto';
 import { UpdateTransportMethodDto } from './dto/update-transport-method.dto';
@@ -22,7 +23,7 @@ export class TransportMethodController {
     status: 409,
     description: 'Ya existe un método con ese código',
   })
-  async create(@Body() createTransportMethodDto: CreateTransportMethodDto) {
+  async create(@Body() createTransportMethodDto: CreateTransportMethodDto): Promise<TransportMethod> {
     this.logger.log(`POST /config/transport-methods - Creando: ${createTransportMethodDto.name}`);
     return this.transportMethodService.create(createTransportMethodDto);
   }
@@ -33,7 +34,7 @@ export class TransportMethodController {
     status: 200,
     description: 'Lista de métodos de transporte',
   })
-  async findAll() {
+  async findAll(): Promise<TransportMethod[]> {
     this.logger.log('GET /config/transport-methods - Listando todos');
     return this.transportMethodService.findAll();
   }
@@ -49,7 +50,7 @@ export class TransportMethodController {
     status: 404,
     description: 'Método de transporte no encontrado',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<TransportMethod> {
     this.logger.log(`GET /config/transport-methods/${id}`);
     return this.transportMethodService.findOne(id);
   }
@@ -68,7 +69,7 @@ export class TransportMethodController {
   async update(
     @Param('id') id: string,
     @Body() updateTransportMethodDto: UpdateTransportMethodDto,
-  ) {
+  ): Promise<TransportMethod> {
     this.logger.log(`PATCH /config/transport-methods/${id}`);
     return this.transportMethodService.update(id, updateTransportMethodDto);
   }

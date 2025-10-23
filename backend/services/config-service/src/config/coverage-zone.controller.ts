@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { CoverageZone } from '@logistics/database';
 import { CoverageZoneService } from './services/coverage-zone.service';
 import { CreateCoverageZoneDto } from './dto/create-coverage-zone.dto';
 import { UpdateCoverageZoneDto } from './dto/update-coverage-zone.dto';
@@ -18,7 +19,7 @@ export class CoverageZoneController {
     status: 201,
     description: 'Zona de cobertura creada exitosamente',
   })
-  async create(@Body() createCoverageZoneDto: CreateCoverageZoneDto) {
+  async create(@Body() createCoverageZoneDto: CreateCoverageZoneDto): Promise<CoverageZone> {
     this.logger.log(`POST /config/coverage-zones - Creando: ${createCoverageZoneDto.name}`);
     return this.coverageZoneService.create(createCoverageZoneDto);
   }
@@ -29,7 +30,7 @@ export class CoverageZoneController {
     status: 200,
     description: 'Lista de zonas de cobertura',
   })
-  async findAll() {
+  async findAll(): Promise<CoverageZone[]> {
     this.logger.log('GET /config/coverage-zones - Listando todas');
     return this.coverageZoneService.findAll();
   }
@@ -45,7 +46,7 @@ export class CoverageZoneController {
     status: 404,
     description: 'Zona de cobertura no encontrada',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<CoverageZone> {
     this.logger.log(`GET /config/coverage-zones/${id}`);
     return this.coverageZoneService.findOne(id);
   }
@@ -64,7 +65,7 @@ export class CoverageZoneController {
   async update(
     @Param('id') id: string,
     @Body() updateCoverageZoneDto: UpdateCoverageZoneDto,
-  ) {
+  ): Promise<CoverageZone> {
     this.logger.log(`PATCH /config/coverage-zones/${id}`);
     return this.coverageZoneService.update(id, updateCoverageZoneDto);
   }

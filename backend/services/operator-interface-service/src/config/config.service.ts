@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService as NestConfigService } from '@nestjs/config';
-import { PrismaService } from '@logistics/database';
+import { PrismaService, TransportMethod, CoverageZone } from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class ConfigService {
    */
 
   // Transport Methods
-  async getAllTransportMethods() {
+  async getAllTransportMethods(): Promise<TransportMethod[]> {
     this.logger.startOperation('getAllTransportMethods');
     
     try {
@@ -44,7 +44,7 @@ export class ConfigService {
     }
   }
 
-  async getTransportMethodById(id: string) {
+  async getTransportMethodById(id: string): Promise<TransportMethod> {
     this.logger.startOperation('getTransportMethodById', { id });
     
     try {
@@ -65,7 +65,7 @@ export class ConfigService {
     }
   }
 
-  async createTransportMethod(data: any) {
+  async createTransportMethod(data: any): Promise<TransportMethod> {
     this.logger.startOperation('createTransportMethod', { code: data.code });
     
     try {
@@ -84,7 +84,7 @@ export class ConfigService {
     }
   }
 
-  async updateTransportMethod(id: string, data: any) {
+  async updateTransportMethod(id: string, data: any): Promise<TransportMethod> {
     this.logger.startOperation('updateTransportMethod', { id });
     
     try {
@@ -105,7 +105,7 @@ export class ConfigService {
   }
 
   // Coverage Zones
-  async getAllCoverageZones() {
+  async getAllCoverageZones(): Promise<CoverageZone[]> {
     this.logger.startOperation('getAllCoverageZones');
     
     try {

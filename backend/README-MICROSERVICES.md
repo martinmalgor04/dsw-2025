@@ -4,6 +4,84 @@
 
 Este proyecto ha sido migrado de una arquitectura monolítica modular a **microservicios verdaderos** manteniendo base de datos compartida para simplificar la transición.
 
+## 🎯 Arquitectura de Microservicios
+
+Este backend implementa una arquitectura de microservicios escal­able usando NestJS 10 y Prisma ORM.
+
+## ✅ Problemas Resueltos - Tipos Explícitos de Prisma (Solución Duradera)
+
+### Problema
+Durante la compilación del TypeScript, se presentaban errores `TS2742` sobre "tipos no portables" al interactuar con Prisma:
+```
+The inferred type of 'findAll' cannot be named without a reference to '../../../../shared/database/node_modules/@prisma/client/runtime/library'
+```
+
+### Causa Raíz
+Cuando un método async **no tiene tipo de retorno explícito**, TypeScript debe inferirlo. Con Prisma, esto genera referencias a rutas internas del `node_modules` de `@prisma/client`, que no son portables entre diferentes contextos de compilación.
+
+### Solución Duradera ✨
+Se agregaron **tipos de retorno explícitos** a todos los métodos que interactúan con Prisma:
+
+#### En Services (ejemplos):
+```typescript
+// ❌ ANTES (causa TS2742)
+async findAll() {
+  return this.prisma.transportMethod.findMany();
+}
+
+// ✅ DESPUÉS (solución duradera)
+async findAll(): Promise<TransportMethod[]> {
+  return this.prisma.transportMethod.findMany();
+}
+```
+
+#### En Controllers (ejemplos):
+```typescript
+// ❌ ANTES
+async create(@Body() dto: CreateTransportMethodDto) {
+  return this.transportMethodService.create(dto);
+}
+
+// ✅ DESPUÉS
+async create(@Body() dto: CreateTransportMethodDto): Promise<TransportMethod> {
+  return this.transportMethodService.create(dto);
+}
+```
+
+#### Importaciones de Tipos desde @logistics/database:
+```typescript
+// ✅ Correcto
+import { PrismaService, TransportMethod, Driver, Vehicle, Route } from '@logistics/database';
+
+// ❌ Incorrecto (y causa TS2307)
+import { TransportMethod } from '@prisma/client'; 
+```
+
+### Archivos Modificados con Tipos Explícitos
+
+#### Config Service:
+- `transport-method.service.ts` - Todos los métodos con tipos Promise
+- `transport-method.controller.ts` - Todos los métodos async con tipos Promise
+- `coverage-zone.service.ts` - Todos los métodos con tipos Promise
+- `coverage-zone.controller.ts` - Todos los métodos async con tipos Promise
+
+#### Operator Interface Service (Fleet Module):
+- `fleet/services/drivers.service.ts` - Promise<Driver> | Promise<Driver[]>
+- `fleet/drivers.controller.ts` - Promise<Driver> | Promise<Driver[]>
+- `fleet/services/vehicles.service.ts` - Promise<Vehicle> | Promise<Vehicle[]>
+- `fleet/vehicles.controller.ts` - Promise<Vehicle> | Promise<Vehicle[]>
+- `fleet/services/routes.service.ts` - Promise<Route> | Promise<Route[]>
+- `fleet/routes.controller.ts` - Promise<Route> | Promise<Route[]>
+
+#### Shipping Service:
+- ✅ Ya tenía tipos explícitos en todos los métodos
+
+### Patrón a Seguir en Nuevas Funciones
+1. Todos los métodos `async` deben tener tipo de retorno explícito
+2. Para retornos de Prisma, usar `Promise<TipoEntidad>` o `Promise<TipoEntidad[]>`
+3. Importar tipos desde `@logistics/database`, no desde `@prisma/client`
+4. Esto garantiza compilación correcta sin warnings de tipo no portables
+
 ## 🏗️ Arquitectura
 
 ```

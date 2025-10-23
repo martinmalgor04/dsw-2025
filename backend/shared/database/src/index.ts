@@ -4,3 +4,6 @@ export * from '@prisma/client';
 // Export our custom services and modules
 export { PrismaService } from './prisma.service';
 export { PrismaModule } from './prisma.module';
+
+// Export enums from Prisma schema
+export { TransportType, ShippingStatus } from '@prisma/client';

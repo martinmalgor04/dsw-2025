@@ -32,23 +32,23 @@ export interface VehicleFilters {
 
 class VehicleService {
   async getVehicles(filters?: VehicleFilters): Promise<VehicleDTO[]> {
-    return httpClient.get('/vehicles', { params: filters });
+    return httpClient.get('/fleet/vehicles', { params: filters });
   }
 
   async getVehicle(id: string): Promise<VehicleDTO> {
-    return httpClient.get(`/vehicles/${id}`);
+    return httpClient.get(`/fleet/vehicles/${id}`);
   }
 
   async createVehicle(dto: CreateVehicleDTO): Promise<VehicleDTO> {
-    return httpClient.post('/vehicles', dto);
+    return httpClient.post('/fleet/vehicles', dto);
   }
 
   async updateVehicle(id: string, dto: UpdateVehicleDTO): Promise<VehicleDTO> {
-    return httpClient.patch(`/vehicles/${id}`, dto);
+    return httpClient.patch(`/fleet/vehicles/${id}`, dto);
   }
 
   async deleteVehicle(id: string): Promise<void> {
-    return httpClient.delete(`/vehicles/${id}`);
+    return httpClient.delete(`/fleet/vehicles/${id}`);
   }
 }
 

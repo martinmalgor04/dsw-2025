@@ -205,3 +205,75 @@ frontend/out
 /plan-template.md
 /spec-template.md
 /tasks-template.md
+
+# ===================================
+# Internal Documentation & Build Notes
+# ===================================
+README-MICROSERVICES.md
+BEST-PRACTICES.md
+TROUBLESHOOTING.md
+/backend/README-MICROSERVICES.md
+/backend/BEST-PRACTICES.md
+/backend/TROUBLESHOOTING.md
+
+# ===================================
+# Temporary compilation & runtime files
+# ===================================
+/tmp/
+*.log.tmp
+*.pid
+*.lock.tmp
+
+# ===================================
+# IDE temporary files
+# ===================================
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/.DS_Store
+
+# ===================================
+# Monorepo/Workspace temporary files
+# ===================================
+/backend/services/*/dist/
+/backend/shared/*/dist/
+/backend/services/*/.env
+/backend/shared/*/.env
+
+# ===================================
+# Package manager temporary files
+# ===================================
+package-lock.json.tmp
+pnpm-lock.yaml.tmp
+yarn.lock.tmp
+
+# ===================================
+# Development temporary files
+# ===================================
+/tmp/
+/logs/
+*.log.dev
+.env.dev
+.env.test.local
+
+# ===================================
+# Backend microservices - individual .env files
+# ===================================
+backend/services/config-service/.env
+backend/services/operator-interface-service/.env
+backend/services/shipping-service/.env
+backend/services/stock-integration-service/.env
+
+# ===================================
+# Shared libraries - dist directories
+# ===================================
+backend/shared/database/dist/
+backend/shared/types/dist/
+backend/shared/utils/dist/
+
+# ===================================
+# Build artifacts
+# ===================================
+*.tsbuildinfo
+tsconfig.tsbuildinfo

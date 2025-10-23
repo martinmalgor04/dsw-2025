@@ -7,8 +7,8 @@ export interface TransportMethod {
   description?: string;
   averageSpeed: number;
   estimatedDays: string;
-  baseCostPerKm: string | number;
-  baseCostPerKg: string | number;
+  baseCostPerKm: number;
+  baseCostPerKg: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

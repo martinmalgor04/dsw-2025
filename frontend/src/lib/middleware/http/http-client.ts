@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { defaultHttpConfig, HttpClientConfig } from './config';
 import { transformAxiosError } from '../errors/error-handler';
+import { authStore } from '../stores/auth.store';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,6 +38,17 @@ export class HttpClient {
   }
 
   private setupInterceptors() {
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = authStore.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
     this.client.interceptors.response.use(
       (response) => response,
       async (error) => {

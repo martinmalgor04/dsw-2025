@@ -19,6 +19,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { IsString, IsNumber, IsBoolean, IsOptional, Length, Min } from 'class-validator';
+import { TransportMethod } from '@logistics/database';
 import { ConfigService } from './config.service';
 
 // DTOs que coinciden exactamente con la documentación
@@ -122,7 +123,7 @@ export class ConfigTransportMethodsController {
       },
     },
   })
-  async getAllTransportMethods() {
+  async getAllTransportMethods(): Promise<TransportMethod[]> {
     return this.configService.getAllTransportMethods();
   }
 
@@ -133,7 +134,7 @@ export class ConfigTransportMethodsController {
   @ApiResponse({ status: 201, description: 'Método de transporte creado' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   @ApiResponse({ status: 409, description: 'Código ya existe' })
-  async createTransportMethod(@Body() createDto: CreateTransportMethodDto) {
+  async createTransportMethod(@Body() createDto: CreateTransportMethodDto): Promise<TransportMethod> {
     try {
       return await this.configService.createTransportMethod({
         ...createDto,
@@ -152,7 +153,7 @@ export class ConfigTransportMethodsController {
   @ApiParam({ name: 'id', description: 'UUID del método de transporte' })
   @ApiResponse({ status: 200, description: 'Método de transporte encontrado' })
   @ApiResponse({ status: 404, description: 'Método no encontrado' })
-  async getTransportMethodById(@Param('id') id: string) {
+  async getTransportMethodById(@Param('id') id: string): Promise<TransportMethod> {
     try {
       return await this.configService.getTransportMethodById(id);
     } catch (error: any) {
@@ -173,7 +174,7 @@ export class ConfigTransportMethodsController {
   async updateTransportMethod(
     @Param('id') id: string,
     @Body() updateDto: UpdateTransportMethodDto,
-  ) {
+  ): Promise<TransportMethod> {
     try {
       return await this.configService.updateTransportMethod(id, updateDto);
     } catch (error: any) {

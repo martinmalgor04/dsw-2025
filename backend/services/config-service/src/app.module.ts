@@ -10,7 +10,7 @@ import { HealthModule } from './health.module';
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['../../shared/database/.env', '.env.local', '.env'],
     }),
     PrismaModule,
     ConfigModule,
