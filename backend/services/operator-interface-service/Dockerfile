@@ -40,8 +40,9 @@ RUN npm ci --legacy-peer-deps
 # Volver al directorio raíz
 WORKDIR /app
 
-# Compilar la biblioteca compartida de database
+# Compilar las bibliotecas compartidas
 RUN cd shared/database && npm install && npm run build
+RUN cd shared/utils && npm install && npm run build
 
 # Copiar código fuente del servicio
 COPY services/operator-interface-service/src/ ./services/operator-interface-service/src/
