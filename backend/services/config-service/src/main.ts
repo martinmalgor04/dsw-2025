@@ -25,10 +25,11 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Config Service API')
-    .setDescription('Configuration service for transport methods and coverage zones')
+    .setDescription('Configuration service for transport methods, coverage zones and tariff configurations')
     .setVersion('1.0')
     .addTag('transport-methods', 'Transport methods management')
     .addTag('coverage-zones', 'Coverage zones management')
+    .addTag('tariff-configs', 'Tariff configurations management')
     .addTag('health', 'Health checks')
     .build();
 

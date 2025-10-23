@@ -1,20 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Calculator, DollarSign } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Calculator, DollarSign, Package, Truck } from "lucide-react";
 import { DataTable, createSortableHeader } from "../config/DataTable";
 import { Toolbar } from "../config/Toolbar";
+import { BadgeEstado } from "../config/BadgeEstado";
+import { ConfirmDialog } from "../config/ConfirmDialog";
 import { EmptyState } from "../config/EmptyState";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Card } from "../ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { Switch } from "../ui/switch";
 import {
   Select,
   SelectContent,
@@ -22,316 +18,202 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { toast } from "sonner";
+import { useConfig } from "@/lib/middleware/stores/composables/useConfig";
+import type { TariffConfigDTO, CreateTariffConfigDTO, UpdateTariffConfigDTO } from "@/lib/middleware/services/tariff-config.service";
 
-interface ReglaCotizacion {
-  id: string;
-  rangoKm: string;
-  costoBaseRango: number;
-  costoPorKmAdicional: number;
-  pesoMaximoBase: number;
-  costoPorKgAdicional: number;
-  volumenMaximoBase: number;
-  costoPorVolumenAdicional: number;
-}
-
-interface MultiplicadorTransporte {
-  id: string;
-  medioTransporte: string;
-  multiplicadorCosto: number;
-}
-
-const mockReglas: ReglaCotizacion[] = [
-  {
-    id: "1",
-    rangoKm: "0 - 10",
-    costoBaseRango: 800,
-    costoPorKmAdicional: 30,
-    pesoMaximoBase: 5,
-    costoPorKgAdicional: 60,
-    volumenMaximoBase: 20000,
-    costoPorVolumenAdicional: 0.005,
-  },
-  {
-    id: "2",
-    rangoKm: "10 - 100",
-    costoBaseRango: 1500,
-    costoPorKmAdicional: 50,
-    pesoMaximoBase: 5,
-    costoPorKgAdicional: 100,
-    volumenMaximoBase: 20000,
-    costoPorVolumenAdicional: 0.008,
-  },
-  {
-    id: "3",
-    rangoKm: "100 - 500",
-    costoBaseRango: 2500,
-    costoPorKmAdicional: 60,
-    pesoMaximoBase: 5,
-    costoPorKgAdicional: 120,
-    volumenMaximoBase: 20000,
-    costoPorVolumenAdicional: 0.01,
-  },
-  {
-    id: "4",
-    rangoKm: "500 - 1000",
-    costoBaseRango: 4000,
-    costoPorKmAdicional: 75,
-    pesoMaximoBase: 5,
-    costoPorKgAdicional: 150,
-    volumenMaximoBase: 20000,
-    costoPorVolumenAdicional: 0.012,
-  },
-  {
-    id: "5",
-    rangoKm: "1000 - 2000",
-    costoBaseRango: 6000,
-    costoPorKmAdicional: 90,
-    pesoMaximoBase: 5,
-    costoPorKgAdicional: 200,
-    volumenMaximoBase: 20000,
-    costoPorVolumenAdicional: 0.015,
-  },
+const environments = [
+  { value: "development", label: "Desarrollo" },
+  { value: "staging", label: "Staging" },
+  { value: "production", label: "Producción" },
 ];
-
-const multiplicadoresTransporte: MultiplicadorTransporte[] = [
-  { id: "truck", medioTransporte: "Camion", multiplicadorCosto: 1 },
-  { id: "plane", medioTransporte: "Avion", multiplicadorCosto: 2.5 },
-  { id: "train", medioTransporte: "Tren", multiplicadorCosto: 1.5 },
-  { id: "ship", medioTransporte: "Barco", multiplicadorCosto: 1.8 },
-];
-
-const currencyFormatter = new Intl.NumberFormat("es-AR", {
-  style: "currency",
-  currency: "ARS",
-  maximumFractionDigits: 2,
-});
-
-const decimalFormatter = new Intl.NumberFormat("es-AR", {
-  maximumFractionDigits: 2,
-});
-
-const volumetricFormatter = new Intl.NumberFormat("es-AR", {
-  minimumFractionDigits: 3,
-  maximumFractionDigits: 3,
-});
-
-function parseRangoKm(rango: string) {
-  const [minRaw = "0", maxRaw = "0"] = rango.split("-").map(part => part.trim());
-
-  const parseValue = (value: string) => {
-    const cleaned = value.replace(/[^0-9+]/g, "");
-    if (!cleaned) {
-      return 0;
-    }
-    return Number(cleaned.replace("+", ""));
-  };
-
-  const minKm = parseValue(minRaw);
-  const maxKm = parseValue(maxRaw);
-
-  return {
-    minKm,
-    maxKm: maxKm || minKm,
-  };
-}
-
-type ReglaForm = Omit<ReglaCotizacion, "id">;
-
-type SimulatorData = {
-  distanciaKm: number;
-  pesoKg: number;
-  volumenCm3: number;
-  medioTransporte: string;
-};
-
-interface DetalleCotizacion {
-  base: number;
-  recargoKm: number;
-  kmExtra: number;
-  recargoPeso: number;
-  pesoExtra: number;
-  recargoVolumen: number;
-  volumenExtra: number;
-  subtotal: number;
-  multiplicador: number;
-  total: number;
-  limiteKm: number;
-}
-
-const obtenerMultiplicador = (medio: string) =>
-  multiplicadoresTransporte.find(item => item.medioTransporte === medio)?.multiplicadorCosto ?? 1;
-
-const calcularDetalleCotizacion = (regla: ReglaForm, datos: SimulatorData): DetalleCotizacion => {
-  const { maxKm } = parseRangoKm(regla.rangoKm);
-
-  const distancia = Math.max(0, datos.distanciaKm);
-  const limiteKm = maxKm > 0 ? maxKm : distancia;
-  const kmExtra = Math.max(0, distancia - limiteKm);
-
-  const pesoExtra = Math.max(0, datos.pesoKg - Math.max(regla.pesoMaximoBase, 0));
-  const volumenExtra = Math.max(0, datos.volumenCm3 - Math.max(regla.volumenMaximoBase, 0));
-
-  const base = Math.max(regla.costoBaseRango, 0);
-  const recargoKm = kmExtra * Math.max(regla.costoPorKmAdicional, 0);
-  const recargoPeso = pesoExtra * Math.max(regla.costoPorKgAdicional, 0);
-  const recargoVolumen = volumenExtra * Math.max(regla.costoPorVolumenAdicional, 0);
-
-  const subtotal = base + recargoKm + recargoPeso + recargoVolumen;
-  const multiplicador = obtenerMultiplicador(datos.medioTransporte);
-  const total = subtotal * multiplicador;
-
-  return {
-    base,
-    recargoKm,
-    kmExtra,
-    recargoPeso,
-    pesoExtra,
-    recargoVolumen,
-    volumenExtra,
-    subtotal,
-    multiplicador,
-    total,
-    limiteKm,
-  };
-};
 
 export function ReglasCotizacion() {
   const [searchValue, setSearchValue] = useState("");
-  const [reglas, setReglas] = useState<ReglaCotizacion[]>(mockReglas);
+  const [filterEstado, setFilterEstado] = useState("todos");
+  const [filterEnvironment, setFilterEnvironment] = useState("todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRegla, setEditingRegla] = useState<ReglaCotizacion | null>(null);
-  const [showSimulator, setShowSimulator] = useState(false);
+  const [editingConfig, setEditingConfig] = useState<TariffConfigDTO | null>(null);
+  const [deleteConfig, setDeleteConfig] = useState<TariffConfigDTO | null>(null);
 
-  const [formData, setFormData] = useState<ReglaForm>({
-    rangoKm: "",
-    costoBaseRango: 0,
-    costoPorKmAdicional: 0,
-    pesoMaximoBase: 0,
-    costoPorKgAdicional: 0,
-    volumenMaximoBase: 0,
-    costoPorVolumenAdicional: 0,
+  const {
+    tariffConfigs,
+    transportMethods,
+    isLoading,
+    error,
+    createTariffConfig,
+    updateTariffConfig,
+    deleteTariffConfig,
+    loadTariffConfigs
+  } = useConfig();
+
+  const [formData, setFormData] = useState<CreateTariffConfigDTO>({
+    transportMethodId: "",
+    baseTariff: 0,
+    costPerKg: 0,
+    costPerKm: 0,
+    volumetricFactor: 167,
+    environment: "development",
+    isActive: true,
   });
 
-  const [simulatorData, setSimulatorData] = useState<SimulatorData>({
-    distanciaKm: 10,
-    pesoKg: 5,
-    volumenCm3: 10000,
-    medioTransporte: multiplicadoresTransporte[0].medioTransporte,
+  useEffect(() => {
+    loadTariffConfigs();
+  }, []); // Removido loadTariffConfigs de las dependencias
+
+  const filteredConfigs = tariffConfigs.filter((config) => {
+    const search = searchValue.toLowerCase();
+    const matchesSearch =
+      config.transportMethod.name.toLowerCase().includes(search) ||
+      config.transportMethod.code.toLowerCase().includes(search) ||
+      config.environment.toLowerCase().includes(search);
+    const matchesEstado =
+      filterEstado === "todos" ||
+      (filterEstado === "activo" && config.isActive) ||
+      (filterEstado === "inactivo" && !config.isActive);
+    const matchesEnvironment =
+      filterEnvironment === "todos" ||
+      config.environment === filterEnvironment;
+    return matchesSearch && matchesEstado && matchesEnvironment;
   });
 
   const handleNew = () => {
-    setEditingRegla(null);
+    setEditingConfig(null);
     setFormData({
-      rangoKm: "",
-      costoBaseRango: 0,
-      costoPorKmAdicional: 0,
-      pesoMaximoBase: 0,
-      costoPorKgAdicional: 0,
-      volumenMaximoBase: 0,
-      costoPorVolumenAdicional: 0,
+      transportMethodId: "",
+      baseTariff: 0,
+      costPerKg: 0,
+      costPerKm: 0,
+      volumetricFactor: 167,
+      environment: "development",
+      isActive: true,
     });
     setIsModalOpen(true);
   };
 
-  const handleEdit = (regla: ReglaCotizacion) => {
-    const { id, ...rest } = regla;
-    setEditingRegla(regla);
-    setFormData(rest);
+  const handleEdit = (config: TariffConfigDTO) => {
+    setEditingConfig(config);
+    setFormData({
+      transportMethodId: config.transportMethodId,
+      baseTariff: config.baseTariff,
+      costPerKg: config.costPerKg,
+      costPerKm: config.costPerKm,
+      volumetricFactor: config.volumetricFactor,
+      environment: config.environment,
+      isActive: config.isActive,
+    });
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    const rangoSanitizado = formData.rangoKm.trim();
-
-    if (!rangoSanitizado) {
-      toast.error("El campo Rango_KM es requerido");
+  const handleSave = async () => {
+    if (!formData.transportMethodId.trim()) {
+      toast.error("El método de transporte es requerido");
       return;
     }
 
-    const numericValues = [
-      formData.costoBaseRango,
-      formData.costoPorKmAdicional,
-      formData.pesoMaximoBase,
-      formData.costoPorKgAdicional,
-      formData.volumenMaximoBase,
-      formData.costoPorVolumenAdicional,
-    ];
-
-    if (numericValues.some(value => Number.isNaN(value) || value < 0)) {
+    if (formData.baseTariff < 0 || formData.costPerKg < 0 || formData.costPerKm < 0) {
       toast.error("Los valores deben ser mayores o iguales a 0");
       return;
     }
 
-    const payload: ReglaForm = {
-      ...formData,
-      rangoKm: rangoSanitizado,
-    };
-
-    if (editingRegla) {
-      setReglas(reglas.map(regla => (regla.id === editingRegla.id ? { ...regla, ...payload } : regla)));
-      toast.success("Regla actualizada correctamente");
-    } else {
-      const newRegla: ReglaCotizacion = {
-        id: String(Date.now()),
-        ...payload,
-      };
-      setReglas([...reglas, newRegla]);
-      toast.success("Regla creada correctamente");
+    if (formData.volumetricFactor <= 0) {
+      toast.error("El factor volumétrico debe ser mayor a 0");
+      return;
     }
 
-    setIsModalOpen(false);
+    try {
+      if (editingConfig) {
+        await updateTariffConfig(editingConfig.id, formData);
+        toast.success("Configuración de tarifa actualizada correctamente");
+      } else {
+        await createTariffConfig(formData);
+        toast.success("Configuración de tarifa creada correctamente");
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error("Error al guardar la configuración de tarifa");
+    }
   };
 
-  const detalleCotizacion = useMemo(
-    () => calcularDetalleCotizacion(formData, simulatorData),
-    [formData, simulatorData]
-  );
+  const handleDelete = async () => {
+    if (!deleteConfig) return;
+    
+    try {
+      await deleteTariffConfig(deleteConfig.id);
+      toast.success("Configuración de tarifa eliminada correctamente");
+      setDeleteConfig(null);
+    } catch (error) {
+      toast.error("Error al eliminar la configuración de tarifa");
+    }
+  };
 
-  const columns: ColumnDef<ReglaCotizacion>[] = [
+  const columns: ColumnDef<TariffConfigDTO>[] = [
     {
-      id: "index",
-      header: "#",
-      enableSorting: false,
+      accessorKey: "transportMethod",
+      header: "",
+      cell: ({ row }) => {
+        const method = row.original.transportMethod;
+        return (
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
+            <Truck className="w-5 h-5 text-blue-600" />
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "transportMethod.name",
+      header: createSortableHeader("Método de Transporte"),
       cell: ({ row }) => (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 text-white flex items-center justify-center">
-          {row.index + 1}
+        <div>
+          <div className="font-medium">{row.original.transportMethod.name}</div>
+          <div className="text-sm text-gray-500">{row.original.transportMethod.code}</div>
         </div>
       ),
     },
     {
-      accessorKey: "rangoKm",
-      header: createSortableHeader("Rango_KM"),
+      accessorKey: "baseTariff",
+      header: createSortableHeader("Tarifa Base"),
+      cell: ({ row }) => `$${parseFloat(row.original.baseTariff.toString()).toFixed(2)}`,
     },
     {
-      accessorKey: "costoBaseRango",
-      header: createSortableHeader("Costo_Base_Rango"),
-      cell: ({ row }) => currencyFormatter.format(row.original.costoBaseRango),
+      accessorKey: "costPerKg",
+      header: createSortableHeader("Costo/kg"),
+      cell: ({ row }) => `$${parseFloat(row.original.costPerKg.toString()).toFixed(2)}`,
     },
     {
-      accessorKey: "costoPorKmAdicional",
-      header: "Costo_Por_Km_Adicional",
-      cell: ({ row }) => currencyFormatter.format(row.original.costoPorKmAdicional),
+      accessorKey: "costPerKm",
+      header: createSortableHeader("Costo/km"),
+      cell: ({ row }) => `$${parseFloat(row.original.costPerKm.toString()).toFixed(2)}`,
     },
     {
-      accessorKey: "pesoMaximoBase",
-      header: "Peso_Maximo_Base",
-      cell: ({ row }) => `${row.original.pesoMaximoBase} kg`,
+      accessorKey: "volumetricFactor",
+      header: createSortableHeader("Factor Vol."),
+      cell: ({ row }) => row.original.volumetricFactor,
     },
     {
-      accessorKey: "costoPorKgAdicional",
-      header: "Costo_Por_Kg_Adicional",
-      cell: ({ row }) => currencyFormatter.format(row.original.costoPorKgAdicional),
+      accessorKey: "environment",
+      header: "Entorno",
+      cell: ({ row }) => (
+        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+          {row.original.environment}
+        </span>
+      ),
     },
     {
-      accessorKey: "volumenMaximoBase",
-      header: "Volumen_Maximo_Base",
-      cell: ({ row }) => `${row.original.volumenMaximoBase.toLocaleString("es-AR")} cm^3`,
-    },
-    {
-      accessorKey: "costoPorVolumenAdicional",
-      header: "Costo_Por_Volumen_Adicional",
-      cell: ({ row }) => volumetricFormatter.format(row.original.costoPorVolumenAdicional),
+      accessorKey: "isActive",
+      header: "Estado",
+      cell: ({ row }) => (
+        <BadgeEstado
+          estado={row.original.isActive ? "success" : "neutral"}
+          label={row.original.isActive ? "Activo" : "Inactivo"}
+        />
+      ),
     },
     {
       id: "actions",
@@ -349,14 +231,11 @@ export function ReglasCotizacion() {
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => {
-                const { id, ...rest } = row.original;
-                setFormData(rest);
-                setShowSimulator(true);
-              }}
+              onClick={() => setDeleteConfig(row.original)}
+              className="text-red-600"
             >
-              <Calculator className="mr-2 h-4 w-4" />
-              Simular
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -364,267 +243,206 @@ export function ReglasCotizacion() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Cargando configuraciones de tarifa...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">Error: {error}</p>
+        <Button onClick={() => loadTariffConfigs(true)}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="space-y-6">
       <Toolbar
         searchValue={searchValue}
         onSearchChange={setSearchValue}
         onNewClick={handleNew}
         newButtonLabel="Nueva regla"
-        showFilters={false}
+        filters={[
+          {
+            label: "Estado",
+            value: filterEstado,
+            options: [
+              { label: "Todos", value: "todos" },
+              { label: "Activos", value: "activo" },
+              { label: "Inactivos", value: "inactivo" },
+            ],
+            onChange: setFilterEstado,
+          },
+          {
+            label: "Entorno",
+            value: filterEnvironment,
+            options: [
+              { label: "Todos", value: "todos" },
+              ...environments,
+            ],
+            onChange: setFilterEnvironment,
+          },
+        ]}
       />
 
-      {reglas.length === 0 ? (
+      {filteredConfigs.length === 0 ? (
         <EmptyState
-          icon={DollarSign}
-          title="No hay reglas de cotizacion"
-          description="Configura las reglas de pricing para tus servicios"
+          icon={Calculator}
+          title="No hay reglas de cotización"
+          description="Agrega una regla de cotización para comenzar a configurar tus tarifas de envío."
           actionLabel="Nueva regla"
           onAction={handleNew}
         />
       ) : (
-        <DataTable columns={columns} data={reglas} searchValue={searchValue} />
+        <DataTable columns={columns} data={filteredConfigs} searchValue={searchValue} />
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="backdrop-blur-xl bg-white/95 max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingRegla ? "Editar regla de cotizacion" : "Nueva regla de cotizacion"}
+              {editingConfig ? "Editar regla de cotización" : "Nueva regla de cotización"}
             </DialogTitle>
             <DialogDescription>
-              Completa los valores que aplican al rango seleccionado.
+              Define los parámetros de la regla de cotización.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="rangoKm">Rango_KM *</Label>
-              <Input
-                id="rangoKm"
-                value={formData.rangoKm}
-                onChange={(e) => setFormData({ ...formData, rangoKm: e.target.value })}
-                placeholder="Ej: 0 - 10"
-                className="bg-white/80"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="costoBaseRango">Costo_Base_Rango (ARS)</Label>
-                <Input
-                  id="costoBaseRango"
-                  type="number"
-                  min="0"
-                  value={formData.costoBaseRango}
-                  onChange={(e) => setFormData({ ...formData, costoBaseRango: Number(e.target.value) })}
-                  className="bg-white/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="costoPorKmAdicional">Costo_Por_Km_Adicional (ARS)</Label>
-                <Input
-                  id="costoPorKmAdicional"
-                  type="number"
-                  min="0"
-                  value={formData.costoPorKmAdicional}
-                  onChange={(e) => setFormData({ ...formData, costoPorKmAdicional: Number(e.target.value) })}
-                  className="bg-white/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="pesoMaximoBase">Peso_Maximo_Base (kg)</Label>
-                <Input
-                  id="pesoMaximoBase"
-                  type="number"
-                  min="0"
-                  value={formData.pesoMaximoBase}
-                  onChange={(e) => setFormData({ ...formData, pesoMaximoBase: Number(e.target.value) })}
-                  className="bg-white/80"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="costoPorKgAdicional">Costo_Por_Kg_Adicional (ARS)</Label>
-                <Input
-                  id="costoPorKgAdicional"
-                  type="number"
-                  min="0"
-                  value={formData.costoPorKgAdicional}
-                  onChange={(e) => setFormData({ ...formData, costoPorKgAdicional: Number(e.target.value) })}
-                  className="bg-white/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="volumenMaximoBase">Volumen_Maximo_Base (cm^3)</Label>
-                <Input
-                  id="volumenMaximoBase"
-                  type="number"
-                  min="0"
-                  value={formData.volumenMaximoBase}
-                  onChange={(e) => setFormData({ ...formData, volumenMaximoBase: Number(e.target.value) })}
-                  className="bg-white/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="costoPorVolumenAdicional">Costo_Por_Volumen_Adicional (ARS/cm^3)</Label>
-                <Input
-                  id="costoPorVolumenAdicional"
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={formData.costoPorVolumenAdicional}
-                  onChange={(e) =>
-                    setFormData({ ...formData, costoPorVolumenAdicional: Number(e.target.value) })
-                  }
-                  className="bg-white/80"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSave}
-                className="bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white"
-              >
-                Guardar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSimulator} onOpenChange={setShowSimulator}>
-        <DialogContent className="backdrop-blur-xl bg-white/95 max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Simulador de cotizacion - {formData.rangoKm || "N/D"}</DialogTitle>
-            <DialogDescription>
-              Estima el costo segun la regla seleccionada y el medio de transporte aplicado.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="distancia">Distancia (km)</Label>
-                <Input
-                  id="distancia"
-                  type="number"
-                  min="0"
-                  value={simulatorData.distanciaKm}
-                  onChange={(e) =>
-                    setSimulatorData({ ...simulatorData, distanciaKm: Number(e.target.value) })
-                  }
-                  className="bg-white/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="peso">Peso (kg)</Label>
-                <Input
-                  id="peso"
-                  type="number"
-                  min="0"
-                  value={simulatorData.pesoKg}
-                  onChange={(e) =>
-                    setSimulatorData({ ...simulatorData, pesoKg: Number(e.target.value) })
-                  }
-                  className="bg-white/80"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="volumen">Volumen (cm^3)</Label>
-              <Input
-                id="volumen"
-                type="number"
-                min="0"
-                value={simulatorData.volumenCm3}
-                onChange={(e) =>
-                  setSimulatorData({ ...simulatorData, volumenCm3: Number(e.target.value) })
-                }
-                className="bg-white/80"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="medioTransporte">Medio de transporte</Label>
+              <Label htmlFor="transportMethodId">Método de Transporte *</Label>
               <Select
-                value={simulatorData.medioTransporte}
-                onValueChange={(value) =>
-                  setSimulatorData({ ...simulatorData, medioTransporte: value })
-                }
+                value={formData.transportMethodId}
+                onValueChange={(value) => setFormData({ ...formData, transportMethodId: value })}
               >
-                <SelectTrigger id="medioTransporte" className="bg-white/80">
-                  <SelectValue placeholder="Selecciona un medio" />
+                <SelectTrigger className="bg-white/80">
+                  <SelectValue placeholder="Selecciona un método de transporte" />
                 </SelectTrigger>
                 <SelectContent>
-                  {multiplicadoresTransporte.map(item => (
-                    <SelectItem key={item.id} value={item.medioTransporte}>
-                      {item.medioTransporte}
+                  {transportMethods.map((method) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.name} ({method.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <Card className="p-4 bg-gradient-to-br from-purple-50 to-teal-50 border-purple-200">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>
-                    Costo base (hasta {detalleCotizacion.limiteKm.toLocaleString("es-AR")} km):
-                  </span>
-                  <span>{currencyFormatter.format(detalleCotizacion.base)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Kilometros extra ({decimalFormatter.format(detalleCotizacion.kmExtra)} km x{" "}
-                    {currencyFormatter.format(formData.costoPorKmAdicional)}):
-                  </span>
-                  <span>{currencyFormatter.format(detalleCotizacion.recargoKm)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Peso excedente ({decimalFormatter.format(detalleCotizacion.pesoExtra)} kg x{" "}
-                    {currencyFormatter.format(formData.costoPorKgAdicional)}):
-                  </span>
-                  <span>{currencyFormatter.format(detalleCotizacion.recargoPeso)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Volumen excedente ({detalleCotizacion.volumenExtra.toLocaleString("es-AR")} cm^3 x{" "}
-                    {volumetricFormatter.format(formData.costoPorVolumenAdicional)}):
-                  </span>
-                  <span>{currencyFormatter.format(detalleCotizacion.recargoVolumen)}</span>
-                </div>
-                <div className="flex justify-between text-purple-700 font-medium">
-                  <span>Subtotal:</span>
-                  <span>{currencyFormatter.format(detalleCotizacion.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-purple-700">
-                  <span>Multiplicador {simulatorData.medioTransporte}:</span>
-                  <span>{decimalFormatter.format(detalleCotizacion.multiplicador)}x</span>
-                </div>
-                <div className="border-t border-purple-300 pt-2 mt-2 flex justify-between">
-                  <span>Total:</span>
-                  <span className="text-purple-700">{currencyFormatter.format(detalleCotizacion.total)}</span>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="baseTariff">Tarifa Base *</Label>
+                <Input
+                  id="baseTariff"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.baseTariff}
+                  onChange={(e) => setFormData({ ...formData, baseTariff: Number(e.target.value) })}
+                  className="bg-white/80"
+                />
               </div>
-            </Card>
-
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowSimulator(false)}>
-                Cerrar
-              </Button>
+              <div>
+                <Label htmlFor="volumetricFactor">Factor Volumétrico *</Label>
+                <Input
+                  id="volumetricFactor"
+                  type="number"
+                  min="1"
+                  value={formData.volumetricFactor}
+                  onChange={(e) => setFormData({ ...formData, volumetricFactor: Number(e.target.value) })}
+                  className="bg-white/80"
+                />
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="costPerKg">Costo por kg *</Label>
+                <Input
+                  id="costPerKg"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.costPerKg}
+                  onChange={(e) => setFormData({ ...formData, costPerKg: Number(e.target.value) })}
+                  className="bg-white/80"
+                />
+              </div>
+              <div>
+                <Label htmlFor="costPerKm">Costo por km *</Label>
+                <Input
+                  id="costPerKm"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.costPerKm}
+                  onChange={(e) => setFormData({ ...formData, costPerKm: Number(e.target.value) })}
+                  className="bg-white/80"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="environment">Entorno</Label>
+              <Select
+                value={formData.environment}
+                onValueChange={(value) => setFormData({ ...formData, environment: value })}
+              >
+                <SelectTrigger className="bg-white/80">
+                  <SelectValue placeholder="Selecciona un entorno" />
+                </SelectTrigger>
+                <SelectContent>
+                  {environments.map((env) => (
+                    <SelectItem key={env.value} value={env.value}>
+                      {env.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+              />
+              <Label htmlFor="isActive">Activo</Label>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+              >
+                Guardar
+              </Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteConfig}
+        onOpenChange={(open) => !open && setDeleteConfig(null)}
+        title="Eliminar regla de cotización"
+        description={`¿Estás seguro de que deseas eliminar la regla de cotización para "${deleteConfig?.transportMethod.name}"?`}
+        confirmLabel="Eliminar"
+        onConfirm={handleDelete}
+        variant="danger"
+      />
     </div>
   );
 }

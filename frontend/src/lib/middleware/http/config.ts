@@ -14,7 +14,7 @@ export interface HttpClientConfig {
 }
 
 export const defaultHttpConfig: HttpClientConfig = {
-  baseURL: (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:3004',
+  baseURL: (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:3003',
   timeoutMs: 30_000,
   defaultHeaders: {
     'Content-Type': 'application/json',

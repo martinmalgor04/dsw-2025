@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { TransportMethod } from '@logistics/database';
 import { TransportMethodService } from './services/transport-method.service';
@@ -72,6 +72,23 @@ export class TransportMethodController {
   ): Promise<TransportMethod> {
     this.logger.log(`PATCH /config/transport-methods/${id}`);
     return this.transportMethodService.update(id, updateTransportMethodDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Eliminar un método de transporte' })
+  @ApiParam({ name: 'id', description: 'ID del método de transporte' })
+  @ApiResponse({
+    status: 204,
+    description: 'Método de transporte eliminado exitosamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Método de transporte no encontrado',
+  })
+  async remove(@Param('id') id: string): Promise<void> {
+    this.logger.log(`DELETE /config/transport-methods/${id}`);
+    return this.transportMethodService.remove(id);
   }
 }
 

@@ -113,17 +113,16 @@ export class TransportMethodService {
   }
 
   /**
-   * Elimina (soft delete) un método de transporte
+   * Elimina un método de transporte
    */
-  async remove(id: string): Promise<TransportMethod> {
-    this.logger.log(`Desactivando método de transporte con ID: ${id}`);
-
+  async remove(id: string): Promise<void> {
+    this.logger.log(`Eliminando método de transporte con ID: ${id}`);
+    
     // Verificar que existe
     await this.findOne(id);
 
-    return this.prisma.transportMethod.update({
+    await this.prisma.transportMethod.delete({
       where: { id },
-      data: { isActive: false },
     });
   }
 }

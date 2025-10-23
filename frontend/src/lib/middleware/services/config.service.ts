@@ -63,6 +63,10 @@ class ConfigService {
     return httpClient.patch(`/config/transport-methods/${id}`, dto);
   }
 
+  async deleteTransportMethod(id: string): Promise<void> {
+    return httpClient.delete(`/config/transport-methods/${id}`);
+  }
+
   async getCoverageZones(): Promise<CoverageZone[]> {
     return httpClient.get('/config/coverage-zones');
   }
