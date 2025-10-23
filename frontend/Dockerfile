@@ -1,6 +1,7 @@
-# Simple Dockerfile for React frontend
-FROM node:18-alpine
+# Multi-stage build for React frontend
+FROM node:18-alpine AS builder
 
+# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -15,11 +16,14 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Install nginx
-RUN apk add --no-cache nginx
+# Production stage
+FROM nginx:alpine
 
-# Copy built files to nginx
-RUN cp -r dist/* /var/www/localhost/htdocs/
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
 EXPOSE 80
