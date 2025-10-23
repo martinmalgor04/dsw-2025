@@ -20,6 +20,7 @@ export interface CreateDriverDTO {
   phone: string;
   licenseNumber: string;
   licenseType: 'A' | 'B' | 'C' | 'D';
+  status: string;
 }
 
 export interface UpdateDriverDTO extends Partial<CreateDriverDTO> {

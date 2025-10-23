@@ -62,13 +62,13 @@ export function Vehiculos() {
     const data = Object.fromEntries(formData.entries());
 
     const vehicleData = {
-      licensePlate: data.licensePlate as string,
+      license_plate: data.license_plate as string,
       make: data.make as string,
       model: data.model as string,
       year: parseInt(data.year as string),
-      capacityKg: parseInt(data.capacityKg as string),
-      volumeM3: parseFloat(data.volumeM3 as string),
-      fuelType: data.fuelType as 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'GNC',
+      capacityKg: parseInt(data.capacity_kg as string),
+      volumeM3: parseFloat(data.volume_m3 as string),
+      fuelType: data.fuel_type as 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'HYBRID',
     };
 
     if (editingVehiculo) {
@@ -78,7 +78,10 @@ export function Vehiculos() {
       };
       update(editingVehiculo.id, updatedData);
     } else {
-      const newData: CreateVehicleDTO = vehicleData;
+      const newData: CreateVehicleDTO = {
+        ...vehicleData,
+        status: 'AVAILABLE',
+      };
       create(newData);
     }
 
@@ -99,7 +102,7 @@ export function Vehiculos() {
   };
 
   const columns = [
-    { accessorKey: 'licensePlate', header: 'Patente' },
+    { accessorKey: 'license_plate', header: 'Patente' },
     { accessorKey: 'make', header: 'Marca' },
     { accessorKey: 'model', header: 'Modelo' },
     { accessorKey: 'year', header: 'Año' },
@@ -148,14 +151,10 @@ export function Vehiculos() {
   return (
     <div>
       <Toolbar
-        title="Vehículos"
-        onSearch={(value) => setFilters({ search: value })}
-        rightContent={
-          <Button onClick={() => setDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Añadir Vehículo
-          </Button>
-        }
+        searchValue=""
+        onSearchChange={(value) => setFilters({ search: value })}
+        onNewClick={() => setDialogOpen(true)}
+        newButtonLabel="Añadir Vehículo"
       />
 
       {isLoading && <p>Cargando...</p>}
@@ -174,22 +173,120 @@ export function Vehiculos() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{editingVehiculo ? 'Editar' : 'Añadir'} Vehículo</DialogTitle>
             <DialogDescription>
-              Completa los detalles del vehículo.
+              {editingVehiculo
+                ? 'Modifica los datos del vehículo.'
+                : 'Añade un nuevo vehículo al sistema.'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSave}>
-            <div className="grid gap-4 py-4">
-              <Input name="licensePlate" defaultValue={editingVehiculo?.licensePlate} placeholder="Patente" required />
-              <Input name="make" defaultValue={editingVehiculo?.make} placeholder="Marca" required />
-              <Input name="model" defaultValue={editingVehiculo?.model} placeholder="Modelo" required />
-              <Input name="year" type="number" defaultValue={editingVehiculo?.year} placeholder="Año" required />
-              <Input name="capacityKg" type="number" defaultValue={editingVehiculo?.capacityKg} placeholder="Capacidad (Kg)" required />
-              <Input name="volumeM3" type="number" step="0.1" defaultValue={editingVehiculo?.volumeM3} placeholder="Volumen (m³)" required />
-              <Input name="fuelType" defaultValue={editingVehiculo?.fuelType} placeholder="Tipo de Combustible" required />
+          <form onSubmit={handleSave} className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="license_plate">Patente *</Label>
+                <Input 
+                  id="license_plate" 
+                  name="license_plate" 
+                  defaultValue={editingVehiculo?.license_plate} 
+                  required 
+                  minLength={6}
+                  maxLength={10}
+                  placeholder="ABC123"
+                />
+              </div>
+              <div>
+                <Label htmlFor="make">Marca *</Label>
+                <Input 
+                  id="make" 
+                  name="make" 
+                  defaultValue={editingVehiculo?.make} 
+                  required 
+                  minLength={2}
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <Label htmlFor="model">Modelo *</Label>
+                <Input 
+                  id="model" 
+                  name="model" 
+                  defaultValue={editingVehiculo?.model} 
+                  required 
+                  minLength={2}
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <Label htmlFor="year">Año *</Label>
+                <Input 
+                  id="year" 
+                  name="year" 
+                  type="number" 
+                  defaultValue={editingVehiculo?.year} 
+                  required 
+                  min="1990"
+                  max="2025"
+                />
+              </div>
+              <div>
+                <Label htmlFor="capacity_kg">Capacidad (Kg) *</Label>
+                <Input 
+                  id="capacity_kg" 
+                  name="capacity_kg" 
+                  type="number" 
+                  defaultValue={editingVehiculo?.capacity_kg} 
+                  required 
+                  min="1"
+                  max="50000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="volume_m3">Volumen (m³) *</Label>
+                <Input 
+                  id="volume_m3" 
+                  name="volume_m3" 
+                  type="number" 
+                  step="0.1" 
+                  defaultValue={editingVehiculo?.volume_m3} 
+                  required 
+                  min="0.1"
+                  max="100"
+                />
+              </div>
+              <div>
+                <Label htmlFor="fuel_type">Tipo de Combustible *</Label>
+                <select 
+                  id="fuel_type" 
+                  name="fuel_type" 
+                  defaultValue={editingVehiculo?.fuel_type || 'GASOLINE'} 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="GASOLINE">Gasolina</option>
+                  <option value="DIESEL">Diésel</option>
+                  <option value="ELECTRIC">Eléctrico</option>
+                  <option value="HYBRID">Híbrido</option>
+                </select>
+              </div>
+              {editingVehiculo && (
+                <div>
+                  <Label htmlFor="status">Estado *</Label>
+                  <select 
+                    id="status" 
+                    name="status" 
+                    defaultValue={editingVehiculo?.status || 'AVAILABLE'} 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  >
+                    <option value="AVAILABLE">Disponible</option>
+                    <option value="IN_USE">En Uso</option>
+                    <option value="MAINTENANCE">Mantenimiento</option>
+                    <option value="OUT_OF_SERVICE">Fuera de Servicio</option>
+                  </select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancelar</Button>
@@ -204,7 +301,7 @@ export function Vehiculos() {
         onOpenChange={() => setDeleteVehiculo(null)}
         onConfirm={handleDeleteConfirm}
         title="¿Estás seguro?"
-        description={`Se eliminará permanentemente el vehículo con patente ${deleteVehiculo?.licensePlate}.`}
+        description={`Se eliminará permanentemente el vehículo con patente ${deleteVehiculo?.license_plate}.`}
       />
     </div>
   );

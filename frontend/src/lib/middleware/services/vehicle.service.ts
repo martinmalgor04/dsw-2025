@@ -2,7 +2,7 @@ import { httpClient } from '../http/http-client';
 
 export interface VehicleDTO {
   id: string;
-  licensePlate: string;
+  license_plate: string;
   make: string;
   model: string;
   year: number;
@@ -13,13 +13,14 @@ export interface VehicleDTO {
 }
 
 export interface CreateVehicleDTO {
-  licensePlate: string;
+  license_plate: string;
   make: string;
   model: string;
   year: number;
   capacityKg: number;
   volumeM3: number;
-  fuelType: 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'GNC';
+  fuelType: 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'HYBRID';
+  status: string;
 }
 
 export interface UpdateVehicleDTO extends Partial<CreateVehicleDTO> {
