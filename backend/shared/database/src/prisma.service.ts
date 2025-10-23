@@ -1,22 +1,28 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
-  constructor(private configService: ConfigService) {
+  constructor() {
+    // Usar directamente process.env para compatibilidad con Docker
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+
     super({
       datasources: {
         db: {
-          url: configService.get<string>('DATABASE_URL'),
+          url: databaseUrl,
         },
       },
       log: ['info', 'warn', 'error'],
     });
 
-    // Log de eventos de Prisma se maneja en el nivel de desarrollo por ahora
+    this.logger.log(`Connecting to database: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`);
   }
 
   async onModuleInit() {
