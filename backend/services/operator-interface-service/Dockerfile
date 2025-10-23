@@ -53,5 +53,5 @@ WORKDIR /app/services/operator-interface-service
 # Exponer puerto (usa la variable de entorno PORT o 3004 por defecto)
 EXPOSE ${PORT:-3004}
 
-# Comando por defecto (compila y luego ejecuta)
-CMD ["sh", "-c", "npm run build && npm run start:prod"]
+# Comando por defecto
+CMD ["npm", "run", "start:dev"]
