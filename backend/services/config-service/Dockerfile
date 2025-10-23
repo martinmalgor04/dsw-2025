@@ -18,6 +18,7 @@ COPY shared/ ./shared/
 COPY services/config-service/package*.json ./services/config-service/
 COPY services/config-service/nest-cli.json ./services/config-service/
 COPY services/config-service/tsconfig.json ./services/config-service/
+COPY services/config-service/tsconfig.build.json ./services/config-service/
 
 # Etapa de desarrollo
 FROM base AS development
