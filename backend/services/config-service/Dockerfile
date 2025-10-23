@@ -25,15 +25,18 @@ FROM base AS development
 # Instalar dependencias del workspace
 RUN npm ci --legacy-peer-deps
 
+# Instalar TypeScript globalmente
+RUN npm install -g typescript
+
 # Instalar dependencias del servicio
 WORKDIR /app/services/config-service
 RUN npm ci --legacy-peer-deps
 
 # Volver al directorio raíz y compilar shared libs
 WORKDIR /app
-RUN cd shared/database && ../../node_modules/.bin/tsc
-RUN cd shared/types && ../../node_modules/.bin/tsc  
-RUN cd shared/utils && ../../node_modules/.bin/tsc
+RUN cd shared/database && tsc
+RUN cd shared/types && tsc  
+RUN cd shared/utils && tsc
 
 # Copiar código fuente del servicio
 COPY services/config-service/src/ ./services/config-service/src/
