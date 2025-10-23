@@ -1,4 +1,4 @@
-import { httpClient } from '../http/http-client';
+import { configHttpClient } from '../http/config-client';
 
 export interface TransportMethod {
   id: string;
@@ -48,39 +48,39 @@ export interface UpdateCoverageZoneDTO extends Partial<CreateCoverageZoneDTO> {}
 
 class ConfigService {
   async getTransportMethods(): Promise<TransportMethod[]> {
-    return httpClient.get('/config/transport-methods');
+    return configHttpClient.get('/config/transport-methods');
   }
 
   async getTransportMethod(id: string): Promise<TransportMethod> {
-    return httpClient.get(`/config/transport-methods/${id}`);
+    return configHttpClient.get(`/config/transport-methods/${id}`);
   }
 
   async createTransportMethod(dto: CreateTransportMethodDTO): Promise<TransportMethod> {
-    return httpClient.post('/config/transport-methods', dto);
+    return configHttpClient.post('/config/transport-methods', dto);
   }
 
   async updateTransportMethod(id: string, dto: UpdateTransportMethodDTO): Promise<TransportMethod> {
-    return httpClient.patch(`/config/transport-methods/${id}`, dto);
+    return configHttpClient.patch(`/config/transport-methods/${id}`, dto);
   }
 
   async deleteTransportMethod(id: string): Promise<void> {
-    return httpClient.delete(`/config/transport-methods/${id}`);
+    return configHttpClient.delete(`/config/transport-methods/${id}`);
   }
 
   async getCoverageZones(): Promise<CoverageZone[]> {
-    return httpClient.get('/config/coverage-zones');
+    return configHttpClient.get('/config/coverage-zones');
   }
 
   async getCoverageZone(id: string): Promise<CoverageZone> {
-    return httpClient.get(`/config/coverage-zones/${id}`);
+    return configHttpClient.get(`/config/coverage-zones/${id}`);
   }
 
   async createCoverageZone(dto: CreateCoverageZoneDTO): Promise<CoverageZone> {
-    return httpClient.post('/config/coverage-zones', dto);
+    return configHttpClient.post('/config/coverage-zones', dto);
   }
 
   async updateCoverageZone(id: string, dto: UpdateCoverageZoneDTO): Promise<CoverageZone> {
-    return httpClient.patch(`/config/coverage-zones/${id}`, dto);
+    return configHttpClient.patch(`/config/coverage-zones/${id}`, dto);
   }
 }
 
