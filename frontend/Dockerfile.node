@@ -1,0 +1,26 @@
+# Node.js Dockerfile for React frontend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy built files
+COPY build/ ./public/
+
+# Create simple server
+RUN echo 'const express = require("express"); \
+const path = require("path"); \
+const app = express(); \
+app.use(express.static("public")); \
+app.get("*", (req, res) => { \
+  res.sendFile(path.join(__dirname, "public", "index.html")); \
+}); \
+app.listen(80, () => console.log("Server running on port 80"));' > server.js
+
+# Install express
+RUN npm init -y && npm install express
+
+# Expose port
+EXPOSE 80
+
+# Start server
+CMD ["node", "server.js"]

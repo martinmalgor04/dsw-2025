@@ -1,0 +1,19 @@
+# Apache Dockerfile for React frontend
+FROM httpd:alpine
+
+# Copy built files to Apache
+COPY build/ /usr/local/apache2/htdocs/
+
+# Create .htaccess for React Router
+RUN echo 'RewriteEngine On' > /usr/local/apache2/htdocs/.htaccess && \
+    echo 'RewriteBase /' >> /usr/local/apache2/htdocs/.htaccess && \
+    echo 'RewriteRule ^index\.html$ - [L]' >> /usr/local/apache2/htdocs/.htaccess && \
+    echo 'RewriteCond %{REQUEST_FILENAME} !-f' >> /usr/local/apache2/htdocs/.htaccess && \
+    echo 'RewriteCond %{REQUEST_FILENAME} !-d' >> /usr/local/apache2/htdocs/.htaccess && \
+    echo 'RewriteRule . /index.html [L]' >> /usr/local/apache2/htdocs/.htaccess
+
+# Expose port
+EXPOSE 80
+
+# Start Apache
+CMD ["httpd", "-D", "FOREGROUND"]
