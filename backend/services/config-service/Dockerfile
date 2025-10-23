@@ -31,9 +31,9 @@ RUN npm ci --legacy-peer-deps
 
 # Volver al directorio raíz y compilar shared libs
 WORKDIR /app
-RUN cd shared/database && npx tsc
-RUN cd shared/types && npx tsc  
-RUN cd shared/utils && npx tsc
+RUN cd shared/database && ../../node_modules/.bin/tsc
+RUN cd shared/types && ../../node_modules/.bin/tsc  
+RUN cd shared/utils && ../../node_modules/.bin/tsc
 
 # Copiar código fuente del servicio
 COPY services/config-service/src/ ./services/config-service/src/
