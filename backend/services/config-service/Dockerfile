@@ -35,11 +35,9 @@ RUN npm ci --legacy-peer-deps
 
 # Volver al directorio raíz
 WORKDIR /app
-# Nota: Saltamos la compilación de shared libs por ahora
-# ya que no son críticas para el funcionamiento del Config Service
-# RUN cd shared/database && tsc
-# RUN cd shared/types && tsc  
-# RUN cd shared/utils && tsc
+
+# Compilar la biblioteca compartida de database
+RUN cd shared/database && npm install && npm run build
 
 # Copiar código fuente del servicio
 COPY services/config-service/src/ ./services/config-service/src/
