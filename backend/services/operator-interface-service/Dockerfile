@@ -33,16 +33,16 @@ RUN npm ci --legacy-peer-deps
 # Instalar TypeScript globalmente
 RUN npm install -g typescript
 
+# Compilar las bibliotecas compartidas primero
+RUN cd shared/database && npm install && npm run build
+RUN cd shared/utils && npm install && npm run build
+
 # Instalar dependencias del servicio
 WORKDIR /app/services/operator-interface-service
 RUN npm ci --legacy-peer-deps
 
 # Volver al directorio raíz
 WORKDIR /app
-
-# Compilar las bibliotecas compartidas
-RUN cd shared/database && npm install && npm run build
-RUN cd shared/utils && npm install && npm run build
 
 # Copiar código fuente del servicio
 COPY services/operator-interface-service/src/ ./services/operator-interface-service/src/
