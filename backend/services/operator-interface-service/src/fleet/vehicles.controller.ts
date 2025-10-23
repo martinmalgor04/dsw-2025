@@ -16,7 +16,7 @@ export class VehiclesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear un nuevo vehículo' })
   async create(@Body() createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
-    this.logger.log(`POST /fleet/vehicles - Creando: ${createVehicleDto.licensePlate}`);
+    this.logger.log(`POST /fleet/vehicles - Creando: ${createVehicleDto.license_plate}`);
     return this.vehiclesService.create(createVehicleDto);
   }
 

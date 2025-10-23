@@ -6,4 +6,5 @@ export { PrismaService } from './prisma.service';
 export { PrismaModule } from './prisma.module';
 
 // Export enums from Prisma schema
-export { TransportType, ShippingStatus } from '@prisma/client';
+// Los enums no existen en el schema actual
+// export { TransportType, ShippingStatus } from '@prisma/client';

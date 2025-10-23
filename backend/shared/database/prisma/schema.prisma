@@ -1,8 +1,3 @@
-// ===================================
-// SCHEMA DE PRISMA - LOGÍSTICA GRUPO 12
-// TPI Desarrollo de Software 2025
-// ===================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,277 +8,153 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ===================================
-// ENUMS
-// ===================================
-
-enum ShippingStatus {
-  CREATED
-  RESERVED
-  IN_TRANSIT
-  ARRIVED
-  IN_DISTRIBUTION
-  DELIVERED
-  CANCELLED
-}
-
-enum TransportType {
-  AIR
-  SEA
-  RAIL
-  ROAD
-}
-
-// ===================================
-// MODELOS
-// ===================================
-
-// Tabla principal de envíos
-model Shipping {
-  id                    String          @id @default(uuid())
-  orderId               Int
-  userId                Int
-  
-  // Dirección de entrega
-  deliveryStreet        String
-  deliveryCity          String
-  deliveryState         String
-  deliveryPostalCode    String
-  deliveryCountry       String          @default("AR")
-  
-  // Dirección de origen (almacén)
-  departureStreet       String?
-  departureCity         String?
-  departureState        String?
-  departurePostalCode   String?
-  departureCountry      String          @default("AR")
-  
-  // Estado y seguimiento
-  status                ShippingStatus  @default(CREATED)
-  transportType         TransportType
-  trackingNumber        String?         @unique
-  carrierName           String?
-  
-  // Costos
-  totalCost             Decimal         @db.Decimal(10, 2)
-  currency              String          @default("ARS")
-  
-  // Fechas
-  estimatedDeliveryAt   DateTime
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  cancelledAt           DateTime?
-  
-  // Relaciones
-  transportMethodId     String?         @map("transport_method_id") @db.Uuid
-  transportMethod       TransportMethod? @relation(fields: [transportMethodId], references: [id])
-  
-  coverageZoneId        String?         @map("coverage_zone_id") @db.Uuid
-  coverageZone          CoverageZone?   @relation(fields: [coverageZoneId], references: [id])
-  
-  products              ShippingProduct[]
-  logs                  ShippingLog[]
-  routes                Route[]
-  
-  @@map("shipments")
-}
-
-// Productos incluidos en el envío
-model ShippingProduct {
-  id          String   @id @default(uuid())
-  shippingId  String
-  productId   Int      // ID del producto en el módulo de Stock
-  quantity    Int
-  
-  shipping    Shipping @relation(fields: [shippingId], references: [id], onDelete: Cascade)
-  
-  @@map("shipping_products")
-}
-
-// Logs de auditoría (historial de cambios de estado)
-model ShippingLog {
-  id          String         @id @default(uuid())
-  shippingId  String
-  status      ShippingStatus
-  message     String
-  timestamp   DateTime       @default(now())
-  
-  shipping    Shipping       @relation(fields: [shippingId], references: [id], onDelete: Cascade)
-  
-  @@map("shipping_logs")
-}
-
-// Métodos de transporte disponibles (RF-001)
 model TransportMethod {
-  id              String          @id @default(uuid()) @db.Uuid
-  code            String          @unique @db.VarChar(20)
-  name            String          @db.VarChar(100)
-  description     String?         @db.Text
-  averageSpeed    Int             @map("average_speed") // km/h - velocidad promedio
-  estimatedDays   String          @map("estimated_days") @db.VarChar(20) // Formato: "1-3", "3-7", etc.
-  baseCostPerKm   Decimal         @map("base_cost_per_km") @db.Decimal(10, 2)
-  baseCostPerKg   Decimal         @map("base_cost_per_kg") @db.Decimal(10, 2)
-  isActive        Boolean         @default(true) @map("is_active")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
-  
-  // Relaciones
-  tariffConfigs   TariffConfig[]
-  shipments       Shipping[]
-  vehicles        Vehicle[]
-  routes          Route[]
-  
-  @@map("transport_methods")
-  @@index([code])
-  @@index([isActive], name: "idx_transport_methods_active")
-}
-
-// Zonas de cobertura (RF-001)
-model CoverageZone {
-  id            String    @id @default(uuid()) @db.Uuid
-  name          String    @db.VarChar(100)
-  description   String?   @db.Text
-  postalCodes   String[]  @map("postal_codes") // Array de códigos postales argentinos
-  isActive      Boolean   @default(true) @map("is_active")
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
-  
-  // Relaciones
-  shipments     Shipping[]
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String         @unique @db.VarChar(20)
+  name          String         @db.VarChar(100)
+  description   String?
+  averageSpeed  Int            @map("average_speed")
+  estimatedDays String         @map("estimated_days") @db.VarChar(20)
+  baseCostPerKm Decimal        @map("base_cost_per_km") @db.Decimal(10, 2)
+  baseCostPerKg Decimal        @map("base_cost_per_kg") @db.Decimal(10, 2)
+  isActive      Boolean?       @default(true) @map("is_active")
+  createdAt     DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   routes        Route[]
-  
+  tariffConfigs TariffConfig[]
+  vehicles      Vehicle[]
+
+  @@index([isActive], map: "idx_transport_methods_active")
+  @@index([code], map: "idx_transport_methods_code")
+  @@map("transport_methods")
+}
+
+model CoverageZone {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String    @db.VarChar(100)
+  description String?
+  postalCodes String[]  @map("postal_codes")
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  routes      Route[]
+
+  @@index([isActive], map: "idx_coverage_zones_active")
+  @@index([postalCodes], map: "idx_coverage_zones_postal_codes", type: Gin)
   @@map("coverage_zones")
-  @@index([isActive], name: "idx_coverage_zones_active")
 }
 
-// Configuración de tarifas (RF-001)
 model TariffConfig {
-  id                  String         @id @default(uuid()) @db.Uuid
-  transportMethodId   String         @map("transport_method_id") @db.Uuid
-  baseTariff          Decimal        @map("base_tariff") @db.Decimal(10, 2)
-  costPerKg           Decimal        @map("cost_per_kg") @db.Decimal(10, 2)
-  costPerKm           Decimal        @map("cost_per_km") @db.Decimal(10, 2)
-  volumetricFactor    Int            @map("volumetric_factor") // Factor volumétrico configurable
-  environment         String         @default("development") @db.VarChar(20)
-  isActive            Boolean        @default(true) @map("is_active")
-  validFrom           DateTime       @default(now()) @map("valid_from") @db.Timestamptz()
-  validTo             DateTime?      @map("valid_to") @db.Timestamptz()
-  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
-  
-  // Relaciones
-  transportMethod     TransportMethod @relation(fields: [transportMethodId], references: [id], onDelete: Cascade)
-  
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transportMethodId String          @map("transport_method_id") @db.Uuid
+  baseTariff        Decimal         @map("base_tariff") @db.Decimal(10, 2)
+  costPerKg         Decimal         @map("cost_per_kg") @db.Decimal(10, 2)
+  costPerKm         Decimal         @map("cost_per_km") @db.Decimal(10, 2)
+  volumetricFactor  Int             @map("volumetric_factor")
+  environment       String?         @default("development") @db.VarChar(20)
+  isActive          Boolean?        @default(true) @map("is_active")
+  validFrom         DateTime?       @default(now()) @map("valid_from") @db.Timestamptz(6)
+  validTo           DateTime?       @map("valid_to") @db.Timestamptz(6)
+  createdAt         DateTime?       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  transportMethod   TransportMethod @relation(fields: [transportMethodId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([transportMethodId], map: "idx_tariff_configs_transport_method")
+  @@index([environment], map: "idx_tariff_configs_environment")
+  @@index([isActive], map: "idx_tariff_configs_active")
   @@map("tariff_configs")
-  @@index([transportMethodId], name: "idx_tariff_configs_transport_method")
-  @@index([environment], name: "idx_tariff_configs_environment")
-  @@index([isActive], name: "idx_tariff_configs_active")
 }
 
-// Vehículos
 model Vehicle {
-  id                String         @id @default(uuid()) @db.Uuid
-  licensePlate      String         @unique @db.VarChar(20)
-  make              String         @db.VarChar(50)
-  model             String         @db.VarChar(50)
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  license_plate     String           @unique @db.VarChar(20)
+  make              String           @db.VarChar(50)
+  model             String           @db.VarChar(50)
   year              Int
-  capacityKg        Int            @map("capacity_kg")
-  volumeM3          Decimal        @map("volume_m3") @db.Decimal(10, 2)
-  fuelType          String         @map("fuel_type") @db.VarChar(20)
-  status            String         @db.VarChar(20)
-
-  transportMethodId String?        @map("transport_method_id") @db.Uuid
-  transportMethod   TransportMethod? @relation(fields: [transportMethodId], references: [id])
-
-  driverId          String?        @map("driver_id") @db.Uuid
-  driver            Driver?        @relation(fields: [driverId], references: [id])
-
-  routes            Route[]
-
-  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
-
-  @@map("vehicles")
-  @@index([licensePlate], name: "idx_vehicles_license_plate")
-  @@index([status], name: "idx_vehicles_status")
-}
-
-// Conductores
-model Driver {
-  id             String    @id @default(uuid()) @db.Uuid
-  employeeId     String    @unique @map("employee_id") @db.VarChar(30)
-  firstName      String    @map("first_name") @db.VarChar(80)
-  lastName       String    @map("last_name") @db.VarChar(80)
-  email          String    @unique @db.VarChar(150)
-  phone          String    @db.VarChar(30)
-  licenseNumber  String    @unique @map("license_number") @db.VarChar(50)
-  licenseType    String    @map("license_type") @db.VarChar(10)
-  status         String    @db.VarChar(20)
-
-  vehicles       Vehicle[]
-  routes         Route[]
-
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
-
-  @@map("drivers")
-  @@index([employeeId], name: "idx_drivers_employee_id")
-  @@index([email], name: "idx_drivers_email")
-  @@index([status], name: "idx_drivers_status")
-}
-
-// Rutas
-model Route {
-  id                String           @id @default(uuid()) @db.Uuid
-  name              String           @db.VarChar(100)
-  description       String?          @db.Text
+  capacityKg        Int              @map("capacity_kg")
+  volumeM3          Decimal          @map("volume_m3") @db.Decimal(10, 2)
+  fuelType          String           @map("fuel_type") @db.VarChar(20)
   status            String           @db.VarChar(20)
-  startDate         DateTime         @map("start_date") @db.Timestamptz()
-  endDate           DateTime?        @map("end_date") @db.Timestamptz()
-
-  transportMethodId String           @map("transport_method_id") @db.Uuid
-  transportMethod   TransportMethod  @relation(fields: [transportMethodId], references: [id])
-
-  vehicleId         String?          @map("vehicle_id") @db.Uuid
-  vehicle           Vehicle?         @relation(fields: [vehicleId], references: [id])
-
+  transportMethodId String?          @map("transport_method_id") @db.Uuid
   driverId          String?          @map("driver_id") @db.Uuid
-  driver            Driver?          @relation(fields: [driverId], references: [id])
+  createdAt         DateTime?        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  routes            Route[]
+  driver            Driver?          @relation(fields: [driverId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicles_driver")
+  transportMethod   TransportMethod? @relation(fields: [transportMethodId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicles_transport_method")
 
-  coverageZoneId    String?          @map("coverage_zone_id") @db.Uuid
-  coverageZone      CoverageZone?    @relation(fields: [coverageZoneId], references: [id])
-
-  stops             RouteStop[]
-  shipments         Shipping[]
-
-  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
-
-  @@map("routes")
-  @@index([status], name: "idx_routes_status")
-  @@index([startDate], name: "idx_routes_start_date")
-  @@index([transportMethodId], name: "idx_routes_transport_method")
+  @@index([license_plate], map: "idx_vehicles_license_plate")
+  @@index([status], map: "idx_vehicles_status")
+  @@index([driverId], map: "idx_vehicles_driver")
+  @@index([transportMethodId], map: "idx_vehicles_transport_method")
+  @@map("vehicles")
 }
 
-// Paradas de ruta
+model Driver {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId    String    @unique @map("employee_id") @db.VarChar(30)
+  firstName     String    @map("first_name") @db.VarChar(80)
+  lastName      String    @map("last_name") @db.VarChar(80)
+  email         String    @unique @db.VarChar(150)
+  phone         String    @db.VarChar(30)
+  licenseNumber String    @unique @map("license_number") @db.VarChar(50)
+  licenseType   String    @map("license_type") @db.VarChar(10)
+  status        String    @db.VarChar(20)
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  routes        Route[]
+  vehicles      Vehicle[]
+
+  @@index([employeeId], map: "idx_drivers_employee_id")
+  @@index([email], map: "idx_drivers_email")
+  @@index([status], map: "idx_drivers_status")
+  @@map("drivers")
+}
+
+model Route {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String          @db.VarChar(100)
+  description       String?
+  status            String          @db.VarChar(20)
+  startDate         DateTime        @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime?       @map("end_date") @db.Timestamptz(6)
+  transportMethodId String          @map("transport_method_id") @db.Uuid
+  vehicleId         String?         @map("vehicle_id") @db.Uuid
+  driverId          String?         @map("driver_id") @db.Uuid
+  coverageZoneId    String?         @map("coverage_zone_id") @db.Uuid
+  createdAt         DateTime?       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  stops             RouteStop[]
+  coverageZone      CoverageZone?   @relation(fields: [coverageZoneId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_routes_coverage_zone")
+  driver            Driver?         @relation(fields: [driverId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_routes_driver")
+  transportMethod   TransportMethod @relation(fields: [transportMethodId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_routes_transport_method")
+  vehicle           Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_routes_vehicle")
+
+  @@index([status], map: "idx_routes_status")
+  @@index([startDate], map: "idx_routes_start_date")
+  @@index([transportMethodId], map: "idx_routes_transport_method")
+  @@index([coverageZoneId], map: "idx_routes_coverage_zone")
+  @@index([driverId], map: "idx_routes_driver")
+  @@index([vehicleId], map: "idx_routes_vehicle")
+  @@map("routes")
+}
+
 model RouteStop {
-  id            String    @id @default(uuid()) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   routeId       String    @map("route_id") @db.Uuid
   sequence      Int
   type          String    @db.VarChar(20)
   address       Json
   coordinates   Json?
-  scheduledTime DateTime? @map("scheduled_time") @db.Timestamptz()
-  actualTime    DateTime? @map("actual_time") @db.Timestamptz()
+  scheduledTime DateTime? @map("scheduled_time") @db.Timestamptz(6)
+  actualTime    DateTime? @map("actual_time") @db.Timestamptz(6)
   status        String    @db.VarChar(20)
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  route         Route     @relation(fields: [routeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_route_stops_route")
 
-  route         Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
-
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
-
+  @@index([routeId], map: "idx_route_stops_route")
+  @@index([sequence], map: "idx_route_stops_sequence")
+  @@index([status], map: "idx_route_stops_status")
   @@map("route_stops")
-  @@index([routeId], name: "idx_route_stops_route")
-  @@index([sequence], name: "idx_route_stops_sequence")
-  @@index([status], name: "idx_route_stops_status")
 }

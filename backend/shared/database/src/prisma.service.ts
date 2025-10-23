@@ -60,9 +60,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     // Eliminar en orden correcto para respetar foreign keys
-    await this.shippingLog.deleteMany();
-    await this.shippingProduct.deleteMany();
-    await this.shipping.deleteMany();
+    await this.routeStop.deleteMany();
+    await this.route.deleteMany();
+    await this.vehicle.deleteMany();
+    await this.driver.deleteMany();
     await this.tariffConfig.deleteMany();
     await this.transportMethod.deleteMany();
     await this.coverageZone.deleteMany();
