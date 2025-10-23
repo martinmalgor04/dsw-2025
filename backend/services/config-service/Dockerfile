@@ -49,8 +49,8 @@ COPY services/config-service/src/ ./services/config-service/src/
 # Establecer directorio de trabajo del servicio
 WORKDIR /app/services/config-service
 
-# Exponer puerto
-EXPOSE 3000
+# Exponer puerto (usa la variable de entorno PORT o 3003 por defecto)
+EXPOSE ${PORT:-3003}
 
 # Comando por defecto
 CMD ["npm", "run", "start:dev"]
