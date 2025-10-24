@@ -205,6 +205,16 @@ frontend/out
 /plan-template.md
 /spec-template.md
 /tasks-template.md
+/zutils/
+
+# ===================================
+# Frontend AI & Documentation files
+# ===================================
+frontend/CLAUDE.md
+frontend/DOKPLOY.md
+frontend/MIGRATION-SUMMARY.md
+frontend/ROUTING-MIGRATION.md
+FIXES-SUMMARY.md
 
 # ===================================
 # Internal Documentation & Build Notes
