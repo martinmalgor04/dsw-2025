@@ -72,7 +72,7 @@ export function ReglasCotizacion() {
     const matchesSearch =
       (config.transportMethod?.name?.toLowerCase().includes(search) || false) ||
       (config.transportMethod?.code?.toLowerCase().includes(search) || false) ||
-      config.environment.toLowerCase().includes(search);
+      (config.environment?.toLowerCase().includes(search) || false);
     const matchesEstado =
       filterEstado === "todos" ||
       (filterEstado === "activo" && config.isActive) ||
