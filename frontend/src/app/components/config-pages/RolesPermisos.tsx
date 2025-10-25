@@ -135,8 +135,16 @@ export function RolesPermisos() {
   const handleClonarRol = () => {
     if (!selectedRol) return;
 
+    // Generar ID único usando crypto si está disponible, sino usar timestamp
+    const generateId = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return `cloned_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    };
+
     const clonado: Rol = {
-      id: `cloned_${Math.random().toString(36).substr(2, 9)}`,
+      id: generateId(),
       nombre: `${selectedRol.nombre} (Copia)`,
       permisos: { ...selectedRol.permisos },
       activo: true,

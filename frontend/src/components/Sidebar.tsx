@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   BarChart3,
@@ -50,7 +50,7 @@ export function Sidebar({
   ];
 
   // Secciones con subsecciones
-  const menuSections = [
+  const menuSections = useMemo(() => [
     {
       id: 'operaciones',
       label: 'Operaciones',
@@ -97,7 +97,7 @@ export function Sidebar({
         { id: 'config-roles', label: 'Roles y permisos', icon: Shield },
       ]
     },
-  ];
+  ], []);
 
   // Expandir automáticamente la sección cuando se selecciona un sub-item
   useEffect(() => {
