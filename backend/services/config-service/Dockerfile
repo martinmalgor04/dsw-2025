@@ -54,7 +54,7 @@ RUN npm install && npm run build
 
 # Construir solo el config-service
 WORKDIR /app/services/config-service
-RUN npm run build
+RUN npm install && npm run build
 
 # ===================================
 # STAGE 3: Production

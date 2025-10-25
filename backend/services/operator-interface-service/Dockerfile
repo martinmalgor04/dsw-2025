@@ -54,7 +54,7 @@ RUN npm install && npm run build
 
 # Construir solo el operator-interface-service
 WORKDIR /app/services/operator-interface-service
-RUN npm run build
+RUN npm install && npm run build
 
 # ===================================
 # STAGE 3: Production
