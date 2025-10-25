@@ -52,11 +52,9 @@ RUN npm install && npm run build
 WORKDIR /app/shared/utils
 RUN npm install && npm run build
 
-# Volver al directorio del servicio
-WORKDIR /app
-
 # Construir solo el stock-integration-service
-RUN npm run build --prefix=services/stock-integration-service
+WORKDIR /app/services/stock-integration-service
+RUN npm run build
 
 # ===================================
 # STAGE 3: Production

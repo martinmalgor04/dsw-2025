@@ -52,11 +52,9 @@ RUN npm install && npm run build
 WORKDIR /app/shared/utils
 RUN npm install && npm run build
 
-# Volver al directorio del servicio
-WORKDIR /app
-
 # Construir solo el config-service
-RUN npm run build --prefix=services/config-service
+WORKDIR /app/services/config-service
+RUN npm run build
 
 # ===================================
 # STAGE 3: Production
