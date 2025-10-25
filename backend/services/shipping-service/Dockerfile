@@ -1,5 +1,5 @@
 # ===================================
-# DOCKERFILE - FRONTEND NEXT.JS
+# DOCKERFILE - SHIPPING SERVICE
 # TPI Desarrollo de Software 2025
 # ===================================
 
@@ -10,7 +10,7 @@ FROM node:20-alpine AS base
 RUN apk add --no-cache \
     dumb-init \
     && addgroup -g 1001 -S nodejs \
-    && adduser -S nextjs -u 1001
+    && adduser -S nestjs -u 1001
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -18,21 +18,23 @@ WORKDIR /app
 # ===================================
 # STAGE 1: Dependencies
 # ===================================
-FROM base AS deps
+FROM base AS dependencies
 
 # Copiar archivos de dependencias
 COPY package*.json ./
+COPY shared/ ./shared/
 
-# Instalar dependencias
+# Instalar dependencias de producción
 RUN npm ci --only=production && npm cache clean --force
 
 # ===================================
-# STAGE 2: Builder
+# STAGE 2: Build
 # ===================================
-FROM base AS builder
+FROM base AS build
 
 # Copiar archivos de dependencias
 COPY package*.json ./
+COPY shared/ ./shared/
 
 # Instalar todas las dependencias (incluyendo dev)
 RUN npm ci
@@ -40,37 +42,48 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
-# Construir la aplicación Next.js
-RUN npm run build
+# Construir librerías compartidas primero
+WORKDIR /app/shared/database
+RUN npm install && npm run build
+
+WORKDIR /app/shared/types
+RUN npm install && npm run build
+
+WORKDIR /app/shared/utils
+RUN npm install && npm run build
+
+# Volver al directorio del servicio
+WORKDIR /app
+
+# Construir solo el shipping-service
+RUN npm run build --prefix=services/shipping-service
 
 # ===================================
-# STAGE 3: Runner
+# STAGE 3: Production
 # ===================================
-FROM base AS runner
+FROM base AS production
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=80
-ENV HOSTNAME="0.0.0.0"
+ENV PORT=3001
 
 # Crear usuario no-root
-USER nextjs
+USER nestjs
 
 # Copiar dependencias de producción
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=dependencies --chown=nestjs:nodejs /app/node_modules ./node_modules
 
 # Copiar aplicación construida
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=build --chown=nestjs:nodejs /app/services/shipping-service/dist ./dist
+COPY --from=build --chown=nestjs:nodejs /app/package*.json ./
 
 # Exponer puerto
-EXPOSE 80
+EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:80', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Comando de inicio
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+CMD ["node", "dist/main.js"]

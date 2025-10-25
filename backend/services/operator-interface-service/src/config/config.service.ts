@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService as NestConfigService } from '@nestjs/config';
-import { PrismaService, TransportMethod, CoverageZone } from '@logistics/database';
+import { PrismaService, TransportMethod, CoverageZone, TariffConfig } from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 
 @Injectable()
@@ -166,6 +166,141 @@ export class ConfigService {
       return zone;
     } catch (error) {
       this.logger.errorWithContext('Failed to update coverage zone', error, { id });
+      throw error;
+    }
+  }
+
+  // Tariff Config Methods
+  async getAllTariffConfigs(transportMethodId?: string): Promise<TariffConfig[]> {
+    this.logger.startOperation('getAllTariffConfigs', { transportMethodId });
+    
+    try {
+      const where = transportMethodId ? { transportMethodId } : {};
+      const configs = await this.prisma.tariffConfig.findMany({
+        where,
+        include: {
+          transportMethod: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      this.logger.endOperation('getAllTariffConfigs', { count: configs.length });
+      return configs;
+    } catch (error) {
+      this.logger.errorWithContext('Failed to get tariff configs', error, { transportMethodId });
+      throw error;
+    }
+  }
+
+  async createTariffConfig(data: any): Promise<TariffConfig> {
+    this.logger.startOperation('createTariffConfig', { transportMethodId: data.transportMethodId });
+    
+    try {
+      const config = await this.prisma.tariffConfig.create({
+        data: {
+          transportMethodId: data.transportMethodId,
+          baseTariff: data.baseTariff,
+          costPerKg: data.costPerKg,
+          costPerKm: data.costPerKm,
+          volumetricFactor: data.volumetricFactor,
+          environment: data.environment || 'development',
+          isActive: data.isActive ?? true,
+          validFrom: data.validFrom ? new Date(data.validFrom) : new Date(),
+          validTo: data.validTo ? new Date(data.validTo) : null,
+        },
+        include: {
+          transportMethod: true,
+        },
+      });
+
+      this.logger.endOperation('createTariffConfig', { id: config.id });
+      return config;
+    } catch (error) {
+      this.logger.errorWithContext('Failed to create tariff config', error, { transportMethodId: data.transportMethodId });
+      throw error;
+    }
+  }
+
+  async getTariffConfigById(id: string): Promise<TariffConfig> {
+    this.logger.startOperation('getTariffConfigById', { id });
+    
+    try {
+      const config = await this.prisma.tariffConfig.findUniqueOrThrow({
+        where: { id },
+        include: {
+          transportMethod: true,
+        },
+      });
+
+      this.logger.endOperation('getTariffConfigById', { id });
+      return config;
+    } catch (error) {
+      this.logger.errorWithContext('Failed to get tariff config', error, { id });
+      throw error;
+    }
+  }
+
+  async updateTariffConfig(id: string, data: any): Promise<TariffConfig> {
+    this.logger.startOperation('updateTariffConfig', { id });
+    
+    try {
+      const updateData: any = {};
+      
+      if (data.transportMethodId !== undefined) {
+        updateData.transportMethodId = data.transportMethodId;
+      }
+      if (data.baseTariff !== undefined) {
+        updateData.baseTariff = data.baseTariff;
+      }
+      if (data.costPerKg !== undefined) {
+        updateData.costPerKg = data.costPerKg;
+      }
+      if (data.costPerKm !== undefined) {
+        updateData.costPerKm = data.costPerKm;
+      }
+      if (data.volumetricFactor !== undefined) {
+        updateData.volumetricFactor = data.volumetricFactor;
+      }
+      if (data.environment !== undefined) {
+        updateData.environment = data.environment;
+      }
+      if (data.isActive !== undefined) {
+        updateData.isActive = data.isActive;
+      }
+      if (data.validFrom !== undefined) {
+        updateData.validFrom = data.validFrom ? new Date(data.validFrom) : null;
+      }
+      if (data.validTo !== undefined) {
+        updateData.validTo = data.validTo ? new Date(data.validTo) : null;
+      }
+
+      const config = await this.prisma.tariffConfig.update({
+        where: { id },
+        data: updateData,
+        include: {
+          transportMethod: true,
+        },
+      });
+
+      this.logger.endOperation('updateTariffConfig', { id });
+      return config;
+    } catch (error) {
+      this.logger.errorWithContext('Failed to update tariff config', error, { id });
+      throw error;
+    }
+  }
+
+  async deleteTariffConfig(id: string): Promise<void> {
+    this.logger.startOperation('deleteTariffConfig', { id });
+    
+    try {
+      await this.prisma.tariffConfig.delete({
+        where: { id },
+      });
+
+      this.logger.endOperation('deleteTariffConfig', { id });
+    } catch (error) {
+      this.logger.errorWithContext('Failed to delete tariff config', error, { id });
       throw error;
     }
   }

@@ -14,10 +14,13 @@ export default function MainLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
         isMobileOpen={isMobileOpen}

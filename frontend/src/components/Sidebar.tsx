@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   Warehouse
 } from 'lucide-react';
-import logo from '../assets/logo.png';
+// import logo from '../assets/logo.png';
 
 interface SidebarProps {
   activeTab: string;
@@ -146,7 +146,9 @@ export function Sidebar({
       <div className={`p-6 border-b border-white/20 ${isCollapsed ? 'px-4' : ''}`}>
         <div className="flex items-center justify-center">
           <div className={`flex items-center justify-center ${isCollapsed ? 'w-12 h-12' : 'w-32 h-32'}`}>
-            <img src={logo} alt="PEPACK Logo" className="w-full h-full object-contain" />
+            <div className="w-full h-full flex items-center justify-center bg-blue-600 text-white font-bold text-lg">
+              LOG
+            </div>
           </div>
         </div>
       </div>

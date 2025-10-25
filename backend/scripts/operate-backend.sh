@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# Obtener directorio del script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
+
+# Cargar configuración desde .env si existe
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+elif [ -f "$SCRIPT_DIR/env.example" ]; then
+    echo "⚠️  Usando configuración de ejemplo. Copia env.example a .env para personalizar."
+    source "$SCRIPT_DIR/env.example"
+else
+    echo "❌ No se encontró archivo de configuración. Crea .env basado en env.example"
+    exit 1
+fi
 
 usage() {
   cat <<USAGE

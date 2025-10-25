@@ -29,11 +29,11 @@ Sistema de gestión logística que opera en modelo punto a punto (A→B): retira
 
 ### Stack Tecnológico:
 - **Backend**: NestJS + TypeScript + Prisma + PostgreSQL
-- **Frontend**: SvelteKit + Tailwind CSS
+- **Frontend**: Next.js 16 + React 19 + Tailwind CSS
 - **Cache**: Redis
 - **Documentación**: OpenAPI/Swagger
 - **Testing**: Jest
-- **DevOps**: Docker + GitHub Actions
+- **DevOps**: Docker + Docker Compose + GitHub Actions
 
 ## 📁 Estructura del Proyecto
 
@@ -132,6 +132,35 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## 🐳 Docker (Recomendado)
+
+### Comandos Principales
+```bash
+# Desarrollo
+./scripts/docker.sh up-dev      # Levantar servicios de desarrollo
+./scripts/docker.sh logs         # Ver logs
+./scripts/docker.sh health       # Verificar health
+
+# Producción
+./scripts/docker.sh build        # Construir imágenes
+./scripts/docker.sh up          # Levantar servicios de producción
+
+# Gestión
+./scripts/docker.sh status       # Ver estado
+./scripts/docker.sh clean        # Limpiar Docker
+```
+
+### Servicios Disponibles
+- **Frontend**: http://localhost:80
+- **API Gateway**: http://localhost:3004
+- **Config Service**: http://localhost:3003
+- **Stock Service**: http://localhost:3002
+- **Shipping Service**: http://localhost:3001
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+
+📖 **Documentación completa**: [DOCKER.md](./DOCKER.md)
 
 ## 🔗 APIs y Endpoints
 

@@ -86,7 +86,7 @@ export class StockAuthGuard implements CanActivate {
         throw new Error(`Keycloak token request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { access_token?: string };
       
       if (!data.access_token) {
         throw new Error('No access token received from Keycloak');

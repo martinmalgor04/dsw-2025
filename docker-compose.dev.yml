@@ -1,0 +1,260 @@
+# ===================================
+# DOCKER COMPOSE - DESARROLLO LOCAL
+# TPI Desarrollo de Software 2025
+# ===================================
+
+version: '3.8'
+
+services:
+  # ===================================
+  # BASE DE DATOS
+  # ===================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: logistics-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: logistics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./backend/shared/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - logistics-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===================================
+  # REDIS
+  # ===================================
+  redis:
+    image: redis:7-alpine
+    container_name: logistics-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - logistics-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===================================
+  # MICROSERVICIOS (DESARROLLO)
+  # ===================================
+  
+  # Config Service
+  config-service:
+    build:
+      context: ./backend
+      dockerfile: services/config-service/Dockerfile
+    container_name: logistics-config-service-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: debug
+    ports:
+      - "3003:3003"
+    networks:
+      - logistics-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/config-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Stock Integration Service
+  stock-integration-service:
+    build:
+      context: ./backend
+      dockerfile: services/stock-integration-service/Dockerfile
+    container_name: logistics-stock-integration-service-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      REDIS_URL: redis://redis:6379
+      STOCK_API_URL: http://stock-integration-service:3002
+      COMPRAS_API_URL: http://stock-integration-service:3002
+      LOG_LEVEL: debug
+    ports:
+      - "3002:3002"
+    networks:
+      - logistics-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/stock-integration-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Shipping Service
+  shipping-service:
+    build:
+      context: ./backend
+      dockerfile: services/shipping-service/Dockerfile
+    container_name: logistics-shipping-service-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      REDIS_URL: redis://redis:6379
+      STOCK_SERVICE_URL: http://stock-integration-service:3002
+      CONFIG_SERVICE_URL: http://config-service:3003
+      LOG_LEVEL: debug
+    ports:
+      - "3001:3001"
+    networks:
+      - logistics-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      stock-integration-service:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/shipping-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Operator Interface Service
+  operator-interface-service:
+    build:
+      context: ./backend
+      dockerfile: services/operator-interface-service/Dockerfile
+    container_name: logistics-operator-interface-service-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/logistics
+      REDIS_URL: redis://redis:6379
+      CONFIG_SERVICE_URL: http://config-service:3003
+      STOCK_INTEGRATION_SERVICE_URL: http://stock-integration-service:3002
+      SHIPPING_SERVICE_URL: http://shipping-service:3001
+      LOG_LEVEL: debug
+    ports:
+      - "3004:3004"
+    networks:
+      - logistics-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      stock-integration-service:
+        condition: service_healthy
+      shipping-service:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/operator-interface-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===================================
+  # FRONTEND (DESARROLLO)
+  # ===================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: logistics-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 80
+      # URLs de microservicios para el frontend
+      NEXT_PUBLIC_API_URL: http://localhost:3004
+      NEXT_PUBLIC_OPERATOR_URL: http://localhost:3004
+      NEXT_PUBLIC_CONFIG_URL: http://localhost:3003
+      NEXT_PUBLIC_SHIPPING_URL: http://localhost:3001
+      NEXT_PUBLIC_STOCK_URL: http://localhost:3002
+    ports:
+      - "80:80"
+    networks:
+      - logistics-dev-network
+    depends_on:
+      operator-interface-service:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:80', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ===================================
+# VOLÚMENES
+# ===================================
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+# ===================================
+# REDES
+# ===================================
+networks:
+  logistics-dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

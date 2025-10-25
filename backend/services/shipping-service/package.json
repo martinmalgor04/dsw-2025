@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build && bash -c 'cd dist && cp -rn services/shipping-service/src/* . ; rm -rf services/*/src shared'",
+    "build": "nest build && sh -c 'cd dist && cp -rn services/shipping-service/src/* . ; rm -rf services/*/src shared'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "node -r dotenv/config node_modules/.bin/nest start --watch",

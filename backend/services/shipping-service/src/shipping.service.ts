@@ -5,7 +5,7 @@ import { MockDataService } from './services/mock-data.service';
 import { DistanceCalculationService } from './services/distance-calculation.service';
 import { TariffCalculationService } from './services/tariff-calculation.service';
 import { PostalCodeValidationService } from './services/postal-code-validation.service';
-import { TransportType } from '@logistics/database';
+import { TransportMethod } from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 import {
   CalculateCostRequestDto,
@@ -70,9 +70,11 @@ export class ShippingService {
       'C1000ABC',
     );
 
-    // Tariff calculation (using STANDARD as default transport type)
+    // Tariff calculation (using default transport method)
+    // TODO: Get transport method from request or use default
+    const defaultTransportMethodId = 'default-road-transport'; // This should be a real ID from the database
     const tariff = await this.tariffService.calculateTariff({
-      transportType: TransportType.ROAD,
+      transportMethodId: defaultTransportMethodId,
       billableWeight: totalWeight,
       distance: distanceRes.distance,
       environment: this.configService.get('NODE_ENV') || 'development',

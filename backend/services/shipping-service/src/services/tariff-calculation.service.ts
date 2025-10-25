@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService, TransportType } from '@logistics/database';
+import { PrismaService, TransportMethod } from '@logistics/database';
 
 export interface TariffCalculationInput {
-  transportType: TransportType;
+  transportMethodId: string;
   billableWeight: number; // in kilograms
   distance: number; // in kilometers
   environment?: string;
@@ -33,9 +33,9 @@ export class TariffCalculationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async calculateTariff(input: TariffCalculationInput): Promise<TariffCalculationResult> {
-    const { transportType, billableWeight, distance, environment = 'development' } = input;
+    const { transportMethodId, billableWeight, distance, environment = 'development' } = input;
 
-    const tariffConfig = await this.getTariffConfig(transportType, environment);
+    const tariffConfig = await this.getTariffConfig(transportMethodId, environment);
 
     const baseTariff = Number(tariffConfig.baseTariff);
     const costPerKg = Number(tariffConfig.costPerKg);
@@ -64,11 +64,11 @@ export class TariffCalculationService {
     };
   }
 
-  private async getTariffConfig(transportType: TransportType, environment: string) {
+  private async getTariffConfig(transportMethodId: string, environment: string) {
     const now = new Date();
     const tariffConfig = await this.prisma.tariffConfig.findFirst({
       where: {
-        transportMethod: { code: transportType, isActive: true },
+        transportMethodId,
         environment,
         isActive: true,
         validFrom: { lte: now },
@@ -79,23 +79,23 @@ export class TariffCalculationService {
     });
     if (!tariffConfig) {
       throw new Error(
-        `No active tariff config for ${transportType} in environment ${environment}`,
+        `No active tariff config for transport method ${transportMethodId} in environment ${environment}`,
       );
     }
     return tariffConfig;
   }
 
-  async getVolumetricFactor(transportType: TransportType, environment = 'development'): Promise<number> {
-    const cfg = await this.getTariffConfig(transportType, environment);
+  async getVolumetricFactor(transportMethodId: string, environment = 'development'): Promise<number> {
+    const cfg = await this.getTariffConfig(transportMethodId, environment);
     return cfg.volumetricFactor;
   }
 
   async calculateVolumetricWeight(
     dimensions: { length: number; width: number; height: number },
-    transportType: TransportType,
+    transportMethodId: string,
     environment = 'development',
   ): Promise<number> {
-    const factor = await this.getVolumetricFactor(transportType, environment);
+    const factor = await this.getVolumetricFactor(transportMethodId, environment);
     const volumeInM3 = (dimensions.length * dimensions.width * dimensions.height) / 1_000_000;
     const w = volumeInM3 * factor;
     return Math.round(w * 100) / 100;
@@ -104,10 +104,10 @@ export class TariffCalculationService {
   async calculateBillableWeight(
     realWeight: number,
     dimensions: { length: number; width: number; height: number },
-    transportType: TransportType,
+    transportMethodId: string,
     environment = 'development',
   ): Promise<number> {
-    const volumetric = await this.calculateVolumetricWeight(dimensions, transportType, environment);
+    const volumetric = await this.calculateVolumetricWeight(dimensions, transportMethodId, environment);
     return Math.max(realWeight, volumetric);
   }
 }
