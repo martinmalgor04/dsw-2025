@@ -70,8 +70,8 @@ export function ReglasCotizacion() {
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();
     const matchesSearch =
-      config.transportMethod.name.toLowerCase().includes(search) ||
-      config.transportMethod.code.toLowerCase().includes(search) ||
+      (config.transportMethod?.name?.toLowerCase().includes(search) || false) ||
+      (config.transportMethod?.code?.toLowerCase().includes(search) || false) ||
       config.environment.toLowerCase().includes(search);
     const matchesEstado =
       filterEstado === "todos" ||
