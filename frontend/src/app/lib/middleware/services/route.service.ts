@@ -27,7 +27,9 @@ export interface CreateRouteDTO {
   coverageZoneId?: string;
 }
 
-export interface UpdateRouteDTO extends Partial<CreateRouteDTO> {}
+export interface UpdateRouteDTO extends Partial<CreateRouteDTO> {
+  // Inherits all properties from CreateRouteDTO as optional
+}
 
 export interface RouteStopDTO {
   id: string;

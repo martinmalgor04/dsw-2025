@@ -43,16 +43,6 @@ export function Sidebar({
   // Estado para controlar qué secciones están expandidas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  // Expandir automáticamente la sección cuando se selecciona un sub-item
-  useEffect(() => {
-    const section = menuSections.find(section =>
-      section.items.some(item => item.id === activeTab)
-    );
-    if (section) {
-      setExpandedSections(prev => ({ ...prev, [section.id]: true }));
-    }
-  }, [activeTab]);
-
   // Items principales sin subsecciones
   const mainMenuItems = [
     { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
@@ -108,6 +98,16 @@ export function Sidebar({
       ]
     },
   ];
+
+  // Expandir automáticamente la sección cuando se selecciona un sub-item
+  useEffect(() => {
+    const section = menuSections.find(section =>
+      section.items.some(item => item.id === activeTab)
+    );
+    if (section) {
+      setExpandedSections(prev => ({ ...prev, [section.id]: true }));
+    }
+  }, [activeTab, menuSections]);
 
   // Item final de configuración
   const configMenuItem = { id: 'configuracion-sistema', label: 'Configuración', icon: Settings };

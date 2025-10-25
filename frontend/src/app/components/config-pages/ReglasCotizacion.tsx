@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2, Calculator, DollarSign, Package, Truck } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Calculator, Truck } from "lucide-react";
 import { DataTable, createSortableHeader } from "../config/DataTable";
 import { Toolbar } from "../config/Toolbar";
 import { BadgeEstado } from "../config/BadgeEstado";
@@ -26,7 +26,7 @@ import {
 } from "../ui/dropdown-menu";
 import { toast } from "sonner";
 import { useConfig } from "@/lib/middleware/stores/composables/useConfig";
-import type { TariffConfigDTO, CreateTariffConfigDTO, UpdateTariffConfigDTO } from "@/lib/middleware/services/tariff-config.service";
+import type { TariffConfigDTO, CreateTariffConfigDTO } from "@/lib/middleware/services/tariff-config.service";
 
 const environments = [
   { value: "development", label: "Desarrollo" },
@@ -65,7 +65,7 @@ export function ReglasCotizacion() {
 
   useEffect(() => {
     loadTariffConfigs();
-  }, []); // Removido loadTariffConfigs de las dependencias
+  }, [loadTariffConfigs]);
 
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();

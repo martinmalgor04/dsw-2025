@@ -136,7 +136,7 @@ export function RolesPermisos() {
     if (!selectedRol) return;
 
     const clonado: Rol = {
-      id: String(Date.now()),
+      id: `cloned_${Math.random().toString(36).substr(2, 9)}`,
       nombre: `${selectedRol.nombre} (Copia)`,
       permisos: { ...selectedRol.permisos },
       activo: true,

@@ -2,25 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Truck,
   Package,
   TrendingUp,
   Clock,
   MapPin,
   MoreVertical,
   Eye,
-  Download,
   RefreshCw,
-  Activity,
   AlertCircle,
   CheckCircle,
-  XCircle,
   Info,
-  Zap,
   Route,
   Timer
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
 
 interface Pedido {
   id: number;

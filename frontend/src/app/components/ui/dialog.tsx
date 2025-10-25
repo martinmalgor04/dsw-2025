@@ -18,6 +18,7 @@ const DialogTrigger = React.forwardRef<
 >(({ ...props }, ref) => (
   <DialogPrimitive.Trigger ref={ref} data-slot="dialog-trigger" {...props} />
 ));
+DialogTrigger.displayName = "DialogTrigger";
 
 function DialogPortal({
   ...props
@@ -31,6 +32,7 @@ const DialogClose = React.forwardRef<
 >(({ ...props }, ref) => (
   <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />
 ));
+DialogClose.displayName = "DialogClose";
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -46,6 +48,7 @@ const DialogOverlay = React.forwardRef<
     {...props}
   />
 ));
+DialogOverlay.displayName = "DialogOverlay";
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
@@ -70,6 +73,7 @@ const DialogContent = React.forwardRef<
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
+DialogContent.displayName = "DialogContent";
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (

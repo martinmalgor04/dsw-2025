@@ -236,7 +236,7 @@ export function Vehiculos() {
                   id="capacity_kg" 
                   name="capacity_kg" 
                   type="number" 
-                  defaultValue={editingVehiculo?.capacity_kg} 
+                  defaultValue={editingVehiculo?.capacityKg} 
                   required 
                   min="1"
                   max="50000"
