@@ -171,8 +171,8 @@ export function ReglasCotizacion() {
       header: createSortableHeader("Método de Transporte"),
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.transportMethod.name}</div>
-          <div className="text-sm text-gray-500">{row.original.transportMethod.code}</div>
+          <div className="font-medium">{row.original.transportMethod?.name || 'N/A'}</div>
+          <div className="text-sm text-gray-500">{row.original.transportMethod?.code || 'N/A'}</div>
         </div>
       ),
     },
@@ -438,7 +438,7 @@ export function ReglasCotizacion() {
         open={!!deleteConfig}
         onOpenChange={(open) => !open && setDeleteConfig(null)}
         title="Eliminar regla de cotización"
-        description={`¿Estás seguro de que deseas eliminar la regla de cotización para "${deleteConfig?.transportMethod.name}"?`}
+        description={`¿Estás seguro de que deseas eliminar la regla de cotización para "${deleteConfig?.transportMethod?.name || 'N/A'}"?`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
         variant="danger"
