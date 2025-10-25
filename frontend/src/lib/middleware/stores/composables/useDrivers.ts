@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { driversStore } from '../drivers.store';
 import type { DriversState } from '../drivers.store';
-import type { CreateDriverDTO, UpdateDriverDTO } from '../../services/driver.service';
+import type { CreateDriverDTO, UpdateDriverDTO, DriverFilters } from '../../services/driver.service';
 
 export function useDrivers() {
   const [state, setState] = useState<DriversState>({
@@ -25,6 +25,6 @@ export function useDrivers() {
     create: (dto: CreateDriverDTO) => driversStore.create(dto),
     update: (id: string, dto: UpdateDriverDTO) => driversStore.update(id, dto),
     remove: (id: string) => driversStore.remove(id),
-    setFilters: (f: any) => driversStore.setFilters(f),
+    setFilters: (f: DriverFilters) => driversStore.setFilters(f),
   };
 }

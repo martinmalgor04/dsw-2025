@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Edit, Package, Truck, Car, Plane, Train } from "lucide-react";
 import { DataTable, createSortableHeader } from "../config/DataTable";
@@ -26,7 +26,7 @@ import {
 } from "../ui/dropdown-menu";
 import { toast } from "sonner";
 import { useConfig } from "@/lib/middleware/stores/composables/useConfig";
-import type { TransportMethod, CreateTransportMethodDTO, UpdateTransportMethodDTO } from "@/lib/middleware/services/config.service";
+import type { TransportMethod, CreateTransportMethodDTO } from "@/lib/middleware/services/config.service";
 
 // Mapeo de códigos de transporte a iconos
 const getTransportIcon = (code: string) => {
@@ -151,7 +151,7 @@ export function TiposTransporte() {
         toast.success("Método de transporte creado correctamente");
       }
       setIsModalOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Error al guardar el método de transporte");
     }
   };
@@ -163,7 +163,7 @@ export function TiposTransporte() {
       await deleteTransportMethod(deleteTipo.id);
       toast.success("Método de transporte eliminado correctamente");
       setDeleteTipo(null);
-    } catch (error) {
+    } catch {
       toast.error("Error al eliminar el método de transporte");
     }
   };

@@ -44,8 +44,9 @@ export const driversStore = {
     this.setLoading(true);
     try {
       state = { ...state, items: await driverService.getDrivers(state.filters) };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error cargando conductores');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando conductores';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -55,8 +56,9 @@ export const driversStore = {
     this.setLoading(true);
     try {
       state = { ...state, selected: await driverService.getDriver(id) };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error obteniendo conductor');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error obteniendo conductor';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -67,8 +69,9 @@ export const driversStore = {
     try {
       await driverService.createDriver(dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error creando conductor');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando conductor';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -78,8 +81,9 @@ export const driversStore = {
     try {
       await driverService.updateDriver(id, dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error actualizando conductor');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando conductor';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -89,8 +93,9 @@ export const driversStore = {
     try {
       await driverService.deleteDriver(id);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error eliminando conductor');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando conductor';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }

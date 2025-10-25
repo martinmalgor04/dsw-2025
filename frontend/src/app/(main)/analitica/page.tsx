@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     BarChart3,
     TrendingUp,
@@ -87,16 +87,99 @@ export default function Analitica() {
         boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)'
     };
 
-    useEffect(() => {
-        loadAnalyticsData();
-    }, [dateRange]);
-
-    const loadAnalyticsData = () => {
+    const loadAnalyticsData = useCallback(() => {
         try {
             setIsLoading(true);
 
+            // Definir tipos
+            interface Resume {
+                id: number;
+                status: string;
+                analysis?: {
+                    overallScore?: number;
+                    skills?: Array<{ name: string }>;
+                };
+                createdAt: Date;
+            }
+
+            // Funciones helper
+            const generateOverviewData = (resumes: Resume[], completedResumes: Resume[]) => {
+                const totalApplications = resumes.length;
+                const avgScore = completedResumes.reduce((sum, r) => sum + (r.analysis?.overallScore || 0), 0) / (completedResumes.length || 1);
+                const excellentCandidates = completedResumes.filter(r => (r.analysis?.overallScore || 0) >= 80).length;
+                const processingTime = 2.5;
+                return {
+                    totalApplications,
+                    avgScore: Math.round(avgScore),
+                    excellentCandidates,
+                    processingTime,
+                    growthRate: 15.3,
+                    conversionRate: (excellentCandidates / totalApplications * 100).toFixed(1)
+                };
+            };
+
+            const generateSkillTrends = (resumes: Resume[]) => {
+                const skillCounts: { [key: string]: number } = {};
+                resumes.forEach(resume => {
+                    if (resume.analysis?.skills) {
+                        resume.analysis.skills.forEach((skill) => {
+                            skillCounts[skill.name] = (skillCounts[skill.name] || 0) + 1;
+                        });
+                    }
+                });
+                return Object.entries(skillCounts)
+                    .sort(([, a], [, b]) => (b as number) - (a as number))
+                    .slice(0, 6)
+                    .map(([skill, count]) => ({ skill, count, trend: Math.random() > 0.5 ? 'up' : 'down' }));
+            };
+
+            const generateScoreTrends = () => {
+                const last7Days = Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - (6 - i));
+                    return {
+                        date: date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
+                        avgScore: 70 + Math.random() * 20,
+                        applications: Math.floor(Math.random() * 10) + 2
+                    };
+                });
+                return last7Days;
+            };
+
+            const generateApplicationVolume = () => {
+                const last30Days = Array.from({ length: 30 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - (29 - i));
+                    return {
+                        date: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+                        applications: Math.floor(Math.random() * 8) + 1,
+                        completed: Math.floor(Math.random() * 6) + 1
+                    };
+                });
+                return last30Days;
+            };
+
+            const generateTopSkills = () => {
+                const skills = ['JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'AWS'];
+                return skills.map((skill, index) => ({
+                    skill,
+                    candidates: Math.floor(Math.random() * 20) + 5,
+                    avgScore: 70 + Math.random() * 25,
+                    color: ['#8B5CF6', '#14B8A6', '#3B82F6', '#F59E0B', '#EF4444', '#06B6D4'][index]
+                }));
+            };
+
+            const generatePerformanceMetrics = () => {
+                const metrics = ['Comunicación', 'Habilidades Técnicas', 'Experiencia', 'Educación', 'Ajuste Cultural', 'Liderazgo'];
+                return metrics.map(metric => ({
+                    metric,
+                    current: 70 + Math.random() * 25,
+                    benchmark: 75 + Math.random() * 15
+                }));
+            };
+
             // Datos mock para modo frontend-only
-            const mockResumes = [
+            const mockResumes: Resume[] = [
                 { id: 1, status: 'completed', analysis: { overallScore: 85 }, createdAt: new Date('2024-01-01') },
                 { id: 2, status: 'completed', analysis: { overallScore: 92 }, createdAt: new Date('2024-01-02') },
                 { id: 3, status: 'completed', analysis: { overallScore: 78 }, createdAt: new Date('2024-01-03') },
@@ -110,94 +193,21 @@ export default function Analitica() {
             setAnalyticsData({
                 overview: generateOverviewData(mockResumes, completedResumes),
                 skillTrends: generateSkillTrends(completedResumes),
-                scoreTrends: generateScoreTrends(completedResumes),
-                applicationVolume: generateApplicationVolume(mockResumes),
-                topSkills: generateTopSkills(completedResumes),
-                performanceMetrics: generatePerformanceMetrics(completedResumes)
+                scoreTrends: generateScoreTrends(),
+                applicationVolume: generateApplicationVolume(),
+                topSkills: generateTopSkills(),
+                performanceMetrics: generatePerformanceMetrics()
             });
         } catch (error) {
             console.error('Error al cargar análisis:', error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const generateOverviewData = (resumes: any[], completedResumes: any[]) => {
-        const totalApplications = resumes.length;
-        const avgScore = completedResumes.reduce((sum, r) => sum + (r.analysis?.overallScore || 0), 0) / (completedResumes.length || 1);
-        const excellentCandidates = completedResumes.filter(r => (r.analysis?.overallScore || 0) >= 80).length;
-        const processingTime = 2.5; // Promedio mock
-
-        return {
-            totalApplications,
-            avgScore: Math.round(avgScore),
-            excellentCandidates,
-            processingTime,
-            growthRate: 15.3,
-            conversionRate: (excellentCandidates / totalApplications * 100).toFixed(1)
-        };
-    };
-
-    const generateSkillTrends = (resumes: any[]) => {
-        const skillCounts: { [key: string]: number } = {};
-        resumes.forEach(resume => {
-            if (resume.analysis?.skills) {
-                resume.analysis.skills.forEach((skill: any) => {
-                    skillCounts[skill.name] = (skillCounts[skill.name] || 0) + 1;
-                });
-            }
-        });
-
-        return Object.entries(skillCounts)
-            .sort(([, a], [, b]) => (b as number) - (a as number))
-            .slice(0, 6)
-            .map(([skill, count]) => ({ skill, count, trend: Math.random() > 0.5 ? 'up' : 'down' }));
-    };
-
-    const generateScoreTrends = (resumes: any[]) => {
-        const last7Days = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (6 - i));
-            return {
-                date: date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
-                avgScore: 70 + Math.random() * 20,
-                applications: Math.floor(Math.random() * 10) + 2
-            };
-        });
-        return last7Days;
-    };
-
-    const generateApplicationVolume = (resumes: any[]) => {
-        const last30Days = Array.from({ length: 30 }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (29 - i));
-            return {
-                date: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
-                applications: Math.floor(Math.random() * 8) + 1,
-                completed: Math.floor(Math.random() * 6) + 1
-            };
-        });
-        return last30Days;
-    };
-
-    const generateTopSkills = (resumes: any[]) => {
-        const skills = ['JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'AWS'];
-        return skills.map((skill, index) => ({
-            skill,
-            candidates: Math.floor(Math.random() * 20) + 5,
-            avgScore: 70 + Math.random() * 25,
-            color: ['#8B5CF6', '#14B8A6', '#3B82F6', '#F59E0B', '#EF4444', '#06B6D4'][index]
-        }));
-    };
-
-    const generatePerformanceMetrics = (resumes: any[]) => {
-        const metrics = ['Comunicación', 'Habilidades Técnicas', 'Experiencia', 'Educación', 'Ajuste Cultural', 'Liderazgo'];
-        return metrics.map(metric => ({
-            metric,
-            current: 70 + Math.random() * 25,
-            benchmark: 75 + Math.random() * 15
-        }));
-    };
+    useEffect(() => {
+        loadAnalyticsData();
+    }, [loadAnalyticsData]);
 
     if (isLoading) {
         return (

@@ -47,31 +47,46 @@ export const shipmentsStore = {
   async load() {
     this.setLoading(true);
     try { state = { ...state, items: await shipmentService.getShipments(state.filters) }; }
-    catch (e: any) { this.setError(e?.message || 'Error cargando envíos'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando envíos';
+      this.setError(message);
+    }
     finally { this.setLoading(false); notify(); }
   },
   async select(id: string) {
     this.setLoading(true);
     try { state = { ...state, selected: await shipmentService.getShipment(id) }; }
-    catch (e: any) { this.setError(e?.message || 'Error obteniendo envío'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error obteniendo envío';
+      this.setError(message);
+    }
     finally { this.setLoading(false); notify(); }
   },
   async create(dto: CreateShipmentDTO) {
     this.setLoading(true);
     try { await shipmentService.createShipment(dto); await this.load(); }
-    catch (e: any) { this.setError(e?.message || 'Error creando envío'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando envío';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   async update(id: string, dto: UpdateShipmentDTO) {
     this.setLoading(true);
     try { await shipmentService.updateShipment(id, dto); await this.load(); }
-    catch (e: any) { this.setError(e?.message || 'Error actualizando envío'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando envío';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   async remove(id: string) {
     this.setLoading(true);
     try { await shipmentService.deleteShipment(id); await this.load(); }
-    catch (e: any) { this.setError(e?.message || 'Error eliminando envío'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando envío';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   async quote(delivery_address: AddressDTO, products: ProductDTO[]) {
@@ -82,7 +97,10 @@ export const shipmentsStore = {
       state = { ...state, quoteResult: result };
       notify();
     }
-    catch (e: any) { this.setError(e?.message || 'Error al calcular la cotización'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error al calcular la cotización';
+      this.setError(message);
+    }
     finally {
       state = { ...state, isQuoting: false };
       notify();

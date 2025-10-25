@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -30,6 +30,8 @@ import {
 const logo = "PEPACK";
 
 interface SidebarProps {
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
   isMobileOpen: boolean;
@@ -43,7 +45,6 @@ export function Sidebar({
   setIsMobileOpen
 }: SidebarProps) {
   const pathname = usePathname();
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   // Items principales sin subsecciones
   const mainMenuItems = [
@@ -52,7 +53,7 @@ export function Sidebar({
   ];
 
   // Secciones con subsecciones
-  const menuSections = [
+  const menuSections = useMemo(() => [
     {
       id: 'operaciones',
       label: 'Operaciones',
@@ -99,7 +100,7 @@ export function Sidebar({
         { id: 'config-roles', label: 'Roles y permisos', icon: Shield, href: '/configuration/roles' },
       ]
     },
-  ];
+  ], []);
 
   // Item final de configuración
   const configMenuItem = {
@@ -109,14 +110,22 @@ export function Sidebar({
     href: '/configuration'
   };
 
-  // Expandir automáticamente la sección cuando la ruta actual pertenece a ella
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    const section = menuSections.find(section =>
+      section.items.some(item => pathname.startsWith(item.href))
+    );
+    return section ? { [section.id]: true } : {};
+  });
+
+  // Actualizar secciones expandidas cuando cambia la ruta
   useEffect(() => {
     const section = menuSections.find(section =>
       section.items.some(item => pathname.startsWith(item.href))
     );
-    if (section) {
+    if (section && !expandedSections[section.id]) {
       setExpandedSections(prev => ({ ...prev, [section.id]: true }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const handleMobileClose = () => {

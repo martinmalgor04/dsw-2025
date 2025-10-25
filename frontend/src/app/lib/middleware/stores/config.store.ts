@@ -38,14 +38,20 @@ export const configStore = {
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.transportMethods.length) return;
     this.setLoading(true);
     try { this.setTransportMethods(await configService.getTransportMethods()); }
-    catch (e: any) { this.setError(e?.message || 'Error cargando métodos'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando métodos';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   async loadCoverageZones(force = false) {
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.coverageZones.length) return;
     this.setLoading(true);
     try { this.setCoverageZones(await configService.getCoverageZones()); }
-    catch (e: any) { this.setError(e?.message || 'Error cargando zonas'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando zonas';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -56,7 +62,10 @@ export const configStore = {
       const newMethod = await configService.createTransportMethod(dto);
       this.setTransportMethods([...state.transportMethods, newMethod]);
     }
-    catch (e: any) { this.setError(e?.message || 'Error creando método de transporte'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando método de transporte';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -64,11 +73,14 @@ export const configStore = {
     this.setLoading(true);
     try {
       const updatedMethod = await configService.updateTransportMethod(id, dto);
-      this.setTransportMethods(state.transportMethods.map(method => 
+      this.setTransportMethods(state.transportMethods.map(method =>
         method.id === id ? updatedMethod : method
       ));
     }
-    catch (e: any) { this.setError(e?.message || 'Error actualizando método de transporte'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando método de transporte';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -78,7 +90,10 @@ export const configStore = {
       await configService.deleteTransportMethod(id);
       this.setTransportMethods(state.transportMethods.filter(method => method.id !== id));
     }
-    catch (e: any) { this.setError(e?.message || 'Error eliminando método de transporte'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando método de transporte';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -89,7 +104,10 @@ export const configStore = {
       const newZone = await configService.createCoverageZone(dto);
       this.setCoverageZones([...state.coverageZones, newZone]);
     }
-    catch (e: any) { this.setError(e?.message || 'Error creando zona de cobertura'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando zona de cobertura';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -97,11 +115,14 @@ export const configStore = {
     this.setLoading(true);
     try {
       const updatedZone = await configService.updateCoverageZone(id, dto);
-      this.setCoverageZones(state.coverageZones.map(zone => 
+      this.setCoverageZones(state.coverageZones.map(zone =>
         zone.id === id ? updatedZone : zone
       ));
     }
-    catch (e: any) { this.setError(e?.message || 'Error actualizando zona de cobertura'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando zona de cobertura';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -110,7 +131,10 @@ export const configStore = {
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
     this.setLoading(true);
     try { this.setTariffConfigs(await tariffConfigService.getTariffConfigs()); }
-    catch (e: any) { this.setError(e?.message || 'Error cargando configuraciones de tarifa'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando configuraciones de tarifa';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -120,7 +144,10 @@ export const configStore = {
       const newConfig = await tariffConfigService.createTariffConfig(dto);
       this.setTariffConfigs([...state.tariffConfigs, newConfig]);
     }
-    catch (e: any) { this.setError(e?.message || 'Error creando configuración de tarifa'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando configuración de tarifa';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -128,11 +155,14 @@ export const configStore = {
     this.setLoading(true);
     try {
       const updatedConfig = await tariffConfigService.updateTariffConfig(id, dto);
-      this.setTariffConfigs(state.tariffConfigs.map(config => 
+      this.setTariffConfigs(state.tariffConfigs.map(config =>
         config.id === id ? updatedConfig : config
       ));
     }
-    catch (e: any) { this.setError(e?.message || 'Error actualizando configuración de tarifa'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando configuración de tarifa';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
   
@@ -142,7 +172,10 @@ export const configStore = {
       await tariffConfigService.deleteTariffConfig(id);
       this.setTariffConfigs(state.tariffConfigs.filter(config => config.id !== id));
     }
-    catch (e: any) { this.setError(e?.message || 'Error eliminando configuración de tarifa'); }
+    catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando configuración de tarifa';
+      this.setError(message);
+    }
     finally { this.setLoading(false); }
   },
 };

@@ -38,8 +38,9 @@ export const routesStore = {
     this.setLoading(true);
     try {
       state = { ...state, items: await routeService.getRoutes() };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error cargando rutas');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando rutas';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -49,8 +50,9 @@ export const routesStore = {
     this.setLoading(true);
     try {
       state = { ...state, selected: await routeService.getRoute(id) };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error obteniendo ruta');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error obteniendo ruta';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -61,8 +63,9 @@ export const routesStore = {
     try {
       await routeService.createRoute(dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error creando ruta');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando ruta';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -72,8 +75,9 @@ export const routesStore = {
     try {
       await routeService.updateRoute(id, dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error actualizando ruta');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando ruta';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -83,8 +87,9 @@ export const routesStore = {
     try {
       await routeService.deleteRoute(id);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error eliminando ruta');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando ruta';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }

@@ -44,8 +44,9 @@ export const vehiclesStore = {
     this.setLoading(true);
     try {
       state = { ...state, items: await vehicleService.getVehicles(state.filters) };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error cargando vehículos');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error cargando vehículos';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -55,8 +56,9 @@ export const vehiclesStore = {
     this.setLoading(true);
     try {
       state = { ...state, selected: await vehicleService.getVehicle(id) };
-    } catch (e: any) {
-      this.setError(e?.message || 'Error obteniendo vehículo');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error obteniendo vehículo';
+      this.setError(message);
     } finally {
       this.setLoading(false);
       notify();
@@ -67,8 +69,9 @@ export const vehiclesStore = {
     try {
       await vehicleService.createVehicle(dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error creando vehículo');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error creando vehículo';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -78,8 +81,9 @@ export const vehiclesStore = {
     try {
       await vehicleService.updateVehicle(id, dto);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error actualizando vehículo');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error actualizando vehículo';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }
@@ -89,8 +93,9 @@ export const vehiclesStore = {
     try {
       await vehicleService.deleteVehicle(id);
       await this.load();
-    } catch (e: any) {
-      this.setError(e?.message || 'Error eliminando vehículo');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error eliminando vehículo';
+      this.setError(message);
     } finally {
       this.setLoading(false);
     }

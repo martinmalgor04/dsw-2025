@@ -1,12 +1,4 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ConfirmDialog } from '../config/ConfirmDialog';
 import { Toolbar } from '../config/Toolbar';
@@ -112,7 +104,7 @@ export function Vehiculos() {
     {
       accessorKey: 'status',
       header: 'Estado',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: VehiculoDisplay } }) => {
         const status = row.original.status;
         return (
           <Badge variant={status === 'AVAILABLE' ? 'default' : 'secondary'}>
@@ -123,7 +115,7 @@ export function Vehiculos() {
     },
     {
       id: 'actions',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: VehiculoDisplay } }) => {
         const vehiculo = row.original;
         return (
           <DropdownMenu>
@@ -152,7 +144,7 @@ export function Vehiculos() {
     <div>
       <Toolbar
         searchValue=""
-        onSearchChange={(value) => setFilters({ search: value })}
+        onSearchChange={() => setFilters({})}
         onNewClick={() => setDialogOpen(true)}
         newButtonLabel="Añadir Vehículo"
       />

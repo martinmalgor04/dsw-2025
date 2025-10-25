@@ -3,6 +3,20 @@ import { TransportMethod } from './config.service';
 import { DriverDTO } from './driver.service';
 import { VehicleDTO } from './vehicle.service';
 
+export interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  [key: string]: unknown;
+}
+
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
 export interface RouteDTO {
   id: string;
   name: string;
@@ -27,17 +41,15 @@ export interface CreateRouteDTO {
   coverageZoneId?: string;
 }
 
-export interface UpdateRouteDTO extends Partial<CreateRouteDTO> {
-  // Inherits all properties from CreateRouteDTO as optional
-}
+export type UpdateRouteDTO = Partial<CreateRouteDTO>;
 
 export interface RouteStopDTO {
   id: string;
   routeId: string;
   sequence: number;
   type: string;
-  address: any;
-  coordinates?: any;
+  address: Address;
+  coordinates?: Coordinates;
   scheduledTime?: string;
   actualTime?: string;
   status: string;
@@ -46,8 +58,8 @@ export interface RouteStopDTO {
 export interface CreateRouteStopDTO {
   sequence: number;
   type: string;
-  address: any;
-  coordinates?: any;
+  address: Address;
+  coordinates?: Coordinates;
   scheduledTime?: string;
   status: string;
 }

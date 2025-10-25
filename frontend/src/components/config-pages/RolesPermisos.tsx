@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Shield, Plus, Copy, Check, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
@@ -135,8 +134,16 @@ export function RolesPermisos() {
   const handleClonarRol = () => {
     if (!selectedRol) return;
 
+    // Generar ID único usando crypto si está disponible, sino usar timestamp
+    const generateId = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return `cloned_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    };
+
     const clonado: Rol = {
-      id: String(Date.now()),
+      id: generateId(),
       nombre: `${selectedRol.nombre} (Copia)`,
       permisos: { ...selectedRol.permisos },
       activo: true,

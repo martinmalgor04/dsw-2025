@@ -136,7 +136,7 @@ export function ReglasCotizacion() {
         toast.success("Configuración de tarifa creada correctamente");
       }
       setIsModalOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Error al guardar la configuración de tarifa");
     }
   };
@@ -148,7 +148,7 @@ export function ReglasCotizacion() {
       await deleteTariffConfig(deleteConfig.id);
       toast.success("Configuración de tarifa eliminada correctamente");
       setDeleteConfig(null);
-    } catch (error) {
+    } catch {
       toast.error("Error al eliminar la configuración de tarifa");
     }
   };
@@ -157,8 +157,7 @@ export function ReglasCotizacion() {
     {
       id: "transportMethodIcon",
       header: "",
-      cell: ({ row }) => {
-        const method = row.original.transportMethod;
+      cell: () => {
         return (
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
             <Truck className="w-5 h-5 text-blue-600" />

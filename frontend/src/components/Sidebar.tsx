@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   BarChart3,
@@ -21,11 +25,13 @@ import {
   AlertTriangle,
   Warehouse
 } from 'lucide-react';
-// import logo from '../assets/logo.png';
+
+// Using text logo instead of image for now
+const logo = "PEPACK";
 
 interface SidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
   isMobileOpen: boolean;
@@ -33,20 +39,17 @@ interface SidebarProps {
 }
 
 export function Sidebar({
-  activeTab,
-  setActiveTab,
   isCollapsed,
   setIsCollapsed,
   isMobileOpen,
   setIsMobileOpen
 }: SidebarProps) {
-  // Estado para controlar qué secciones están expandidas
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const pathname = usePathname();
 
   // Items principales sin subsecciones
   const mainMenuItems = [
-    { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
-    { id: 'analytics', label: 'Analíticas', icon: BarChart3 },
+    { id: 'dashboard', label: 'Panel', icon: LayoutDashboard, href: '/dashboard' },
+    { id: 'analitica', label: 'Analíticas', icon: BarChart3, href: '/analitica' },
   ];
 
   // Secciones con subsecciones
@@ -56,9 +59,9 @@ export function Sidebar({
       label: 'Operaciones',
       icon: ClipboardList,
       items: [
-        { id: 'operaciones-seguimiento', label: 'Seguimiento de envíos', icon: Package },
-        { id: 'operaciones-hojas-ruta', label: 'Hojas de ruta / Despachos', icon: Route },
-        { id: 'operaciones-incidencias', label: 'Incidencias y no-entregas', icon: AlertTriangle },
+        { id: 'operaciones-seguimiento', label: 'Seguimiento de envíos', icon: Package, href: '/operaciones/seguimiento' },
+        { id: 'operaciones-hojas-ruta', label: 'Hojas de ruta / Despachos', icon: Route, href: '/operaciones/hojas-ruta' },
+        { id: 'operaciones-incidencias', label: 'Incidencias y no-entregas', icon: AlertTriangle, href: '/operaciones/incidencias' },
       ]
     },
     {
@@ -66,7 +69,7 @@ export function Sidebar({
       label: 'Tarifas',
       icon: DollarSign,
       items: [
-        { id: 'config-cotizacion', label: 'Reglas de cotización', icon: DollarSign },
+        { id: 'config-cotizacion', label: 'Reglas de cotización', icon: DollarSign, href: '/configuration/cotizacion' },
       ]
     },
     {
@@ -74,8 +77,8 @@ export function Sidebar({
       label: 'Recursos',
       icon: Users,
       items: [
-        { id: 'config-vehiculos', label: 'Vehículos', icon: Truck },
-        { id: 'recursos-conductores', label: 'Conductores', icon: User },
+        { id: 'config-vehiculos', label: 'Vehículos', icon: Truck, href: '/configuration/vehiculos' },
+        { id: 'recursos-conductores', label: 'Conductores', icon: User, href: '/configuration/conductores' },
       ]
     },
     {
@@ -83,9 +86,9 @@ export function Sidebar({
       label: 'Catálogos',
       icon: BookOpen,
       items: [
-        { id: 'config-centros-stock', label: 'Centros de stock', icon: Warehouse },
-        { id: 'config-transporte', label: 'Tipos de transporte', icon: Package },
-        { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon },
+        { id: 'config-centros-stock', label: 'Centros de stock', icon: Warehouse, href: '/configuration/centros-stock' },
+        { id: 'config-transporte', label: 'Tipos de transporte', icon: Package, href: '/configuration/transporte' },
+        { id: 'config-motivos', label: 'Motivos de no entrega', icon: XOctagon, href: '/configuration/motivos' },
       ]
     },
     {
@@ -93,37 +96,40 @@ export function Sidebar({
       label: 'Administración',
       icon: Shield,
       items: [
-        { id: 'config-usuarios', label: 'Usuarios', icon: User },
-        { id: 'config-roles', label: 'Roles y permisos', icon: Shield },
+        { id: 'config-usuarios', label: 'Usuarios', icon: User, href: '/configuration/usuarios' },
+        { id: 'config-roles', label: 'Roles y permisos', icon: Shield, href: '/configuration/roles' },
       ]
     },
   ], []);
 
-  // Expandir automáticamente la sección cuando se selecciona un sub-item
-  useEffect(() => {
-    const section = menuSections.find(section =>
-      section.items.some(item => item.id === activeTab)
-    );
-    if (section) {
-      setExpandedSections(prev => ({ ...prev, [section.id]: true }));
-    }
-  }, [activeTab, menuSections]);
-
   // Item final de configuración
-  const configMenuItem = { id: 'configuracion-sistema', label: 'Configuración', icon: Settings };
-
-  // Glassmorphism styles using inline styles
-  const glassStyle = {
-    backdropFilter: 'blur(20px)',
-    background: 'rgba(255, 255, 255, 0.15)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: '0 12px 40px rgba(31, 38, 135, 0.2)'
+  const configMenuItem = {
+    id: 'configuracion-sistema',
+    label: 'Configuración',
+    icon: Settings,
+    href: '/configuration'
   };
 
-  const handleMenuItemClick = (tabId: string) => {
-    setActiveTab(tabId);
-    // Close mobile menu after selection
-    if (window.innerWidth < 1024) {
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    const section = menuSections.find(section =>
+      section.items.some(item => pathname.startsWith(item.href))
+    );
+    return section ? { [section.id]: true } : {};
+  });
+
+  // Actualizar secciones expandidas cuando cambia la ruta
+  useEffect(() => {
+    const section = menuSections.find(section =>
+      section.items.some(item => pathname.startsWith(item.href))
+    );
+    if (section && !expandedSections[section.id]) {
+      setExpandedSections(prev => ({ ...prev, [section.id]: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  const handleMobileClose = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsMobileOpen(false);
     }
   };
@@ -137,7 +143,15 @@ export function Sidebar({
 
   const isSectionActive = (sectionId: string) => {
     const section = menuSections.find(s => s.id === sectionId);
-    return section?.items.some(item => item.id === activeTab) || false;
+    return section?.items.some(item => pathname.startsWith(item.href)) || false;
+  };
+
+  // Glassmorphism styles using inline styles
+  const glassStyle = {
+    backdropFilter: 'blur(20px)',
+    background: 'rgba(255, 255, 255, 0.15)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    boxShadow: '0 12px 40px rgba(31, 38, 135, 0.2)'
   };
 
   const sidebarContent = (
@@ -146,9 +160,7 @@ export function Sidebar({
       <div className={`p-6 border-b border-white/20 ${isCollapsed ? 'px-4' : ''}`}>
         <div className="flex items-center justify-center">
           <div className={`flex items-center justify-center ${isCollapsed ? 'w-12 h-12' : 'w-32 h-32'}`}>
-            <div className="w-full h-full flex items-center justify-center bg-blue-600 text-white font-bold text-lg">
-              LOG
-            </div>
+            <span className="text-2xl font-bold text-white">{logo}</span>
           </div>
         </div>
       </div>
@@ -158,13 +170,14 @@ export function Sidebar({
         {/* Items principales (Panel y Analíticas) */}
         {mainMenuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const isActive = pathname === item.href;
 
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => handleMenuItemClick(item.id)}
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${isActive
+              href={item.href}
+              onClick={handleMobileClose}
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-300 group relative ${isActive
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
                 : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
                 }`}
@@ -179,7 +192,7 @@ export function Sidebar({
                   {item.label}
                 </div>
               )}
-            </button>
+            </Link>
           );
         })}
 
@@ -223,12 +236,13 @@ export function Sidebar({
                 <div className="mt-2 ml-4 space-y-1 animate-fade-in">
                   {section.items.map((subItem) => {
                     const SubIcon = subItem.icon;
-                    const isSubActive = activeTab === subItem.id;
+                    const isSubActive = pathname === subItem.href;
 
                     return (
-                      <button
+                      <Link
                         key={subItem.id}
-                        onClick={() => handleMenuItemClick(subItem.id)}
+                        href={subItem.href}
+                        onClick={handleMobileClose}
                         className={`w-full flex items-center gap-2 pl-8 pr-3 py-2.5 rounded-lg transition-all duration-200 border-l-2 ${isSubActive
                           ? 'bg-gradient-to-r from-purple-100 to-teal-100 text-purple-700 shadow-sm border-purple-500'
                           : 'text-gray-600 hover:bg-white/30 hover:text-gray-800 border-transparent hover:border-purple-300'
@@ -236,7 +250,7 @@ export function Sidebar({
                       >
                         <SubIcon className="w-4 h-4 flex-shrink-0" />
                         <span className="whitespace-nowrap text-sm">{subItem.label}</span>
-                      </button>
+                      </Link>
                     );
                   })}
                 </div>
@@ -246,9 +260,10 @@ export function Sidebar({
         })}
 
         {/* Item final de Configuración */}
-        <button
-          onClick={() => handleMenuItemClick(configMenuItem.id)}
-          className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl text-left transition-all duration-300 group relative ${activeTab === configMenuItem.id
+        <Link
+          href={configMenuItem.href}
+          onClick={handleMobileClose}
+          className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-300 group relative ${pathname.startsWith(configMenuItem.href)
             ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white transform translate-x-1'
             : 'text-gray-700 hover:bg-white/20 hover:translate-x-1'
             }`}
@@ -263,7 +278,7 @@ export function Sidebar({
               {configMenuItem.label}
             </div>
           )}
-        </button>
+        </Link>
       </nav>
 
       {/* Backend Status */}

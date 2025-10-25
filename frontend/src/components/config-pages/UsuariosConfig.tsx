@@ -435,7 +435,7 @@ export function UsuariosConfig() {
                 <Label htmlFor="estado">Estado</Label>
                 <Select
                   value={formData.estado}
-                  onValueChange={(value: any) => setFormData({ ...formData, estado: value })}
+                  onValueChange={(value: "invitado" | "activo" | "suspendido") => setFormData({ ...formData, estado: value })}
                 >
                   <SelectTrigger className="bg-white/80">
                     <SelectValue />

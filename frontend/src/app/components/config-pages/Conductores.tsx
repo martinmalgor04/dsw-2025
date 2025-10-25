@@ -1,12 +1,4 @@
 ﻿import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ConfirmDialog } from '../config/ConfirmDialog';
 import { Toolbar } from '../config/Toolbar';
@@ -86,7 +78,7 @@ export function Conductores() {
         email: data.email,
         phone: data.phone,
         licenseNumber: data.licenseNumber,
-        licenseType: data.licenseType as any,
+        licenseType: data.licenseType as 'A' | 'B' | 'C' | 'D',
         status: 'ACTIVE',
       };
       create(newData);
@@ -117,7 +109,7 @@ export function Conductores() {
     {
       accessorKey: 'status',
       header: 'Estado',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: ConductorDisplay } }) => {
         const status = row.original.status;
         return (
           <Badge variant={status === 'ACTIVE' ? 'default' : 'destructive'}>
@@ -128,7 +120,7 @@ export function Conductores() {
     },
     {
       id: 'actions',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: ConductorDisplay } }) => {
         const conductor = row.original;
         return (
           <DropdownMenu>
@@ -158,7 +150,7 @@ export function Conductores() {
     <div>
       <Toolbar
         searchValue=""
-        onSearchChange={(value) => setFilters({ search: value })}
+        onSearchChange={() => setFilters({})}
         onNewClick={() => {
           console.log('Botón Añadir Conductor clickeado');
           setDialogOpen(true);

@@ -164,6 +164,7 @@ export function CentrosStock() {
   };
 
   const handleEdit = (centro: CentroStock) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...rest } = centro;
     setEditingCentro(centro);
     setFormData(rest);

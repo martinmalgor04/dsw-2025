@@ -12,7 +12,9 @@ export class AuthService {
     try {
       const authenticated = await keycloak.init(keycloakInitOptions);
       if (authenticated && keycloak.token) {
-        localStorage.setItem('auth_token', keycloak.token);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', keycloak.token);
+        }
       }
       return authenticated;
     } catch {
@@ -21,12 +23,14 @@ export class AuthService {
   }
 
   async login(redirectUri?: string): Promise<void> {
-    await keycloak.login({ redirectUri: redirectUri || window.location.origin });
+    await keycloak.login({ redirectUri: redirectUri || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000') });
   }
 
   async logout(redirectUri?: string): Promise<void> {
-    localStorage.removeItem('auth_token');
-    await keycloak.logout({ redirectUri: redirectUri || window.location.origin });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+    await keycloak.logout({ redirectUri: redirectUri || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000') });
   }
 
   getToken(): string | undefined {
@@ -36,7 +40,11 @@ export class AuthService {
   async refreshToken(minValidity = 60): Promise<boolean> {
     try {
       const refreshed = await keycloak.updateToken(minValidity);
-      if (refreshed && keycloak.token) localStorage.setItem('auth_token', keycloak.token);
+      if (refreshed && keycloak.token) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', keycloak.token);
+        }
+      }
       return refreshed;
     } catch {
       await this.logout();

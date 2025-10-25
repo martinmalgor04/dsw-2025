@@ -70,9 +70,10 @@ export class HttpClient {
     while (true) {
       try {
         return await fn();
-      } catch (e: any) {
-        const code = e?.code as string | undefined;
-        const status = e?.statusCode as number | undefined;
+      } catch (e: unknown) {
+        const error = e as { code?: string; statusCode?: number };
+        const code = error.code;
+        const status = error.statusCode;
 
         const retryable =
           code === 'NETWORK_ERROR' ||

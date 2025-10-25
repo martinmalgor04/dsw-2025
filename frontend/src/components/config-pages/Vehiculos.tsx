@@ -1,12 +1,4 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ConfirmDialog } from '../config/ConfirmDialog';
 import { Toolbar } from '../config/Toolbar';
@@ -66,9 +58,9 @@ export function Vehiculos() {
       make: data.make as string,
       model: data.model as string,
       year: parseInt(data.year as string),
-      capacityKg: parseInt(data.capacity_kg as string),
-      volumeM3: parseFloat(data.volume_m3 as string),
-      fuelType: data.fuel_type as 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'HYBRID',
+      capacityKg: parseInt(data.capacityKg as string),
+      volumeM3: parseFloat(data.volumeM3 as string),
+      fuelType: data.fuelType as 'DIESEL' | 'GASOLINE' | 'ELECTRIC' | 'HYBRID',
     };
 
     if (editingVehiculo) {
@@ -112,7 +104,7 @@ export function Vehiculos() {
     {
       accessorKey: 'status',
       header: 'Estado',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: VehiculoDisplay } }) => {
         const status = row.original.status;
         return (
           <Badge variant={status === 'AVAILABLE' ? 'default' : 'secondary'}>
@@ -123,7 +115,7 @@ export function Vehiculos() {
     },
     {
       id: 'actions',
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: VehiculoDisplay } }) => {
         const vehiculo = row.original;
         return (
           <DropdownMenu>
@@ -152,7 +144,7 @@ export function Vehiculos() {
     <div>
       <Toolbar
         searchValue=""
-        onSearchChange={(value) => setFilters({ search: value })}
+        onSearchChange={() => setFilters({})}
         onNewClick={() => setDialogOpen(true)}
         newButtonLabel="Añadir Vehículo"
       />
@@ -231,10 +223,10 @@ export function Vehiculos() {
                 />
               </div>
               <div>
-                <Label htmlFor="capacity_kg">Capacidad (Kg) *</Label>
+                <Label htmlFor="capacityKg">Capacidad (Kg) *</Label>
                 <Input 
-                  id="capacity_kg" 
-                  name="capacity_kg" 
+                  id="capacityKg" 
+                  name="capacityKg" 
                   type="number" 
                   defaultValue={editingVehiculo?.capacityKg} 
                   required 
@@ -243,24 +235,24 @@ export function Vehiculos() {
                 />
               </div>
               <div>
-                <Label htmlFor="volume_m3">Volumen (m³) *</Label>
+                <Label htmlFor="volumeM3">Volumen (m³) *</Label>
                 <Input 
-                  id="volume_m3" 
-                  name="volume_m3" 
+                  id="volumeM3" 
+                  name="volumeM3" 
                   type="number" 
                   step="0.1" 
-                  defaultValue={editingVehiculo?.volume_m3} 
+                  defaultValue={editingVehiculo?.volumeM3} 
                   required 
                   min="0.1"
                   max="100"
                 />
               </div>
               <div>
-                <Label htmlFor="fuel_type">Tipo de Combustible *</Label>
+                <Label htmlFor="fuelType">Tipo de Combustible *</Label>
                 <select 
-                  id="fuel_type" 
-                  name="fuel_type" 
-                  defaultValue={editingVehiculo?.fuel_type || 'GASOLINE'} 
+                  id="fuelType" 
+                  name="fuelType" 
+                  defaultValue={editingVehiculo?.fuelType || 'GASOLINE'} 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   required
                 >

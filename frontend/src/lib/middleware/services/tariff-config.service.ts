@@ -1,4 +1,4 @@
-import { configHttpClient } from '../http/config-client';
+import { httpClient } from '../http/http-client';
 
 export interface TariffConfigDTO {
   id: string;
@@ -32,7 +32,7 @@ export interface CreateTariffConfigDTO {
   validTo?: Date;
 }
 
-export interface UpdateTariffConfigDTO extends Partial<CreateTariffConfigDTO> {}
+export type UpdateTariffConfigDTO = Partial<CreateTariffConfigDTO>;
 
 export interface TariffConfigFilters {
   transportMethodId?: string;
@@ -42,23 +42,23 @@ export interface TariffConfigFilters {
 
 class TariffConfigService {
   async getTariffConfigs(filters?: TariffConfigFilters): Promise<TariffConfigDTO[]> {
-    return configHttpClient.get('/config/tariff-configs', { params: filters });
+    return httpClient.get('/config/tariff-configs', { params: filters });
   }
 
   async getTariffConfig(id: string): Promise<TariffConfigDTO> {
-    return configHttpClient.get(`/config/tariff-configs/${id}`);
+    return httpClient.get(`/config/tariff-configs/${id}`);
   }
 
   async createTariffConfig(dto: CreateTariffConfigDTO): Promise<TariffConfigDTO> {
-    return configHttpClient.post('/config/tariff-configs', dto);
+    return httpClient.post('/config/tariff-configs', dto);
   }
 
   async updateTariffConfig(id: string, dto: UpdateTariffConfigDTO): Promise<TariffConfigDTO> {
-    return configHttpClient.patch(`/config/tariff-configs/${id}`, dto);
+    return httpClient.patch(`/config/tariff-configs/${id}`, dto);
   }
 
   async deleteTariffConfig(id: string): Promise<void> {
-    return configHttpClient.delete(`/config/tariff-configs/${id}`);
+    return httpClient.delete(`/config/tariff-configs/${id}`);
   }
 }
 

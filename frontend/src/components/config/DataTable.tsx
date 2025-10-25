@@ -165,7 +165,7 @@ export function DataTable<TData, TValue>({
 }
 
 export function createSortableHeader(label: string) {
-  return ({ column }: any) => {
+  const SortableHeader = ({ column }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => false | 'asc' | 'desc' } }) => {
     return (
       <Button
         variant="ghost"
@@ -177,4 +177,6 @@ export function createSortableHeader(label: string) {
       </Button>
     );
   };
+  SortableHeader.displayName = "SortableHeader";
+  return SortableHeader;
 }

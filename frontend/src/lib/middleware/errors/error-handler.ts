@@ -19,7 +19,7 @@ export function transformAxiosError(error: unknown): ApiError {
     return new UnknownError('Error desconocido');
   }
 
-  const err = error as AxiosError<any>;
+  const err = error as AxiosError<Record<string, unknown>>;
 
   if (err.code === 'ECONNABORTED') {
     return new TimeoutError('Tiempo de espera agotado');
@@ -30,7 +30,8 @@ export function transformAxiosError(error: unknown): ApiError {
   }
 
   const status = err.response.status;
-  const message = (err.response.data as any)?.message ?? err.message;
+  const responseData = err.response.data as Record<string, unknown> | undefined;
+  const message = (responseData?.message as string) ?? err.message;
   const details = safeDetails(err);
 
   switch (status) {
@@ -55,7 +56,7 @@ export function transformAxiosError(error: unknown): ApiError {
 }
 
 function isAxiosError(error: unknown): error is AxiosError {
-  return !!(error as any)?.isAxiosError;
+  return typeof error === 'object' && error !== null && 'isAxiosError' in error && error.isAxiosError === true;
 }
 
 function safeDetails(err: AxiosError): Record<string, unknown> {

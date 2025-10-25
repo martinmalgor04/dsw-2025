@@ -1,4 +1,4 @@
-import { ApiError, ApiErrorCode } from './api-error';
+import { ApiError } from './api-error';
 
 export class ValidationError extends ApiError {
   constructor(message = 'Los datos enviados son inválidos', details?: Record<string, unknown>) {
