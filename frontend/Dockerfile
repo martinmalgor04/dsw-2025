@@ -40,7 +40,10 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
-# Construir la aplicación Next.js
+# Copiar archivo de configuración de entorno para build
+COPY .env.production .env.production
+
+# Construir la aplicación Next.js con variables de entorno
 RUN npm run build
 
 # ===================================
