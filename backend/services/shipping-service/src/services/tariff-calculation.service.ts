@@ -32,10 +32,20 @@ export class TariffCalculationService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async calculateTariff(input: TariffCalculationInput): Promise<TariffCalculationResult> {
-    const { transportMethodId, billableWeight, distance, environment = 'development' } = input;
+  async calculateTariff(
+    input: TariffCalculationInput,
+  ): Promise<TariffCalculationResult> {
+    const {
+      transportMethodId,
+      billableWeight,
+      distance,
+      environment = 'development',
+    } = input;
 
-    const tariffConfig = await this.getTariffConfig(transportMethodId, environment);
+    const tariffConfig = await this.getTariffConfig(
+      transportMethodId,
+      environment,
+    );
 
     const baseTariff = Number(tariffConfig.baseTariff);
     const costPerKg = Number(tariffConfig.costPerKg);
@@ -64,7 +74,10 @@ export class TariffCalculationService {
     };
   }
 
-  private async getTariffConfig(transportMethodId: string, environment: string) {
+  private async getTariffConfig(
+    transportMethodId: string,
+    environment: string,
+  ) {
     const now = new Date();
     const tariffConfig = await this.prisma.tariffConfig.findFirst({
       where: {
@@ -85,7 +98,10 @@ export class TariffCalculationService {
     return tariffConfig;
   }
 
-  async getVolumetricFactor(transportMethodId: string, environment = 'development'): Promise<number> {
+  async getVolumetricFactor(
+    transportMethodId: string,
+    environment = 'development',
+  ): Promise<number> {
     const cfg = await this.getTariffConfig(transportMethodId, environment);
     return cfg.volumetricFactor;
   }
@@ -95,8 +111,12 @@ export class TariffCalculationService {
     transportMethodId: string,
     environment = 'development',
   ): Promise<number> {
-    const factor = await this.getVolumetricFactor(transportMethodId, environment);
-    const volumeInM3 = (dimensions.length * dimensions.width * dimensions.height) / 1_000_000;
+    const factor = await this.getVolumetricFactor(
+      transportMethodId,
+      environment,
+    );
+    const volumeInM3 =
+      (dimensions.length * dimensions.width * dimensions.height) / 1_000_000;
     const w = volumeInM3 * factor;
     return Math.round(w * 100) / 100;
   }
@@ -107,9 +127,11 @@ export class TariffCalculationService {
     transportMethodId: string,
     environment = 'development',
   ): Promise<number> {
-    const volumetric = await this.calculateVolumetricWeight(dimensions, transportMethodId, environment);
+    const volumetric = await this.calculateVolumetricWeight(
+      dimensions,
+      transportMethodId,
+      environment,
+    );
     return Math.max(realWeight, volumetric);
   }
 }
-
-

@@ -22,11 +22,12 @@ describe('RF-004: Database Schema Integration Tests', () => {
         const vehicle = await prisma.vehicle.findFirst({
           where: { transportMethodId: transportMethod.id },
         });
-        
+
         if (vehicle) {
-          const relatedTransportMethod = await prisma.transportMethod.findUnique({
-            where: { id: vehicle.transportMethodId! },
-          });
+          const relatedTransportMethod =
+            await prisma.transportMethod.findUnique({
+              where: { id: vehicle.transportMethodId },
+            });
           expect(relatedTransportMethod).toBeDefined();
           expect(relatedTransportMethod?.id).toBe(transportMethod.id);
         }
@@ -41,10 +42,10 @@ describe('RF-004: Database Schema Integration Tests', () => {
         const vehicles = await prisma.vehicle.findMany({
           where: { driverId: driver.id },
         });
-        
+
         for (const vehicle of vehicles) {
           const relatedDriver = await prisma.driver.findUnique({
-            where: { id: vehicle.driverId! },
+            where: { id: vehicle.driverId },
           });
           expect(relatedDriver?.id).toBe(driver.id);
         }
@@ -59,7 +60,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
         const routes = await prisma.route.findMany({
           where: { vehicleId: vehicle.id },
         });
-        
+
         for (const route of routes) {
           expect(route.vehicleId).toBe(vehicle.id);
         }
@@ -74,7 +75,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
         const stops = await prisma.routeStop.findMany({
           where: { routeId: route.id },
         });
-        
+
         for (const stop of stops) {
           expect(stop.routeId).toBe(route.id);
         }
@@ -85,7 +86,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
       const shipping = await prisma.shipping.findFirst({
         where: { transportMethodId: { not: null } },
       });
-      
+
       if (shipping) {
         const transportMethod = await prisma.transportMethod.findUnique({
           where: { id: shipping.transportMethodId! },
@@ -99,7 +100,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
   describe('TASK-015: Constraints and Validation Tests', () => {
     it('should enforce unique license plate constraint', async () => {
       const vehicles = await prisma.vehicle.findMany({ take: 2 });
-      
+
       if (vehicles.length === 2) {
         expect(vehicles[0].licensePlate).not.toBe(vehicles[1].licensePlate);
       }
@@ -107,7 +108,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
 
     it('should enforce unique employee ID constraint for drivers', async () => {
       const drivers = await prisma.driver.findMany({ take: 2 });
-      
+
       if (drivers.length === 2) {
         expect(drivers[0].employeeId).not.toBe(drivers[1].employeeId);
       }
@@ -115,7 +116,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
 
     it('should enforce unique email constraint for drivers', async () => {
       const drivers = await prisma.driver.findMany({ take: 2 });
-      
+
       if (drivers.length === 2) {
         expect(drivers[0].email).not.toBe(drivers[1].email);
       }
@@ -123,7 +124,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
 
     it('should enforce unique license number constraint', async () => {
       const drivers = await prisma.driver.findMany({ take: 2 });
-      
+
       if (drivers.length === 2) {
         expect(drivers[0].licenseNumber).not.toBe(drivers[1].licenseNumber);
       }
@@ -162,7 +163,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
         where: { licensePlate: { startsWith: 'AA' } },
       });
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(1000); // Should complete in < 1 second
     });
 
@@ -172,7 +173,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
         where: { email: { contains: '@' } },
       });
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(1000);
     });
 
@@ -183,13 +184,13 @@ describe('RF-004: Database Schema Integration Tests', () => {
         take: 10,
       });
       const end = performance.now();
-      
+
       expect(end - start).toBeLessThan(1000);
     });
 
     it('should query route stops by sequence efficiently', async () => {
       const route = await prisma.route.findFirst();
-      
+
       if (route) {
         const start = performance.now();
         const stops = await prisma.routeStop.findMany({
@@ -197,7 +198,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
           orderBy: { sequence: 'asc' },
         });
         const end = performance.now();
-        
+
         expect(end - start).toBeLessThan(1000);
       }
     });
@@ -248,7 +249,7 @@ describe('RF-004: Database Schema Integration Tests', () => {
       `;
 
       const columnNames = (result as any[]).map((r) => r.column_name);
-      
+
       for (const col of columns) {
         expect(columnNames).toContain(col);
       }

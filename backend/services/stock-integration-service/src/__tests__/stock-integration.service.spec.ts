@@ -100,7 +100,9 @@ describe('StockIntegrationService', () => {
             set: jest.fn(),
             delete: jest.fn(),
             getProductKey: jest.fn().mockReturnValue('stock:product:1'),
-            getReservaByCompraKey: jest.fn().mockReturnValue('stock:reserva:COMPRA-123:123'),
+            getReservaByCompraKey: jest
+              .fn()
+              .mockReturnValue('stock:reserva:COMPRA-123:123'),
             getReservaByIdKey: jest.fn().mockReturnValue('stock:reserva:1:123'),
             healthCheck: jest.fn().mockResolvedValue(true),
           },
@@ -110,7 +112,9 @@ describe('StockIntegrationService', () => {
 
     service = module.get<StockIntegrationService>(StockIntegrationService);
     httpService = module.get<HttpService>(HttpService);
-    circuitBreaker = module.get<StockCircuitBreakerService>(StockCircuitBreakerService);
+    circuitBreaker = module.get<StockCircuitBreakerService>(
+      StockCircuitBreakerService,
+    );
     cache = module.get<StockCacheService>(StockCacheService);
     configService = module.get<ConfigService>(ConfigService);
   });
@@ -156,13 +160,15 @@ describe('StockIntegrationService', () => {
     it('should make HTTP request and cache result on success', async () => {
       jest.spyOn(cache, 'get').mockResolvedValue(null);
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(of({ 
-        data: mockProduct, 
-        status: 200, 
-        statusText: 'OK', 
-        headers: {}, 
-        config: {} as any 
-      }));
+      jest.spyOn(httpService, 'request').mockReturnValue(
+        of({
+          data: mockProduct,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any,
+        }),
+      );
       jest.spyOn(cache, 'set').mockResolvedValue(undefined);
       jest.spyOn(circuitBreaker, 'recordSuccess').mockImplementation();
 
@@ -176,7 +182,9 @@ describe('StockIntegrationService', () => {
     it('should handle HTTP errors and return default product', async () => {
       jest.spyOn(cache, 'get').mockResolvedValue(null);
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(throwError(() => new Error('HTTP Error')));
+      jest
+        .spyOn(httpService, 'request')
+        .mockReturnValue(throwError(() => new Error('HTTP Error')));
       jest.spyOn(circuitBreaker, 'recordFailure').mockImplementation();
 
       const result = await service.getProductById(1);
@@ -205,49 +213,60 @@ describe('StockIntegrationService', () => {
     it('should find reserva by compraId from user reservas list', async () => {
       const mockReservas = [
         { idReserva: 1, idCompra: 'COMPRA-123', estado: 'pendiente' },
-        { idReserva: 2, idCompra: 'COMPRA-456', estado: 'confirmado' }
+        { idReserva: 2, idCompra: 'COMPRA-456', estado: 'confirmado' },
       ];
-      
+
       jest.spyOn(cache, 'get').mockResolvedValue(null);
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(of({ 
-        data: mockReservas, 
-        status: 200, 
-        statusText: 'OK', 
-        headers: {}, 
-        config: {} as any 
-      }));
+      jest.spyOn(httpService, 'request').mockReturnValue(
+        of({
+          data: mockReservas,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any,
+        }),
+      );
       jest.spyOn(cache, 'set').mockResolvedValue(undefined);
       jest.spyOn(circuitBreaker, 'recordSuccess').mockImplementation();
 
       const result = await service.getReservaByCompraId('COMPRA-456', 123);
 
-      expect(result).toEqual({ idReserva: 2, idCompra: 'COMPRA-456', estado: 'confirmado' });
+      expect(result).toEqual({
+        idReserva: 2,
+        idCompra: 'COMPRA-456',
+        estado: 'confirmado',
+      });
       expect(httpService.request).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'GET',
-          url: expect.stringContaining('/reservas?usuarioId=123')
-        })
+          url: expect.stringContaining('/reservas?usuarioId=123'),
+        }),
       );
     });
 
     it('should return null when reserva not found', async () => {
       const mockReservas = [
-        { idReserva: 1, idCompra: 'COMPRA-123', estado: 'pendiente' }
+        { idReserva: 1, idCompra: 'COMPRA-123', estado: 'pendiente' },
       ];
-      
+
       jest.spyOn(cache, 'get').mockResolvedValue(null);
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(of({ 
-        data: mockReservas, 
-        status: 200, 
-        statusText: 'OK', 
-        headers: {}, 
-        config: {} as any 
-      }));
+      jest.spyOn(httpService, 'request').mockReturnValue(
+        of({
+          data: mockReservas,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any,
+        }),
+      );
       jest.spyOn(circuitBreaker, 'recordSuccess').mockImplementation();
 
-      const result = await service.getReservaByCompraId('COMPRA-NOT-FOUND', 123);
+      const result = await service.getReservaByCompraId(
+        'COMPRA-NOT-FOUND',
+        123,
+      );
 
       expect(result).toBeNull();
     });
@@ -264,20 +283,29 @@ describe('StockIntegrationService', () => {
 
   describe('updateReservaStatus', () => {
     it('should update reserva status successfully', async () => {
-      const updatedReserva = { ...mockReserva, estado: EstadoReserva.CONFIRMADO };
-      
+      const updatedReserva = {
+        ...mockReserva,
+        estado: EstadoReserva.CONFIRMADO,
+      };
+
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(of({ 
-        data: updatedReserva, 
-        status: 200, 
-        statusText: 'OK', 
-        headers: {}, 
-        config: {} as any 
-      }));
+      jest.spyOn(httpService, 'request').mockReturnValue(
+        of({
+          data: updatedReserva,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any,
+        }),
+      );
       jest.spyOn(cache, 'delete').mockResolvedValue(undefined);
       jest.spyOn(circuitBreaker, 'recordSuccess').mockImplementation();
 
-      const result = await service.updateReservaStatus(1, EstadoReserva.CONFIRMADO, 123);
+      const result = await service.updateReservaStatus(
+        1,
+        EstadoReserva.CONFIRMADO,
+        123,
+      );
 
       expect(result).toEqual(updatedReserva);
       expect(httpService.request).toHaveBeenCalledWith(
@@ -287,8 +315,8 @@ describe('StockIntegrationService', () => {
           data: {
             usuarioId: 123,
             estado: EstadoReserva.CONFIRMADO,
-          }
-        })
+          },
+        }),
       );
       expect(circuitBreaker.recordSuccess).toHaveBeenCalled();
     });
@@ -297,39 +325,55 @@ describe('StockIntegrationService', () => {
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(true);
 
       await expect(
-        service.updateReservaStatus(1, EstadoReserva.CONFIRMADO, 123)
+        service.updateReservaStatus(1, EstadoReserva.CONFIRMADO, 123),
       ).rejects.toThrow('Stock service unavailable - circuit breaker is open');
     });
 
     it('should handle HTTP errors and record failure', async () => {
       jest.spyOn(circuitBreaker, 'isOpen').mockReturnValue(false);
-      jest.spyOn(httpService, 'request').mockReturnValue(throwError(() => new Error('HTTP Error')));
+      jest
+        .spyOn(httpService, 'request')
+        .mockReturnValue(throwError(() => new Error('HTTP Error')));
       jest.spyOn(circuitBreaker, 'recordFailure').mockImplementation();
 
       await expect(
-        service.updateReservaStatus(1, EstadoReserva.CONFIRMADO, 123)
+        service.updateReservaStatus(1, EstadoReserva.CONFIRMADO, 123),
       ).rejects.toThrow('HTTP Error');
-      
+
       expect(circuitBreaker.recordFailure).toHaveBeenCalled();
     });
   });
 
   describe('getAndUpdateReservaStatus', () => {
     it('should get and update reserva status successfully', async () => {
-      const updatedReserva = { ...mockReserva, estado: EstadoReserva.CONFIRMADO };
-      
-      jest.spyOn(service, 'getReservaByCompraId').mockResolvedValue(mockReserva);
-      jest.spyOn(service, 'updateReservaStatus').mockResolvedValue(updatedReserva);
+      const updatedReserva = {
+        ...mockReserva,
+        estado: EstadoReserva.CONFIRMADO,
+      };
+
+      jest
+        .spyOn(service, 'getReservaByCompraId')
+        .mockResolvedValue(mockReserva);
+      jest
+        .spyOn(service, 'updateReservaStatus')
+        .mockResolvedValue(updatedReserva);
 
       const result = await service.getAndUpdateReservaStatus(
         'COMPRA-123',
         123,
-        EstadoReserva.CONFIRMADO
+        EstadoReserva.CONFIRMADO,
       );
 
       expect(result).toEqual(updatedReserva);
-      expect(service.getReservaByCompraId).toHaveBeenCalledWith('COMPRA-123', 123);
-      expect(service.updateReservaStatus).toHaveBeenCalledWith(1, EstadoReserva.CONFIRMADO, 123);
+      expect(service.getReservaByCompraId).toHaveBeenCalledWith(
+        'COMPRA-123',
+        123,
+      );
+      expect(service.updateReservaStatus).toHaveBeenCalledWith(
+        1,
+        EstadoReserva.CONFIRMADO,
+        123,
+      );
     });
 
     it('should return null when reserva not found', async () => {
@@ -338,7 +382,7 @@ describe('StockIntegrationService', () => {
       const result = await service.getAndUpdateReservaStatus(
         'COMPRA-NOT-FOUND',
         123,
-        EstadoReserva.CONFIRMADO
+        EstadoReserva.CONFIRMADO,
       );
 
       expect(result).toBeNull();

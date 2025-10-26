@@ -64,7 +64,12 @@ export class ServiceRegistry {
     ];
 
     for (const config of servicesConfig) {
-      this.registerService(config.name, config.baseUrl, config.routes, config.healthCheckUrl);
+      this.registerService(
+        config.name,
+        config.baseUrl,
+        config.routes,
+        config.healthCheckUrl,
+      );
     }
 
     this.logger.log(`✅ Registered ${this.services.size} services`);
@@ -78,7 +83,7 @@ export class ServiceRegistry {
     name: string,
     baseUrl: string,
     routes: string[],
-    healthCheckUrl: string
+    healthCheckUrl: string,
   ): void {
     this.services.set(name, {
       name,
@@ -161,14 +166,11 @@ export class ServiceRegistry {
   /**
    * Utility para hacer fetch con timeout
    */
-  private fetchWithTimeout(
-    url: string,
-    timeoutMs: number
-  ): Promise<Response> {
+  private fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
     return Promise.race([
       fetch(url),
       new Promise<Response>((_, reject) =>
-        setTimeout(() => reject(new Error('Health check timeout')), timeoutMs)
+        setTimeout(() => reject(new Error('Health check timeout')), timeoutMs),
       ),
     ]);
   }

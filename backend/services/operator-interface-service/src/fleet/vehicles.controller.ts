@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Logger,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Vehicle } from '@logistics/database';
 import { VehiclesService } from './services/vehicles.service';
@@ -16,7 +27,9 @@ export class VehiclesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear un nuevo vehículo' })
   async create(@Body() createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
-    this.logger.log(`POST /fleet/vehicles - Creando: ${createVehicleDto.license_plate}`);
+    this.logger.log(
+      `POST /fleet/vehicles - Creando: ${createVehicleDto.license_plate}`,
+    );
     return this.vehiclesService.create(createVehicleDto);
   }
 
@@ -38,7 +51,10 @@ export class VehiclesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un vehículo' })
   @ApiParam({ name: 'id', description: 'ID del vehículo' })
-  async update(@Param('id') id: string, @Body() updateVehicleDto: UpdateVehicleDto): Promise<Vehicle> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateVehicleDto: UpdateVehicleDto,
+  ): Promise<Vehicle> {
     this.logger.log(`PATCH /fleet/vehicles/${id}`);
     return this.vehiclesService.update(id, updateVehicleDto);
   }

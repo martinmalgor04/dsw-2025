@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { ValidateNested, IsArray, ArrayMinSize, IsInt, IsEnum, Min } from 'class-validator';
+import {
+  ValidateNested,
+  IsArray,
+  ArrayMinSize,
+  IsInt,
+  IsEnum,
+  Min,
+} from 'class-validator';
 import { AddressDto, ProductRequestDto, TransportType } from '@logistics/types';
 
 export class CreateShippingRequestDto {
@@ -32,4 +39,3 @@ export class CreateShippingResponseDto {
   tracking_number?: string;
   estimated_delivery_at: string;
 }
-

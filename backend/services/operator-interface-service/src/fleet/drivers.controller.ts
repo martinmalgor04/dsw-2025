@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Logger,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Driver } from '@logistics/database';
 import { DriversService } from './services/drivers.service';
@@ -17,7 +28,9 @@ export class DriversController {
   @ApiOperation({ summary: 'Crear un nuevo conductor' })
   @ApiResponse({ status: 201, description: 'Conductor creado exitosamente.' })
   async create(@Body() createDriverDto: CreateDriverDto): Promise<Driver> {
-    this.logger.log(`POST /fleet/drivers - Creando: ${createDriverDto.firstName} ${createDriverDto.lastName}`);
+    this.logger.log(
+      `POST /fleet/drivers - Creando: ${createDriverDto.firstName} ${createDriverDto.lastName}`,
+    );
     return this.driversService.create(createDriverDto);
   }
 
@@ -44,7 +57,10 @@ export class DriversController {
   @ApiParam({ name: 'id', description: 'ID del conductor' })
   @ApiResponse({ status: 200, description: 'Conductor actualizado' })
   @ApiResponse({ status: 404, description: 'Conductor no encontrado' })
-  async update(@Param('id') id: string, @Body() updateDriverDto: UpdateDriverDto): Promise<Driver> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDriverDto: UpdateDriverDto,
+  ): Promise<Driver> {
     this.logger.log(`PATCH /fleet/drivers/${id}`);
     return this.driversService.update(id, updateDriverDto);
   }

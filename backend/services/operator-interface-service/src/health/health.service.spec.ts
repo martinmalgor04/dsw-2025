@@ -57,7 +57,7 @@ describe('HealthService', () => {
 
   it('should handle database health check failure', async () => {
     jest.spyOn(prismaService, 'healthCheck').mockResolvedValue(false);
-    
+
     const health = await service.getHealthStatus();
     expect(health.status).toBe('unhealthy');
     expect(health.dependencies.database).toBe('unhealthy');

@@ -1,4 +1,10 @@
-import { Injectable, Logger, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -10,14 +16,14 @@ export class StockAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
+
     try {
       // Obtener token válido
       const token = await this.getValidToken();
-      
+
       // Agregar token a headers de la request
       request.headers['authorization'] = `Bearer ${token}`;
-      
+
       return true;
     } catch (error) {
       this.logger.error('Authentication failed', error);
@@ -40,11 +46,11 @@ export class StockAuthGuard implements CanActivate {
 
     // Obtener nuevo token
     const token = await this.fetchNewToken();
-    
+
     // Cachear el token (asumimos que expira en 1 hora)
     this.tokenCache.set(cacheKey, {
       token,
-      expiresAt: Date.now() + (60 * 60 * 1000), // 1 hora
+      expiresAt: Date.now() + 60 * 60 * 1000, // 1 hora
     });
 
     this.logger.log('New token obtained and cached');
@@ -58,15 +64,20 @@ export class StockAuthGuard implements CanActivate {
     const keycloakUrl = this.configService.get<string>('KEYCLOAK_URL');
     const realm = this.configService.get<string>('KEYCLOAK_REALM');
     const clientId = this.configService.get<string>('KEYCLOAK_CLIENT_ID');
-    const clientSecret = this.configService.get<string>('KEYCLOAK_CLIENT_SECRET');
-    const grantType = this.configService.get<string>('KEYCLOAK_GRANT_TYPE', 'client_credentials');
+    const clientSecret = this.configService.get<string>(
+      'KEYCLOAK_CLIENT_SECRET',
+    );
+    const grantType = this.configService.get<string>(
+      'KEYCLOAK_GRANT_TYPE',
+      'client_credentials',
+    );
 
     if (!keycloakUrl || !realm || !clientId || !clientSecret) {
       throw new Error('Keycloak configuration is incomplete');
     }
 
     const tokenUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`;
-    
+
     const params = new URLSearchParams({
       grant_type: grantType,
       client_id: clientId,
@@ -83,11 +94,13 @@ export class StockAuthGuard implements CanActivate {
       });
 
       if (!response.ok) {
-        throw new Error(`Keycloak token request failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Keycloak token request failed: ${response.status} ${response.statusText}`,
+        );
       }
 
-      const data = await response.json() as { access_token?: string };
-      
+      const data = (await response.json()) as { access_token?: string };
+
       if (!data.access_token) {
         throw new Error('No access token received from Keycloak');
       }

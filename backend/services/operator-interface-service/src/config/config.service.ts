@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService as NestConfigService } from '@nestjs/config';
-import { PrismaService, TransportMethod, CoverageZone, TariffConfig } from '@logistics/database';
+import {
+  PrismaService,
+  TransportMethod,
+  CoverageZone,
+  TariffConfig,
+} from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 
 @Injectable()
@@ -14,7 +19,10 @@ export class ConfigService {
     private readonly configService: NestConfigService,
     private readonly prisma: PrismaService,
   ) {
-    this.configServiceUrl = this.configService.get<string>('CONFIG_SERVICE_URL', 'http://localhost:3003');
+    this.configServiceUrl = this.configService.get<string>(
+      'CONFIG_SERVICE_URL',
+      'http://localhost:3003',
+    );
   }
 
   /**
@@ -25,7 +33,7 @@ export class ConfigService {
   // Transport Methods
   async getAllTransportMethods(): Promise<TransportMethod[]> {
     this.logger.startOperation('getAllTransportMethods');
-    
+
     try {
       const methods = await this.prisma.transportMethod.findMany({
         orderBy: { createdAt: 'desc' },
@@ -46,7 +54,7 @@ export class ConfigService {
 
   async getTransportMethodById(id: string): Promise<TransportMethod> {
     this.logger.startOperation('getTransportMethodById', { id });
-    
+
     try {
       const method = await this.prisma.transportMethod.findUniqueOrThrow({
         where: { id },
@@ -60,14 +68,16 @@ export class ConfigService {
       this.logger.endOperation('getTransportMethodById', { id });
       return method;
     } catch (error) {
-      this.logger.errorWithContext('Failed to get transport method', error, { id });
+      this.logger.errorWithContext('Failed to get transport method', error, {
+        id,
+      });
       throw error;
     }
   }
 
   async createTransportMethod(data: any): Promise<TransportMethod> {
     this.logger.startOperation('createTransportMethod', { code: data.code });
-    
+
     try {
       const method = await this.prisma.transportMethod.create({
         data,
@@ -76,17 +86,22 @@ export class ConfigService {
         },
       });
 
-      this.logger.endOperation('createTransportMethod', { id: method.id, code: method.code });
+      this.logger.endOperation('createTransportMethod', {
+        id: method.id,
+        code: method.code,
+      });
       return method;
     } catch (error) {
-      this.logger.errorWithContext('Failed to create transport method', error, { code: data.code });
+      this.logger.errorWithContext('Failed to create transport method', error, {
+        code: data.code,
+      });
       throw error;
     }
   }
 
   async updateTransportMethod(id: string, data: any): Promise<TransportMethod> {
     this.logger.startOperation('updateTransportMethod', { id });
-    
+
     try {
       const method = await this.prisma.transportMethod.update({
         where: { id },
@@ -99,7 +114,9 @@ export class ConfigService {
       this.logger.endOperation('updateTransportMethod', { id });
       return method;
     } catch (error) {
-      this.logger.errorWithContext('Failed to update transport method', error, { id });
+      this.logger.errorWithContext('Failed to update transport method', error, {
+        id,
+      });
       throw error;
     }
   }
@@ -107,7 +124,7 @@ export class ConfigService {
   // Coverage Zones
   async getAllCoverageZones(): Promise<CoverageZone[]> {
     this.logger.startOperation('getAllCoverageZones');
-    
+
     try {
       const zones = await this.prisma.coverageZone.findMany({
         orderBy: { createdAt: 'desc' },
@@ -123,7 +140,7 @@ export class ConfigService {
 
   async getCoverageZoneById(id: string) {
     this.logger.startOperation('getCoverageZoneById', { id });
-    
+
     try {
       const zone = await this.prisma.coverageZone.findUniqueOrThrow({
         where: { id },
@@ -132,30 +149,37 @@ export class ConfigService {
       this.logger.endOperation('getCoverageZoneById', { id });
       return zone;
     } catch (error) {
-      this.logger.errorWithContext('Failed to get coverage zone', error, { id });
+      this.logger.errorWithContext('Failed to get coverage zone', error, {
+        id,
+      });
       throw error;
     }
   }
 
   async createCoverageZone(data: any) {
     this.logger.startOperation('createCoverageZone', { name: data.name });
-    
+
     try {
       const zone = await this.prisma.coverageZone.create({
         data,
       });
 
-      this.logger.endOperation('createCoverageZone', { id: zone.id, name: zone.name });
+      this.logger.endOperation('createCoverageZone', {
+        id: zone.id,
+        name: zone.name,
+      });
       return zone;
     } catch (error) {
-      this.logger.errorWithContext('Failed to create coverage zone', error, { name: data.name });
+      this.logger.errorWithContext('Failed to create coverage zone', error, {
+        name: data.name,
+      });
       throw error;
     }
   }
 
   async updateCoverageZone(id: string, data: any) {
     this.logger.startOperation('updateCoverageZone', { id });
-    
+
     try {
       const zone = await this.prisma.coverageZone.update({
         where: { id },
@@ -165,15 +189,19 @@ export class ConfigService {
       this.logger.endOperation('updateCoverageZone', { id });
       return zone;
     } catch (error) {
-      this.logger.errorWithContext('Failed to update coverage zone', error, { id });
+      this.logger.errorWithContext('Failed to update coverage zone', error, {
+        id,
+      });
       throw error;
     }
   }
 
   // Tariff Config Methods
-  async getAllTariffConfigs(transportMethodId?: string): Promise<TariffConfig[]> {
+  async getAllTariffConfigs(
+    transportMethodId?: string,
+  ): Promise<TariffConfig[]> {
     this.logger.startOperation('getAllTariffConfigs', { transportMethodId });
-    
+
     try {
       const where = transportMethodId ? { transportMethodId } : {};
       const configs = await this.prisma.tariffConfig.findMany({
@@ -184,17 +212,23 @@ export class ConfigService {
         orderBy: { createdAt: 'desc' },
       });
 
-      this.logger.endOperation('getAllTariffConfigs', { count: configs.length });
+      this.logger.endOperation('getAllTariffConfigs', {
+        count: configs.length,
+      });
       return configs;
     } catch (error) {
-      this.logger.errorWithContext('Failed to get tariff configs', error, { transportMethodId });
+      this.logger.errorWithContext('Failed to get tariff configs', error, {
+        transportMethodId,
+      });
       throw error;
     }
   }
 
   async createTariffConfig(data: any): Promise<TariffConfig> {
-    this.logger.startOperation('createTariffConfig', { transportMethodId: data.transportMethodId });
-    
+    this.logger.startOperation('createTariffConfig', {
+      transportMethodId: data.transportMethodId,
+    });
+
     try {
       const config = await this.prisma.tariffConfig.create({
         data: {
@@ -216,14 +250,16 @@ export class ConfigService {
       this.logger.endOperation('createTariffConfig', { id: config.id });
       return config;
     } catch (error) {
-      this.logger.errorWithContext('Failed to create tariff config', error, { transportMethodId: data.transportMethodId });
+      this.logger.errorWithContext('Failed to create tariff config', error, {
+        transportMethodId: data.transportMethodId,
+      });
       throw error;
     }
   }
 
   async getTariffConfigById(id: string): Promise<TariffConfig> {
     this.logger.startOperation('getTariffConfigById', { id });
-    
+
     try {
       const config = await this.prisma.tariffConfig.findUniqueOrThrow({
         where: { id },
@@ -235,17 +271,19 @@ export class ConfigService {
       this.logger.endOperation('getTariffConfigById', { id });
       return config;
     } catch (error) {
-      this.logger.errorWithContext('Failed to get tariff config', error, { id });
+      this.logger.errorWithContext('Failed to get tariff config', error, {
+        id,
+      });
       throw error;
     }
   }
 
   async updateTariffConfig(id: string, data: any): Promise<TariffConfig> {
     this.logger.startOperation('updateTariffConfig', { id });
-    
+
     try {
       const updateData: any = {};
-      
+
       if (data.transportMethodId !== undefined) {
         updateData.transportMethodId = data.transportMethodId;
       }
@@ -285,14 +323,16 @@ export class ConfigService {
       this.logger.endOperation('updateTariffConfig', { id });
       return config;
     } catch (error) {
-      this.logger.errorWithContext('Failed to update tariff config', error, { id });
+      this.logger.errorWithContext('Failed to update tariff config', error, {
+        id,
+      });
       throw error;
     }
   }
 
   async deleteTariffConfig(id: string): Promise<void> {
     this.logger.startOperation('deleteTariffConfig', { id });
-    
+
     try {
       await this.prisma.tariffConfig.delete({
         where: { id },
@@ -300,7 +340,9 @@ export class ConfigService {
 
       this.logger.endOperation('deleteTariffConfig', { id });
     } catch (error) {
-      this.logger.errorWithContext('Failed to delete tariff config', error, { id });
+      this.logger.errorWithContext('Failed to delete tariff config', error, {
+        id,
+      });
       throw error;
     }
   }

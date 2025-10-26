@@ -21,7 +21,9 @@ describe('AppService', () => {
     expect(serviceInfo).toBeDefined();
     expect(serviceInfo.service).toBe('Operator Interface Service');
     expect(serviceInfo.version).toBe('1.0.0');
-    expect(serviceInfo.description).toBe('Internal APIs for logistics operators frontend');
+    expect(serviceInfo.description).toBe(
+      'Internal APIs for logistics operators frontend',
+    );
     expect(serviceInfo.timestamp).toBeDefined();
     expect(serviceInfo.port).toBeDefined();
   });

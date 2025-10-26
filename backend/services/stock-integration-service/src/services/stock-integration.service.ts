@@ -20,8 +20,13 @@ export class StockIntegrationService {
     private readonly circuitBreaker: StockCircuitBreakerService,
     private readonly cache: StockCacheService,
   ) {
-    this.baseUrl = this.configService.get<string>('STOCK_API_URL', 'https://stock.ds.frre.utn.edu.ar/v1');
-    this.logger.log(`Stock Integration Service initialized with base URL: ${this.baseUrl}`);
+    this.baseUrl = this.configService.get<string>(
+      'STOCK_API_URL',
+      'https://stock.ds.frre.utn.edu.ar/v1',
+    );
+    this.logger.log(
+      `Stock Integration Service initialized with base URL: ${this.baseUrl}`,
+    );
   }
 
   /**
@@ -29,7 +34,7 @@ export class StockIntegrationService {
    */
   async getProductById(productId: number): Promise<ProductoStockDto> {
     const cacheKey = this.cache.getProductKey(productId);
-    
+
     // Verificar caché
     const cached = await this.cache.get<ProductoStockDto>(cacheKey);
     if (cached) {
@@ -39,7 +44,9 @@ export class StockIntegrationService {
 
     // Verificar circuit breaker
     if (this.circuitBreaker.isOpen()) {
-      this.logger.warn(`Circuit breaker is OPEN, returning default product for ID: ${productId}`);
+      this.logger.warn(
+        `Circuit breaker is OPEN, returning default product for ID: ${productId}`,
+      );
       return this.getDefaultProduct(productId);
     }
 
@@ -47,18 +54,23 @@ export class StockIntegrationService {
       const response = await this.makeRequestWithRetry(
         'GET',
         `/productos/${productId}`,
-        { headers: await this.getAuthHeaders() }
+        { headers: await this.getAuthHeaders() },
       );
 
       const product = response.data;
       await this.cache.set(cacheKey, product);
       this.circuitBreaker.recordSuccess();
-      
-      this.logger.log(`Product ${productId} retrieved successfully from Stock API`);
+
+      this.logger.log(
+        `Product ${productId} retrieved successfully from Stock API`,
+      );
       return product;
     } catch (error) {
       this.circuitBreaker.recordFailure();
-      this.logger.error(`Error retrieving product ${productId} from Stock API`, error);
+      this.logger.error(
+        `Error retrieving product ${productId} from Stock API`,
+        error,
+      );
       return this.getDefaultProduct(productId);
     }
   }
@@ -66,9 +78,12 @@ export class StockIntegrationService {
   /**
    * Obtiene una reserva por ID de compra
    */
-  async getReservaByCompraId(compraId: string, userId: number): Promise<ReservaStockDto | null> {
+  async getReservaByCompraId(
+    compraId: string,
+    userId: number,
+  ): Promise<ReservaStockDto | null> {
     const cacheKey = this.cache.getReservaByCompraKey(compraId, userId);
-    
+
     // Verificar caché
     const cached = await this.cache.get<ReservaStockDto>(cacheKey);
     if (cached) {
@@ -78,7 +93,9 @@ export class StockIntegrationService {
 
     // Verificar circuit breaker
     if (this.circuitBreaker.isOpen()) {
-      this.logger.warn(`Circuit breaker is OPEN, returning null for compraId: ${compraId}`);
+      this.logger.warn(
+        `Circuit breaker is OPEN, returning null for compraId: ${compraId}`,
+      );
       return null;
     }
 
@@ -87,26 +104,35 @@ export class StockIntegrationService {
       const response = await this.makeRequestWithRetry(
         'GET',
         `/reservas?usuarioId=${userId}`,
-        { headers: await this.getAuthHeaders() }
+        { headers: await this.getAuthHeaders() },
       );
 
       const reservas = response.data;
       // 2. Buscar la reserva que coincida con el idCompra
-      const reserva = reservas.find((r: ReservaStockDto) => r.idCompra === compraId);
-      
+      const reserva = reservas.find(
+        (r: ReservaStockDto) => r.idCompra === compraId,
+      );
+
       if (reserva) {
         // 3. Guardar en caché usando idCompra como clave
         await this.cache.set(cacheKey, reserva);
-        this.logger.log(`Reserva found for compraId: ${compraId}, reservaId: ${reserva.idReserva}`);
+        this.logger.log(
+          `Reserva found for compraId: ${compraId}, reservaId: ${reserva.idReserva}`,
+        );
       } else {
-        this.logger.warn(`No reserva found for compraId: ${compraId}, userId: ${userId}`);
+        this.logger.warn(
+          `No reserva found for compraId: ${compraId}, userId: ${userId}`,
+        );
       }
-      
+
       this.circuitBreaker.recordSuccess();
       return reserva || null;
     } catch (error) {
       this.circuitBreaker.recordFailure();
-      this.logger.error(`Error retrieving reserva for compraId: ${compraId}`, error);
+      this.logger.error(
+        `Error retrieving reserva for compraId: ${compraId}`,
+        error,
+      );
       return null;
     }
   }
@@ -114,9 +140,12 @@ export class StockIntegrationService {
   /**
    * Obtiene una reserva por ID de reserva
    */
-  async getReservaById(reservaId: number, userId: number): Promise<ReservaStockDto | null> {
+  async getReservaById(
+    reservaId: number,
+    userId: number,
+  ): Promise<ReservaStockDto | null> {
     const cacheKey = this.cache.getReservaByIdKey(reservaId, userId);
-    
+
     // Verificar caché
     const cached = await this.cache.get<ReservaStockDto>(cacheKey);
     if (cached) {
@@ -126,7 +155,9 @@ export class StockIntegrationService {
 
     // Verificar circuit breaker
     if (this.circuitBreaker.isOpen()) {
-      this.logger.warn(`Circuit breaker is OPEN, returning null for reservaId: ${reservaId}`);
+      this.logger.warn(
+        `Circuit breaker is OPEN, returning null for reservaId: ${reservaId}`,
+      );
       return null;
     }
 
@@ -134,21 +165,26 @@ export class StockIntegrationService {
       const response = await this.makeRequestWithRetry(
         'GET',
         `/reservas/${reservaId}?usuarioId=${userId}`,
-        { headers: await this.getAuthHeaders() }
+        { headers: await this.getAuthHeaders() },
       );
 
       const reserva = response.data;
-      
+
       if (reserva) {
         await this.cache.set(cacheKey, reserva);
-        this.logger.log(`Reserva ${reservaId} retrieved successfully from Stock API`);
+        this.logger.log(
+          `Reserva ${reservaId} retrieved successfully from Stock API`,
+        );
       }
-      
+
       this.circuitBreaker.recordSuccess();
       return reserva || null;
     } catch (error) {
       this.circuitBreaker.recordFailure();
-      this.logger.error(`Error retrieving reserva ${reservaId} from Stock API`, error);
+      this.logger.error(
+        `Error retrieving reserva ${reservaId} from Stock API`,
+        error,
+      );
       return null;
     }
   }
@@ -157,9 +193,9 @@ export class StockIntegrationService {
    * Actualiza el estado de una reserva
    */
   async updateReservaStatus(
-    reservaId: number, 
+    reservaId: number,
     estado: EstadoReserva,
-    userId: number
+    userId: number,
   ): Promise<ReservaStockDto> {
     // Verificar circuit breaker
     if (this.circuitBreaker.isOpen()) {
@@ -172,24 +208,29 @@ export class StockIntegrationService {
         `/reservas/${reservaId}`,
         {
           usuarioId: userId,
-          estado: estado
+          estado: estado,
         },
-        { headers: await this.getAuthHeaders() }
+        { headers: await this.getAuthHeaders() },
       );
 
       const reserva = response.data;
-      
+
       // Invalidar caché usando idCompra (si lo tenemos)
       if (reserva.idCompra) {
-        await this.cache.delete(this.cache.getReservaByCompraKey(reserva.idCompra, userId));
+        await this.cache.delete(
+          this.cache.getReservaByCompraKey(reserva.idCompra, userId),
+        );
       }
-      
+
       this.circuitBreaker.recordSuccess();
       this.logger.log(`Reserva ${reservaId} updated to estado: ${estado}`);
       return reserva;
     } catch (error) {
       this.circuitBreaker.recordFailure();
-      this.logger.error(`Error updating reserva ${reservaId} to estado: ${estado}`, error);
+      this.logger.error(
+        `Error updating reserva ${reservaId} to estado: ${estado}`,
+        error,
+      );
       throw error;
     }
   }
@@ -200,14 +241,16 @@ export class StockIntegrationService {
   async getAndUpdateReservaStatus(
     compraId: string,
     userId: number,
-    nuevoEstado: EstadoReserva
+    nuevoEstado: EstadoReserva,
   ): Promise<ReservaStockDto | null> {
     try {
       // 1. Buscar reserva por idCompra
       const reserva = await this.getReservaByCompraId(compraId, userId);
-      
+
       if (!reserva) {
-        this.logger.warn(`Reserva no encontrada para compraId: ${compraId}, userId: ${userId}`);
+        this.logger.warn(
+          `Reserva no encontrada para compraId: ${compraId}, userId: ${userId}`,
+        );
         return null;
       }
 
@@ -215,13 +258,18 @@ export class StockIntegrationService {
       const reservaActualizada = await this.updateReservaStatus(
         reserva.idReserva,
         nuevoEstado,
-        userId
+        userId,
       );
 
-      this.logger.log(`Reserva ${reserva.idReserva} actualizada a estado: ${nuevoEstado}`);
+      this.logger.log(
+        `Reserva ${reserva.idReserva} actualizada a estado: ${nuevoEstado}`,
+      );
       return reservaActualizada;
     } catch (error) {
-      this.logger.error(`Error al actualizar reserva para compraId: ${compraId}`, error);
+      this.logger.error(
+        `Error al actualizar reserva para compraId: ${compraId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -233,10 +281,16 @@ export class StockIntegrationService {
     method: string,
     url: string,
     data?: any,
-    config?: any
+    config?: any,
   ): Promise<AxiosResponse> {
-    const maxRetries = this.configService.get<number>('STOCK_API_RETRY_ATTEMPTS', 3);
-    const baseDelay = this.configService.get<number>('STOCK_API_RETRY_DELAY', 1000);
+    const maxRetries = this.configService.get<number>(
+      'STOCK_API_RETRY_ATTEMPTS',
+      3,
+    );
+    const baseDelay = this.configService.get<number>(
+      'STOCK_API_RETRY_DELAY',
+      1000,
+    );
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -247,13 +301,19 @@ export class StockIntegrationService {
           ...config,
         };
 
-        this.logger.debug(`Making request to ${method} ${url} (attempt ${attempt}/${maxRetries})`);
-        
-        const response = await firstValueFrom(this.httpService.request(requestConfig));
+        this.logger.debug(
+          `Making request to ${method} ${url} (attempt ${attempt}/${maxRetries})`,
+        );
+
+        const response = await firstValueFrom(
+          this.httpService.request(requestConfig),
+        );
         return response;
       } catch (error) {
-        this.logger.warn(`Request failed (attempt ${attempt}/${maxRetries}): ${error.message}`);
-        
+        this.logger.warn(
+          `Request failed (attempt ${attempt}/${maxRetries}): ${error.message}`,
+        );
+
         if (attempt === maxRetries) {
           // Último intento fallido: relanzar error
           throw error;
@@ -267,7 +327,9 @@ export class StockIntegrationService {
 
     // TypeScript: esta línea no debería ser alcanzable debido al 'throw' anterior
     // pero se agrega para satisfacer el chequeo estricto de retorno.
-    throw new Error('Unreachable: makeRequestWithRetry exhausted without throwing');
+    throw new Error(
+      'Unreachable: makeRequestWithRetry exhausted without throwing',
+    );
   }
 
   /**
@@ -277,7 +339,7 @@ export class StockIntegrationService {
     // TODO: Implementar obtención de token JWT desde Keycloak
     // Por ahora retornamos headers básicos
     return {
-      'Authorization': 'Bearer mock-token', // Temporal
+      Authorization: 'Bearer mock-token', // Temporal
       'Content-Type': 'application/json',
     };
   }
@@ -312,7 +374,7 @@ export class StockIntegrationService {
    * Utilidad para sleep
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -326,10 +388,13 @@ export class StockIntegrationService {
   }> {
     const cacheHealthy = await this.cache.healthCheck();
     const circuitBreakerStats = this.circuitBreaker.getStats();
-    
+
     return {
       service: 'StockIntegrationService',
-      status: cacheHealthy && circuitBreakerStats.state !== 'OPEN' ? 'healthy' : 'unhealthy',
+      status:
+        cacheHealthy && circuitBreakerStats.state !== 'OPEN'
+          ? 'healthy'
+          : 'unhealthy',
       circuitBreaker: circuitBreakerStats,
       cache: cacheHealthy,
     };

@@ -74,49 +74,61 @@ describe('TransportMethodService', () => {
 
   describe('findOne', () => {
     it('debería retornar un método de transporte por ID', async () => {
-      mockPrismaService.transportMethod.findUnique.mockResolvedValue(mockTransportMethod);
+      mockPrismaService.transportMethod.findUnique.mockResolvedValue(
+        mockTransportMethod,
+      );
 
       const result = await service.findOne(mockTransportMethod.id);
 
       expect(result).toEqual(mockTransportMethod);
-      expect(mockPrismaService.transportMethod.findUnique).toHaveBeenCalledWith({
-        where: { id: mockTransportMethod.id },
-        include: {
-          tariffConfigs: {
-            where: { isActive: true },
+      expect(mockPrismaService.transportMethod.findUnique).toHaveBeenCalledWith(
+        {
+          where: { id: mockTransportMethod.id },
+          include: {
+            tariffConfigs: {
+              where: { isActive: true },
+            },
           },
         },
-      });
+      );
     });
 
     it('debería lanzar NotFoundException si no encuentra el método', async () => {
       mockPrismaService.transportMethod.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('findByCode', () => {
     it('debería retornar un método de transporte por código', async () => {
-      mockPrismaService.transportMethod.findUnique.mockResolvedValue(mockTransportMethod);
+      mockPrismaService.transportMethod.findUnique.mockResolvedValue(
+        mockTransportMethod,
+      );
 
       const result = await service.findByCode('air');
 
       expect(result).toEqual(mockTransportMethod);
-      expect(mockPrismaService.transportMethod.findUnique).toHaveBeenCalledWith({
-        where: { code: 'air' },
-        include: {
-          tariffConfigs: {
-            where: { isActive: true },
+      expect(mockPrismaService.transportMethod.findUnique).toHaveBeenCalledWith(
+        {
+          where: { code: 'air' },
+          include: {
+            tariffConfigs: {
+              where: { isActive: true },
+            },
           },
         },
-      });
+      );
     });
 
     it('debería lanzar NotFoundException si no encuentra el código', async () => {
       mockPrismaService.transportMethod.findUnique.mockResolvedValue(null);
 
-      await expect(service.findByCode('invalid')).rejects.toThrow(NotFoundException);
+      await expect(service.findByCode('invalid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -134,7 +146,9 @@ describe('TransportMethodService', () => {
       };
 
       mockPrismaService.transportMethod.findUnique.mockResolvedValue(null);
-      mockPrismaService.transportMethod.create.mockResolvedValue(mockTransportMethod);
+      mockPrismaService.transportMethod.create.mockResolvedValue(
+        mockTransportMethod,
+      );
 
       const result = await service.create(createDto);
 
@@ -154,9 +168,13 @@ describe('TransportMethodService', () => {
         baseCostPerKg: 5.0,
       };
 
-      mockPrismaService.transportMethod.findUnique.mockResolvedValue(mockTransportMethod);
+      mockPrismaService.transportMethod.findUnique.mockResolvedValue(
+        mockTransportMethod,
+      );
 
-      await expect(service.create(createDto)).rejects.toThrow(ConflictException);
+      await expect(service.create(createDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -169,7 +187,9 @@ describe('TransportMethodService', () => {
 
       const updatedMethod = { ...mockTransportMethod, ...updateDto };
 
-      mockPrismaService.transportMethod.findUnique.mockResolvedValue(mockTransportMethod);
+      mockPrismaService.transportMethod.findUnique.mockResolvedValue(
+        mockTransportMethod,
+      );
       mockPrismaService.transportMethod.update.mockResolvedValue(updatedMethod);
 
       const result = await service.update(mockTransportMethod.id, updateDto);
@@ -184,18 +204,26 @@ describe('TransportMethodService', () => {
     it('debería lanzar NotFoundException si el método no existe', async () => {
       mockPrismaService.transportMethod.findUnique.mockResolvedValue(null);
 
-      await expect(service.update('invalid-id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('invalid-id', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('debería lanzar ConflictException si intenta actualizar a un código existente', async () => {
       const updateDto = { code: 'road' };
-      const existingMethod = { ...mockTransportMethod, code: 'road', id: 'other-id' };
+      const existingMethod = {
+        ...mockTransportMethod,
+        code: 'road',
+        id: 'other-id',
+      };
 
       mockPrismaService.transportMethod.findUnique
         .mockResolvedValueOnce(mockTransportMethod) // Primera llamada: verificar que existe
         .mockResolvedValueOnce(existingMethod); // Segunda llamada: verificar código duplicado
 
-      await expect(service.update(mockTransportMethod.id, updateDto)).rejects.toThrow(ConflictException);
+      await expect(
+        service.update(mockTransportMethod.id, updateDto),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -203,8 +231,12 @@ describe('TransportMethodService', () => {
     it('debería desactivar un método de transporte (soft delete)', async () => {
       const inactiveMethod = { ...mockTransportMethod, isActive: false };
 
-      mockPrismaService.transportMethod.findUnique.mockResolvedValue(mockTransportMethod);
-      mockPrismaService.transportMethod.update.mockResolvedValue(inactiveMethod);
+      mockPrismaService.transportMethod.findUnique.mockResolvedValue(
+        mockTransportMethod,
+      );
+      mockPrismaService.transportMethod.update.mockResolvedValue(
+        inactiveMethod,
+      );
 
       const result = await service.remove(mockTransportMethod.id);
 
@@ -218,8 +250,9 @@ describe('TransportMethodService', () => {
     it('debería lanzar NotFoundException si el método no existe', async () => {
       mockPrismaService.transportMethod.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
-

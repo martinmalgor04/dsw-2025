@@ -68,7 +68,11 @@ describe('StockCacheService', () => {
 
       await service.set('test-key', mockValue);
 
-      expect(cacheManager.set).toHaveBeenCalledWith('test-key', mockValue, undefined);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'test-key',
+        mockValue,
+        undefined,
+      );
     });
 
     it('should set value with TTL', async () => {

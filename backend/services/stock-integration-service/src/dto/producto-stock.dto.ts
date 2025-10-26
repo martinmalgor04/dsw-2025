@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsOptional, IsObject, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsObject,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class DimensionesDto {
@@ -29,7 +36,10 @@ export class UbicacionAlmacenDto {
   @IsString()
   state: string;
 
-  @ApiProperty({ description: 'Código postal en formato CPA', example: 'H3500ABC' })
+  @ApiProperty({
+    description: 'Código postal en formato CPA',
+    example: 'H3500ABC',
+  })
   @IsString()
   postal_code: string;
 
@@ -39,7 +49,10 @@ export class UbicacionAlmacenDto {
 }
 
 export class ImagenProductoDto {
-  @ApiProperty({ description: 'URL de la imagen', example: 'https://example.com/image.jpg' })
+  @ApiProperty({
+    description: 'URL de la imagen',
+    example: 'https://example.com/image.jpg',
+  })
   @IsString()
   url: string;
 
@@ -53,11 +66,18 @@ export class CategoriaDto {
   @IsNumber()
   id: number;
 
-  @ApiProperty({ description: 'Nombre de la categoría', example: 'Electrónicos' })
+  @ApiProperty({
+    description: 'Nombre de la categoría',
+    example: 'Electrónicos',
+  })
   @IsString()
   nombre: string;
 
-  @ApiProperty({ description: 'Descripción de la categoría', example: 'Productos electrónicos', required: false })
+  @ApiProperty({
+    description: 'Descripción de la categoría',
+    example: 'Productos electrónicos',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   descripcion?: string;
@@ -68,11 +88,18 @@ export class ProductoStockDto {
   @IsNumber()
   id: number;
 
-  @ApiProperty({ description: 'Nombre del producto', example: 'Laptop Dell Inspiron' })
+  @ApiProperty({
+    description: 'Nombre del producto',
+    example: 'Laptop Dell Inspiron',
+  })
   @IsString()
   nombre: string;
 
-  @ApiProperty({ description: 'Descripción del producto', example: 'Laptop para gaming', required: false })
+  @ApiProperty({
+    description: 'Descripción del producto',
+    example: 'Laptop para gaming',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   descripcion?: string;
@@ -89,24 +116,38 @@ export class ProductoStockDto {
   @IsNumber()
   pesoKg: number;
 
-  @ApiProperty({ description: 'Dimensiones del producto', type: DimensionesDto })
+  @ApiProperty({
+    description: 'Dimensiones del producto',
+    type: DimensionesDto,
+  })
   @ValidateNested()
   @Type(() => DimensionesDto)
   dimensiones: DimensionesDto;
 
-  @ApiProperty({ description: 'Ubicación en el almacén', type: UbicacionAlmacenDto })
+  @ApiProperty({
+    description: 'Ubicación en el almacén',
+    type: UbicacionAlmacenDto,
+  })
   @ValidateNested()
   @Type(() => UbicacionAlmacenDto)
   ubicacion: UbicacionAlmacenDto;
 
-  @ApiProperty({ description: 'Imágenes del producto', type: [ImagenProductoDto], required: false })
+  @ApiProperty({
+    description: 'Imágenes del producto',
+    type: [ImagenProductoDto],
+    required: false,
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ImagenProductoDto)
   imagenes?: ImagenProductoDto[];
 
-  @ApiProperty({ description: 'Categorías del producto', type: [CategoriaDto], required: false })
+  @ApiProperty({
+    description: 'Categorías del producto',
+    type: [CategoriaDto],
+    required: false,
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

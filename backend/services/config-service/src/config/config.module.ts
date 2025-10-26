@@ -9,9 +9,12 @@ import { TariffConfigService } from './services/tariff-config.service';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [TransportMethodController, CoverageZoneController, TariffConfigController],
+  controllers: [
+    TransportMethodController,
+    CoverageZoneController,
+    TariffConfigController,
+  ],
   providers: [TransportMethodService, CoverageZoneService, TariffConfigService],
   exports: [TransportMethodService, CoverageZoneService, TariffConfigService],
 })
 export class ConfigModule {}
-

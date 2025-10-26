@@ -12,10 +12,10 @@ export class HealthService {
   async getHealthStatus() {
     const timestamp = new Date().toISOString();
     const environment = this.configService.get('NODE_ENV', 'development');
-    
+
     // Verificar conexión a base de datos
     const databaseHealthy = await this.prisma.healthCheck();
-    
+
     return {
       status: databaseHealthy ? 'ok' : 'unhealthy',
       timestamp,

@@ -1,5 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Logger, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { TariffConfig } from '@logistics/database';
 import { TariffConfigService } from './services/tariff-config.service';
 import { CreateTariffConfigDto } from './dto/create-tariff-config.dto';
@@ -23,25 +41,35 @@ export class TariffConfigController {
     status: 400,
     description: 'Datos de entrada inválidos',
   })
-  async create(@Body() createTariffConfigDto: CreateTariffConfigDto): Promise<TariffConfig> {
-    this.logger.log(`POST /config/tariff-configs - Creando para método: ${createTariffConfigDto.transportMethodId}`);
+  async create(
+    @Body() createTariffConfigDto: CreateTariffConfigDto,
+  ): Promise<TariffConfig> {
+    this.logger.log(
+      `POST /config/tariff-configs - Creando para método: ${createTariffConfigDto.transportMethodId}`,
+    );
     return this.tariffConfigService.create(createTariffConfigDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Listar todas las configuraciones de tarifa' })
-  @ApiQuery({ name: 'transportMethodId', required: false, description: 'Filtrar por método de transporte' })
+  @ApiQuery({
+    name: 'transportMethodId',
+    required: false,
+    description: 'Filtrar por método de transporte',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de configuraciones de tarifa',
   })
-  async findAll(@Query('transportMethodId') transportMethodId?: string): Promise<TariffConfig[]> {
+  async findAll(
+    @Query('transportMethodId') transportMethodId?: string,
+  ): Promise<TariffConfig[]> {
     this.logger.log('GET /config/tariff-configs - Listando todas');
-    
+
     if (transportMethodId) {
       return this.tariffConfigService.findByTransportMethod(transportMethodId);
     }
-    
+
     return this.tariffConfigService.findAll();
   }
 

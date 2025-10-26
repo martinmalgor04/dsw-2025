@@ -10,11 +10,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // CORS configuration
   app.enableCors({
@@ -25,7 +27,9 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Config Service API')
-    .setDescription('Configuration service for transport methods, coverage zones and tariff configurations')
+    .setDescription(
+      'Configuration service for transport methods, coverage zones and tariff configurations',
+    )
     .setVersion('1.0')
     .addTag('transport-methods', 'Transport methods management')
     .addTag('coverage-zones', 'Coverage zones management')
@@ -38,9 +42,11 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3003;
   await app.listen(port);
-  
+
   console.log(`🚀 Config Service running on http://localhost:${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap();

@@ -41,7 +41,10 @@ export class ProxyController {
    */
   @All('/gateway/status')
   @ApiOperation({ summary: 'Get gateway and services status' })
-  @ApiResponse({ status: 200, description: 'Gateway status with all registered services' })
+  @ApiResponse({
+    status: 200,
+    description: 'Gateway status with all registered services',
+  })
   getStatus() {
     return this.serviceFacade.getRegistryStatus();
   }
@@ -55,8 +58,14 @@ export class ProxyController {
    */
   @All('*')
   @ApiOperation({ summary: 'Smart proxy to internal microservices' })
-  @ApiResponse({ status: 200, description: 'Response from target microservice' })
-  @ApiResponse({ status: 502, description: 'Bad gateway - service unavailable' })
+  @ApiResponse({
+    status: 200,
+    description: 'Response from target microservice',
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Bad gateway - service unavailable',
+  })
   @ApiResponse({ status: 404, description: 'Service not found for this route' })
   async proxyRequest(@Req() req: Request, @Res() res: Response) {
     const path = req.path;
@@ -70,7 +79,7 @@ export class ProxyController {
         method,
         path,
         req.body,
-        this.extractRelevantHeaders(req.headers)
+        this.extractRelevantHeaders(req.headers),
       );
 
       // Retorna la respuesta con status 200 (o el que venga del servicio)
@@ -105,7 +114,7 @@ export class ProxyController {
    * (no queremos pasar headers internos de Express)
    */
   private extractRelevantHeaders(
-    headers: Record<string, any>
+    headers: Record<string, any>,
   ): Record<string, string> {
     const relevantHeaders = [
       'authorization',

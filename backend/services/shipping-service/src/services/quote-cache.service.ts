@@ -13,8 +13,14 @@ export class QuoteCacheService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService,
   ) {
-    this.productCacheTTL = parseInt(this.configService.get<string>('PRODUCT_CACHE_TTL', '600'), 10);
-    this.distanceCacheTTL = parseInt(this.configService.get<string>('DISTANCE_CACHE_TTL', '3600'), 10);
+    this.productCacheTTL = parseInt(
+      this.configService.get<string>('PRODUCT_CACHE_TTL', '600'),
+      10,
+    );
+    this.distanceCacheTTL = parseInt(
+      this.configService.get<string>('DISTANCE_CACHE_TTL', '3600'),
+      10,
+    );
   }
 
   async getProduct<T>(productId: number): Promise<T | null> {
@@ -45,15 +51,22 @@ export class QuoteCacheService {
     }
   }
 
-  async getDistance(fromPostalCode: string, toPostalCode: string): Promise<number | null> {
+  async getDistance(
+    fromPostalCode: string,
+    toPostalCode: string,
+  ): Promise<number | null> {
     try {
       const key = this.getDistanceKey(fromPostalCode, toPostalCode);
       const value = await this.cacheManager.get<number>(key);
       if (value !== undefined && value !== null) {
-        this.logger.debug(`Cache HIT for distance: ${fromPostalCode} -> ${toPostalCode}`);
+        this.logger.debug(
+          `Cache HIT for distance: ${fromPostalCode} -> ${toPostalCode}`,
+        );
         return value;
       }
-      this.logger.debug(`Cache MISS for distance: ${fromPostalCode} -> ${toPostalCode}`);
+      this.logger.debug(
+        `Cache MISS for distance: ${fromPostalCode} -> ${toPostalCode}`,
+      );
       return null;
     } catch (error) {
       this.logger.error(
@@ -64,7 +77,11 @@ export class QuoteCacheService {
     }
   }
 
-  async setDistance(fromPostalCode: string, toPostalCode: string, distance: number): Promise<void> {
+  async setDistance(
+    fromPostalCode: string,
+    toPostalCode: string,
+    distance: number,
+  ): Promise<void> {
     try {
       const key = this.getDistanceKey(fromPostalCode, toPostalCode);
       await this.cacheManager.set(key, distance, this.distanceCacheTTL);
@@ -85,15 +102,23 @@ export class QuoteCacheService {
       await this.cacheManager.del(key);
       this.logger.debug(`Cache DELETE for product: ${productId}`);
     } catch (error) {
-      this.logger.error(`Error deleting product ${productId} from cache`, error);
+      this.logger.error(
+        `Error deleting product ${productId} from cache`,
+        error,
+      );
     }
   }
 
-  async deleteDistance(fromPostalCode: string, toPostalCode: string): Promise<void> {
+  async deleteDistance(
+    fromPostalCode: string,
+    toPostalCode: string,
+  ): Promise<void> {
     try {
       const key = this.getDistanceKey(fromPostalCode, toPostalCode);
       await this.cacheManager.del(key);
-      this.logger.debug(`Cache DELETE for distance: ${fromPostalCode} -> ${toPostalCode}`);
+      this.logger.debug(
+        `Cache DELETE for distance: ${fromPostalCode} -> ${toPostalCode}`,
+      );
     } catch (error) {
       this.logger.error(
         `Error deleting distance from cache: ${fromPostalCode} -> ${toPostalCode}`,
@@ -140,5 +165,3 @@ export class QuoteCacheService {
     return `quote:distance:${sorted[0]}:${sorted[1]}`;
   }
 }
-
-

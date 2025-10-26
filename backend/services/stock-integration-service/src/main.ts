@@ -10,11 +10,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // CORS configuration
   app.enableCors({
@@ -36,9 +38,13 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3002;
   await app.listen(port);
-  
-  console.log(`🚀 Stock Integration Service running on http://localhost:${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+
+  console.log(
+    `🚀 Stock Integration Service running on http://localhost:${port}`,
+  );
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap();

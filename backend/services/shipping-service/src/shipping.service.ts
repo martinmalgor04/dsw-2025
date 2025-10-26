@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { MockDataService } from './services/mock-data.service';
@@ -34,7 +38,10 @@ export class ShippingService {
     private tariffService: TariffCalculationService,
     private postalValidator: PostalCodeValidationService,
   ) {
-    this.stockServiceUrl = this.configService.get<string>('STOCK_SERVICE_URL', 'http://localhost:3002');
+    this.stockServiceUrl = this.configService.get<string>(
+      'STOCK_SERVICE_URL',
+      'http://localhost:3002',
+    );
   }
 
   // Mock storage para testing (en memoria)
@@ -45,8 +52,11 @@ export class ShippingService {
     dto: CalculateCostRequestDto,
   ): Promise<CalculateCostResponseDto> {
     // Validate postal code
-    const postal = this.postalValidator.validate(dto.delivery_address.postal_code);
-    if (!postal.isValid) throw new BadRequestException(postal.errors.join(', '));
+    const postal = this.postalValidator.validate(
+      dto.delivery_address.postal_code,
+    );
+    if (!postal.isValid)
+      throw new BadRequestException(postal.errors.join(', '));
 
     // Fetch stock info (temporary mock until stock-integration-service endpoint is wired)
     const productIds = dto.products.map((p) => p.id);
@@ -58,7 +68,9 @@ export class ShippingService {
     for (const item of dto.products) {
       const stock = stockInfo.find((s) => s.id === item.id);
       if (!stock || !stock.available || !stock.weight || !stock.price) {
-        throw new BadRequestException(`Product ${item.id} not available or missing data`);
+        throw new BadRequestException(
+          `Product ${item.id} not available or missing data`,
+        );
       }
       totalWeight += stock.weight * item.quantity;
       productCosts.push({ id: item.id, cost: stock.price * item.quantity });
@@ -101,55 +113,55 @@ export class ShippingService {
     dto: CreateShippingRequestDto,
   ): Promise<CreateShippingResponseDto> {
     // 1. Validar productos con Stock API (mock)
-    const productIds = dto.products.map(p => p.id);
+    const productIds = dto.products.map((p) => p.id);
     const stockInfo = await this.mockData.getStockInfo(productIds);
-    
+
     for (const stock of stockInfo) {
       if (!stock.available) {
         throw new BadRequestException(`Product ${stock.id} not available`);
       }
     }
-    
+
     // 2. Calcular costo final
     let totalWeight = 0;
     for (let i = 0; i < dto.products.length; i++) {
       const product = dto.products[i];
-      const stock = stockInfo.find(s => s.id === product.id);
+      const stock = stockInfo.find((s) => s.id === product.id);
       if (stock && stock.weight) {
         totalWeight += stock.weight * product.quantity;
       }
     }
-    
+
     const distanceInfo = await this.mockData.getDistanceInfo(
       dto.delivery_address.postal_code,
-      'C1000ABC'
+      'C1000ABC',
     );
-    
+
     const shippingCost = this.mockData.calculateShippingCost(
       distanceInfo.distance_km,
       totalWeight,
-      dto.transport_type.toUpperCase() as any
+      dto.transport_type.toUpperCase() as any,
     );
-    
+
     const productTotal = stockInfo.reduce((sum, stock) => {
-      const product = dto.products.find(p => p.id === stock.id);
+      const product = dto.products.find((p) => p.id === stock.id);
       if (stock.price && product) {
-        return sum + (stock.price * product.quantity);
+        return sum + stock.price * product.quantity;
       }
       return sum;
     }, 0);
-    
+
     const totalCost = productTotal + shippingCost.total_cost;
-    
+
     // 3. Generar tracking number
     const trackingNumber = this.mockData.generateTrackingNumber();
-    
+
     // 4. Calcular tiempo de entrega estimado
     const deliveryDays = this.mockData.getEstimatedDeliveryTime(
       dto.transport_type.toUpperCase() as any,
-      distanceInfo.distance_km
+      distanceInfo.distance_km,
     );
-    
+
     const estimatedDelivery = new Date();
     estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
 
@@ -171,15 +183,17 @@ export class ShippingService {
       estimatedDeliveryAt: estimatedDelivery,
       createdAt: new Date(),
       updatedAt: new Date(),
-      products: dto.products.map(p => ({
+      products: dto.products.map((p) => ({
         productId: p.id,
         quantity: p.quantity,
       })),
-      logs: [{
-        timestamp: new Date(),
-        status: 'CREATED',
-        message: `Shipment created with tracking number: ${trackingNumber}`,
-      }]
+      logs: [
+        {
+          timestamp: new Date(),
+          status: 'CREATED',
+          message: `Shipment created with tracking number: ${trackingNumber}`,
+        },
+      ],
     };
 
     // Guardar en memoria
@@ -208,23 +222,30 @@ export class ShippingService {
     let filteredShipments = this.mockShipments;
 
     if (userId) {
-      filteredShipments = filteredShipments.filter(s => s.userId === userId);
+      filteredShipments = filteredShipments.filter((s) => s.userId === userId);
     }
     if (status) {
-      filteredShipments = filteredShipments.filter(s => s.status.toLowerCase() === status.toLowerCase());
+      filteredShipments = filteredShipments.filter(
+        (s) => s.status.toLowerCase() === status.toLowerCase(),
+      );
     }
     if (fromDate) {
       const fromDateObj = new Date(fromDate);
-      filteredShipments = filteredShipments.filter(s => s.createdAt >= fromDateObj);
+      filteredShipments = filteredShipments.filter(
+        (s) => s.createdAt >= fromDateObj,
+      );
     }
     if (toDate) {
       const toDateObj = new Date(toDate);
-      filteredShipments = filteredShipments.filter(s => s.createdAt <= toDateObj);
+      filteredShipments = filteredShipments.filter(
+        (s) => s.createdAt <= toDateObj,
+      );
     }
 
     // Ordenar por fecha de creación (más recientes primero)
-    filteredShipments = filteredShipments
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    filteredShipments = filteredShipments.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     const total = filteredShipments.length;
     const skip = (page - 1) * limit;
@@ -254,7 +275,7 @@ export class ShippingService {
   }
 
   async getShippingDetail(id: string): Promise<ShippingDetailDto> {
-    const shipping = this.mockShipments.find(s => s.id === id);
+    const shipping = this.mockShipments.find((s) => s.id === id);
 
     if (!shipping) {
       throw new NotFoundException('Shipping not found');
@@ -302,7 +323,7 @@ export class ShippingService {
   }
 
   async cancelShipping(id: string): Promise<CancelShippingResponseDto> {
-    const shippingIndex = this.mockShipments.findIndex(s => s.id === id);
+    const shippingIndex = this.mockShipments.findIndex((s) => s.id === id);
 
     if (shippingIndex === -1) {
       throw new NotFoundException('Shipping not found');
@@ -328,8 +349,8 @@ export class ShippingService {
           timestamp: new Date(),
           status: 'CANCELLED',
           message: 'Shipment cancelled by user',
-        }
-      ]
+        },
+      ],
     };
 
     this.mockShipments[shippingIndex] = updated;
@@ -341,4 +362,3 @@ export class ShippingService {
     };
   }
 }
-

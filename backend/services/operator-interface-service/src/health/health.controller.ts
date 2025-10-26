@@ -9,8 +9,8 @@ export class HealthController {
 
   @Get()
   @ApiOperation({ summary: 'Verifica el estado del servidor' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Estado del servicio',
     schema: {
       type: 'object',

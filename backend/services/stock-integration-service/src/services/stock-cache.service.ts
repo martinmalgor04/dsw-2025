@@ -7,9 +7,7 @@ import type { Cache } from 'cache-manager';
 export class StockCacheService {
   private readonly logger = new Logger(StockCacheService.name);
 
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   /**
    * Obtiene un valor del caché
@@ -93,11 +91,11 @@ export class StockCacheService {
     try {
       const testKey = 'health:check';
       const testValue = 'ok';
-      
+
       await this.set(testKey, testValue, 10);
       const retrieved = await this.get<string>(testKey);
       await this.delete(testKey);
-      
+
       return retrieved === testValue;
     } catch (error) {
       this.logger.error('Cache health check failed', error);

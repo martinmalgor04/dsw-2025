@@ -10,11 +10,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // CORS configuration
   app.enableCors({
@@ -36,9 +38,11 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  
+
   console.log(`🚀 Shipping Service running on http://localhost:${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap();

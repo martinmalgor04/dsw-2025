@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadGatewayException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadGatewayException,
+  NotFoundException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ServiceRegistry, RegisteredService } from './service-registry';
 
@@ -24,7 +29,7 @@ export class ServiceFacade {
 
   constructor(
     private serviceRegistry: ServiceRegistry,
-    private httpService: HttpService
+    private httpService: HttpService,
   ) {}
 
   /**
@@ -40,7 +45,7 @@ export class ServiceFacade {
     method: string,
     path: string,
     data?: any,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
   ): Promise<T> {
     // 1. Encuentra el servicio responsable de esta ruta
     const targetService = this.serviceRegistry.findServiceByRoute(path);
@@ -52,7 +57,9 @@ export class ServiceFacade {
 
     // 2. Verifica que el servicio esté saludable
     if (!targetService.isHealthy) {
-      this.logger.warn(`⚠️  Service ${targetService.name} is unhealthy, but attempting anyway`);
+      this.logger.warn(
+        `⚠️  Service ${targetService.name} is unhealthy, but attempting anyway`,
+      );
     }
 
     // 3. Construye la URL del servicio destino
@@ -64,7 +71,7 @@ export class ServiceFacade {
       targetUrl,
       targetService,
       data,
-      headers
+      headers,
     );
   }
 
@@ -77,23 +84,25 @@ export class ServiceFacade {
     service: RegisteredService,
     data?: any,
     headers?: Record<string, string>,
-    attempt: number = 0
+    attempt: number = 0,
   ): Promise<T> {
     try {
       this.logger.debug(
-        `📤 ${method} ${url} (attempt ${attempt + 1}/${this.maxRetries + 1})`
+        `📤 ${method} ${url} (attempt ${attempt + 1}/${this.maxRetries + 1})`,
       );
 
-      const response = await this.httpService.request<T>({
-        method,
-        url,
-        data,
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
-        timeout: 10000,
-      }).toPromise();
+      const response = await this.httpService
+        .request<T>({
+          method,
+          url,
+          data,
+          headers: {
+            'Content-Type': 'application/json',
+            ...headers,
+          },
+          timeout: 10000,
+        })
+        .toPromise();
 
       this.logger.debug(`✅ ${method} ${url} → ${response.status}`);
       return response.data;
@@ -103,15 +112,23 @@ export class ServiceFacade {
 
       // No reintentar si es error 4xx (excepto 503, 504, 429)
       const retryableStatus = [408, 429, 500, 502, 503, 504];
-      const shouldRetry = !isLastAttempt && retryableStatus.includes(statusCode);
+      const shouldRetry =
+        !isLastAttempt && retryableStatus.includes(statusCode);
 
       if (shouldRetry) {
         this.logger.warn(
-          `⚠️  Request failed (${statusCode}), retrying in ${this.retryDelay}ms...`
+          `⚠️  Request failed (${statusCode}), retrying in ${this.retryDelay}ms...`,
         );
 
         await this.delay(this.retryDelay);
-        return this.requestWithRetry<T>(method, url, service, data, headers, attempt + 1);
+        return this.requestWithRetry<T>(
+          method,
+          url,
+          service,
+          data,
+          headers,
+          attempt + 1,
+        );
       }
 
       // Si es el último intento, marca el servicio como no saludable
@@ -121,7 +138,7 @@ export class ServiceFacade {
 
       this.logger.error(
         `❌ ${method} ${url} → ${statusCode || 'ERROR'}`,
-        error.message
+        error.message,
       );
 
       // Transforma el error a un formato estándar

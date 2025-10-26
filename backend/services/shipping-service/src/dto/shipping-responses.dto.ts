@@ -64,4 +64,3 @@ export class CancelShippingResponseDto {
   status: string;
   cancelled_at: string;
 }
-

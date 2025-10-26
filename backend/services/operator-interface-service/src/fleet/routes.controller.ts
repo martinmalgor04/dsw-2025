@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Logger,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Route } from '@logistics/database';
 import { RoutesService } from './services/routes.service';
@@ -38,7 +49,10 @@ export class RoutesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar una ruta' })
   @ApiParam({ name: 'id', description: 'ID de la ruta' })
-  async update(@Param('id') id: string, @Body() updateRouteDto: UpdateRouteDto): Promise<Route> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateRouteDto: UpdateRouteDto,
+  ): Promise<Route> {
     this.logger.log(`PATCH /fleet/routes/${id}`);
     return this.routesService.update(id, updateRouteDto);
   }

@@ -39,9 +39,19 @@ export interface ICacheConfig {
 
 export interface IStockApiClient {
   getProductById(productId: number): Promise<ProductoStockDto>;
-  getReservaByCompraId(compraId: string, userId: number): Promise<ReservaStockDto | null>;
-  getReservaById(reservaId: number, userId: number): Promise<ReservaStockDto | null>;
-  updateReservaStatus(reservaId: number, estado: string, userId: number): Promise<ReservaStockDto>;
+  getReservaByCompraId(
+    compraId: string,
+    userId: number,
+  ): Promise<ReservaStockDto | null>;
+  getReservaById(
+    reservaId: number,
+    userId: number,
+  ): Promise<ReservaStockDto | null>;
+  updateReservaStatus(
+    reservaId: number,
+    estado: string,
+    userId: number,
+  ): Promise<ReservaStockDto>;
 }
 
 export interface IStockApiErrorResponse {

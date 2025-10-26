@@ -54,10 +54,9 @@ ENV PORT=3004
 # Crear usuario no-root
 USER nestjs
 
-# Copiar dependencias de producción desde build
+# Copiar estructura de directorios y node_modules
 COPY --from=build --chown=nestjs:nodejs /app/node_modules ./node_modules
-
-# Copiar aplicación construida
+COPY --from=build --chown=nestjs:nodejs /app/shared ./shared
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/package*.json ./
 

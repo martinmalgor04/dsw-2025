@@ -77,9 +77,9 @@ describe('ConfigService', () => {
 
   it('should get all transport methods', async () => {
     const mockMethods = [
-      { 
-        id: '1', 
-        code: 'ROAD', 
+      {
+        id: '1',
+        code: 'ROAD',
         name: 'Road Transport',
         description: 'Road transport method',
         averageSpeed: 60,
@@ -89,11 +89,13 @@ describe('ConfigService', () => {
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        tariffConfigs: []
+        tariffConfigs: [],
       },
     ];
-    
-    jest.spyOn(prismaService.transportMethod, 'findMany').mockResolvedValue(mockMethods as any);
+
+    jest
+      .spyOn(prismaService.transportMethod, 'findMany')
+      .mockResolvedValue(mockMethods as any);
 
     const result = await service.getAllTransportMethods();
     expect(result).toEqual(mockMethods);
@@ -101,9 +103,9 @@ describe('ConfigService', () => {
   });
 
   it('should get transport method by id', async () => {
-    const mockMethod = { 
-      id: '1', 
-      code: 'ROAD', 
+    const mockMethod = {
+      id: '1',
+      code: 'ROAD',
       name: 'Road Transport',
       description: 'Road transport method',
       averageSpeed: 60,
@@ -113,14 +115,18 @@ describe('ConfigService', () => {
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      tariffConfigs: []
+      tariffConfigs: [],
     };
-    
-    jest.spyOn(prismaService.transportMethod, 'findUniqueOrThrow').mockResolvedValue(mockMethod as any);
+
+    jest
+      .spyOn(prismaService.transportMethod, 'findUniqueOrThrow')
+      .mockResolvedValue(mockMethod as any);
 
     const result = await service.getTransportMethodById('1');
     expect(result).toEqual(mockMethod);
-    expect(prismaService.transportMethod.findUniqueOrThrow).toHaveBeenCalledWith({
+    expect(
+      prismaService.transportMethod.findUniqueOrThrow,
+    ).toHaveBeenCalledWith({
       where: { id: '1' },
       include: { tariffConfigs: { where: { isActive: true } } },
     });
@@ -128,18 +134,20 @@ describe('ConfigService', () => {
 
   it('should get all coverage zones', async () => {
     const mockZones = [
-      { 
-        id: '1', 
-        name: 'Buenos Aires', 
+      {
+        id: '1',
+        name: 'Buenos Aires',
         description: 'Buenos Aires coverage zone',
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        postalCodes: ['C1000AAA'] 
+        postalCodes: ['C1000AAA'],
       },
     ];
-    
-    jest.spyOn(prismaService.coverageZone, 'findMany').mockResolvedValue(mockZones as any);
+
+    jest
+      .spyOn(prismaService.coverageZone, 'findMany')
+      .mockResolvedValue(mockZones as any);
 
     const result = await service.getAllCoverageZones();
     expect(result).toEqual(mockZones);

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CoverageZone } from '@logistics/database';
 import { CoverageZoneService } from './services/coverage-zone.service';
@@ -19,8 +29,12 @@ export class CoverageZoneController {
     status: 201,
     description: 'Zona de cobertura creada exitosamente',
   })
-  async create(@Body() createCoverageZoneDto: CreateCoverageZoneDto): Promise<CoverageZone> {
-    this.logger.log(`POST /config/coverage-zones - Creando: ${createCoverageZoneDto.name}`);
+  async create(
+    @Body() createCoverageZoneDto: CreateCoverageZoneDto,
+  ): Promise<CoverageZone> {
+    this.logger.log(
+      `POST /config/coverage-zones - Creando: ${createCoverageZoneDto.name}`,
+    );
     return this.coverageZoneService.create(createCoverageZoneDto);
   }
 
@@ -70,4 +84,3 @@ export class CoverageZoneController {
     return this.coverageZoneService.update(id, updateCoverageZoneDto);
   }
 }
-

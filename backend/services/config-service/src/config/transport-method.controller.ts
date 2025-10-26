@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { TransportMethod } from '@logistics/database';
 import { TransportMethodService } from './services/transport-method.service';
@@ -10,7 +21,9 @@ import { UpdateTransportMethodDto } from './dto/update-transport-method.dto';
 export class TransportMethodController {
   private readonly logger = new Logger(TransportMethodController.name);
 
-  constructor(private readonly transportMethodService: TransportMethodService) {}
+  constructor(
+    private readonly transportMethodService: TransportMethodService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -23,8 +36,12 @@ export class TransportMethodController {
     status: 409,
     description: 'Ya existe un método con ese código',
   })
-  async create(@Body() createTransportMethodDto: CreateTransportMethodDto): Promise<TransportMethod> {
-    this.logger.log(`POST /config/transport-methods - Creando: ${createTransportMethodDto.name}`);
+  async create(
+    @Body() createTransportMethodDto: CreateTransportMethodDto,
+  ): Promise<TransportMethod> {
+    this.logger.log(
+      `POST /config/transport-methods - Creando: ${createTransportMethodDto.name}`,
+    );
     return this.transportMethodService.create(createTransportMethodDto);
   }
 
@@ -91,4 +108,3 @@ export class TransportMethodController {
     return this.transportMethodService.remove(id);
   }
 }
-

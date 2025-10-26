@@ -29,7 +29,9 @@ export class CoverageZoneService {
     });
 
     if (!zone) {
-      throw new NotFoundException(`Zona de cobertura con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Zona de cobertura con ID ${id} no encontrada`,
+      );
     }
 
     return zone;
@@ -39,7 +41,9 @@ export class CoverageZoneService {
    * Busca zonas de cobertura que incluyan un código postal específico
    */
   async findByPostalCode(postalCode: string): Promise<CoverageZone[]> {
-    this.logger.log(`Buscando zonas de cobertura para código postal: ${postalCode}`);
+    this.logger.log(
+      `Buscando zonas de cobertura para código postal: ${postalCode}`,
+    );
     return this.prisma.coverageZone.findMany({
       where: {
         postalCodes: {
@@ -53,8 +57,12 @@ export class CoverageZoneService {
   /**
    * Crea una nueva zona de cobertura
    */
-  async create(createCoverageZoneDto: CreateCoverageZoneDto): Promise<CoverageZone> {
-    this.logger.log(`Creando nueva zona de cobertura: ${createCoverageZoneDto.name}`);
+  async create(
+    createCoverageZoneDto: CreateCoverageZoneDto,
+  ): Promise<CoverageZone> {
+    this.logger.log(
+      `Creando nueva zona de cobertura: ${createCoverageZoneDto.name}`,
+    );
 
     return this.prisma.coverageZone.create({
       data: createCoverageZoneDto,
@@ -64,7 +72,10 @@ export class CoverageZoneService {
   /**
    * Actualiza una zona de cobertura existente
    */
-  async update(id: string, updateCoverageZoneDto: UpdateCoverageZoneDto): Promise<CoverageZone> {
+  async update(
+    id: string,
+    updateCoverageZoneDto: UpdateCoverageZoneDto,
+  ): Promise<CoverageZone> {
     this.logger.log(`Actualizando zona de cobertura con ID: ${id}`);
 
     // Verificar que existe
@@ -91,4 +102,3 @@ export class CoverageZoneService {
     });
   }
 }
-

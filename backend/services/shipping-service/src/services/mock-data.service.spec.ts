@@ -39,11 +39,11 @@ describe('MockDataService', () => {
   it('should return mock stock info for products', async () => {
     const productIds = [1, 2, 3];
     const stockInfo = await service.getStockInfo(productIds);
-    
+
     expect(stockInfo).toBeDefined();
     expect(Array.isArray(stockInfo)).toBe(true);
     expect(stockInfo.length).toBe(productIds.length);
-    
+
     stockInfo.forEach((item, index) => {
       expect(item.id).toBe(productIds[index]);
       expect(item.available).toBeDefined();

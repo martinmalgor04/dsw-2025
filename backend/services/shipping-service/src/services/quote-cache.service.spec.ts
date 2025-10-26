@@ -47,12 +47,14 @@ describe('QuoteCacheService', () => {
     it('should get product from cache', async () => {
       const productId = 1;
       const cachedProduct = { id: 1, name: 'Test Product' };
-      
+
       cacheManager.get.mockResolvedValue(cachedProduct);
 
       const result = await service.getProduct(productId);
       expect(result).toEqual(cachedProduct);
-      expect(cacheManager.get).toHaveBeenCalledWith(`quote:product:${productId}`);
+      expect(cacheManager.get).toHaveBeenCalledWith(
+        `quote:product:${productId}`,
+      );
     });
 
     it('should return null when product not in cache', async () => {
@@ -68,14 +70,14 @@ describe('QuoteCacheService', () => {
     it('should set product in cache', async () => {
       const productId = 1;
       const product = { id: 1, name: 'Test Product' };
-      
+
       cacheManager.set.mockResolvedValue(undefined);
 
       await service.setProduct(productId, product);
       expect(cacheManager.set).toHaveBeenCalledWith(
         `quote:product:${productId}`,
         product,
-        expect.any(Number)
+        expect.any(Number),
       );
     });
   });
@@ -85,20 +87,20 @@ describe('QuoteCacheService', () => {
       const fromPostalCode = 'C1000AAA';
       const toPostalCode = 'B1000AAA';
       const cachedDistance = 150.5;
-      
+
       cacheManager.get.mockResolvedValue(cachedDistance);
 
       const result = await service.getDistance(fromPostalCode, toPostalCode);
       expect(result).toBe(cachedDistance);
       expect(cacheManager.get).toHaveBeenCalledWith(
-        `quote:distance:B1000AAA:C1000AAA`
+        `quote:distance:B1000AAA:C1000AAA`,
       );
     });
 
     it('should return null when distance not in cache', async () => {
       const fromPostalCode = 'C1000AAA';
       const toPostalCode = 'B1000AAA';
-      
+
       cacheManager.get.mockResolvedValue(null);
 
       const result = await service.getDistance(fromPostalCode, toPostalCode);
@@ -111,14 +113,14 @@ describe('QuoteCacheService', () => {
       const fromPostalCode = 'C1000AAA';
       const toPostalCode = 'B1000AAA';
       const distance = 150.5;
-      
+
       cacheManager.set.mockResolvedValue(undefined);
 
       await service.setDistance(fromPostalCode, toPostalCode, distance);
       expect(cacheManager.set).toHaveBeenCalledWith(
         `quote:distance:B1000AAA:C1000AAA`,
         distance,
-        expect.any(Number)
+        expect.any(Number),
       );
     });
   });

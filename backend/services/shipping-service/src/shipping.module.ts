@@ -35,4 +35,3 @@ import { PostalCodeValidationService } from './services/postal-code-validation.s
   exports: [ShippingService],
 })
 export class ShippingModule {}
-

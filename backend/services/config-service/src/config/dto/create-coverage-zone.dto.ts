@@ -1,4 +1,12 @@
-import { IsString, IsArray, IsBoolean, IsOptional, MinLength, MaxLength, ArrayMinSize } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  ArrayMinSize,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCoverageZoneDto {
@@ -38,4 +46,3 @@ export class CreateCoverageZoneDto {
   @IsBoolean()
   isActive?: boolean;
 }
-

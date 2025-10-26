@@ -21,7 +21,14 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, IsUUID, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { TariffConfig } from '@logistics/database';
 import { ConfigService } from './config.service';
 
@@ -121,7 +128,11 @@ export class ConfigTariffConfigsController {
 
   @Get()
   @ApiOperation({ summary: 'Lista todas las configuraciones de tarifa' })
-  @ApiQuery({ name: 'transportMethodId', required: false, description: 'Filtrar por método de transporte' })
+  @ApiQuery({
+    name: 'transportMethodId',
+    required: false,
+    description: 'Filtrar por método de transporte',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de configuraciones de tarifa',
@@ -147,7 +158,9 @@ export class ConfigTariffConfigsController {
       },
     },
   })
-  async getAllTariffConfigs(@Query('transportMethodId') transportMethodId?: string): Promise<TariffConfig[]> {
+  async getAllTariffConfigs(
+    @Query('transportMethodId') transportMethodId?: string,
+  ): Promise<TariffConfig[]> {
     this.logger.log('GET /config/tariff-configs');
     return this.configService.getAllTariffConfigs(transportMethodId);
   }
@@ -158,7 +171,9 @@ export class ConfigTariffConfigsController {
   @ApiBody({ type: CreateTariffConfigDto })
   @ApiResponse({ status: 201, description: 'Configuración de tarifa creada' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
-  async createTariffConfig(@Body() createDto: CreateTariffConfigDto): Promise<TariffConfig> {
+  async createTariffConfig(
+    @Body() createDto: CreateTariffConfigDto,
+  ): Promise<TariffConfig> {
     try {
       return await this.configService.createTariffConfig({
         ...createDto,
@@ -170,16 +185,23 @@ export class ConfigTariffConfigsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtiene una configuración de tarifa específica por ID' })
+  @ApiOperation({
+    summary: 'Obtiene una configuración de tarifa específica por ID',
+  })
   @ApiParam({ name: 'id', description: 'UUID de la configuración de tarifa' })
-  @ApiResponse({ status: 200, description: 'Configuración de tarifa encontrada' })
+  @ApiResponse({
+    status: 200,
+    description: 'Configuración de tarifa encontrada',
+  })
   @ApiResponse({ status: 404, description: 'Configuración no encontrada' })
   async getTariffConfigById(@Param('id') id: string): Promise<TariffConfig> {
     try {
       return await this.configService.getTariffConfigById(id);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Configuración de tarifa con ID ${id} no encontrada`);
+        throw new NotFoundException(
+          `Configuración de tarifa con ID ${id} no encontrada`,
+        );
       }
       throw error;
     }
@@ -189,7 +211,10 @@ export class ConfigTariffConfigsController {
   @ApiOperation({ summary: 'Actualiza una configuración de tarifa existente' })
   @ApiParam({ name: 'id', description: 'UUID de la configuración de tarifa' })
   @ApiBody({ type: UpdateTariffConfigDto })
-  @ApiResponse({ status: 200, description: 'Configuración de tarifa actualizada' })
+  @ApiResponse({
+    status: 200,
+    description: 'Configuración de tarifa actualizada',
+  })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   @ApiResponse({ status: 404, description: 'Configuración no encontrada' })
   async updateTariffConfig(
@@ -200,9 +225,13 @@ export class ConfigTariffConfigsController {
       return await this.configService.updateTariffConfig(id, updateDto);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Configuración de tarifa con ID ${id} no encontrada`);
+        throw new NotFoundException(
+          `Configuración de tarifa con ID ${id} no encontrada`,
+        );
       }
-      throw new BadRequestException('Error al actualizar configuración de tarifa');
+      throw new BadRequestException(
+        'Error al actualizar configuración de tarifa',
+      );
     }
   }
 
@@ -210,14 +239,19 @@ export class ConfigTariffConfigsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Elimina una configuración de tarifa' })
   @ApiParam({ name: 'id', description: 'UUID de la configuración de tarifa' })
-  @ApiResponse({ status: 204, description: 'Configuración de tarifa eliminada' })
+  @ApiResponse({
+    status: 204,
+    description: 'Configuración de tarifa eliminada',
+  })
   @ApiResponse({ status: 404, description: 'Configuración no encontrada' })
   async deleteTariffConfig(@Param('id') id: string): Promise<void> {
     try {
       await this.configService.deleteTariffConfig(id);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Configuración de tarifa con ID ${id} no encontrada`);
+        throw new NotFoundException(
+          `Configuración de tarifa con ID ${id} no encontrada`,
+        );
       }
       throw error;
     }

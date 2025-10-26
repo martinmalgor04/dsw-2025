@@ -1,4 +1,10 @@
-import { Injectable, Logger, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -46,7 +52,7 @@ export class StockLoggingInterceptor implements NestInterceptor {
             timestamp: new Date().toISOString(),
           });
         },
-      })
+      }),
     );
   }
 
@@ -57,10 +63,16 @@ export class StockLoggingInterceptor implements NestInterceptor {
     if (!body) return body;
 
     const sanitized = { ...body };
-    
+
     // Remover campos sensibles
-    const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization'];
-    sensitiveFields.forEach(field => {
+    const sensitiveFields = [
+      'password',
+      'token',
+      'secret',
+      'key',
+      'authorization',
+    ];
+    sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
       }

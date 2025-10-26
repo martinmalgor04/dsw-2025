@@ -9,8 +9,8 @@ export class HealthController {
 
   @Get()
   @ApiOperation({ summary: 'Verifica el estado del servicio' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Estado del servicio',
     schema: {
       type: 'object',
@@ -26,10 +26,10 @@ export class HealthController {
   async healthCheck() {
     const timestamp = new Date().toISOString();
     const environment = process.env.NODE_ENV || 'development';
-    
+
     // Verificar conexión a base de datos
     const databaseHealthy = await this.prisma.healthCheck();
-    
+
     return {
       status: databaseHealthy ? 'ok' : 'unhealthy',
       timestamp,
