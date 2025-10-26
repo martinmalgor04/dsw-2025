@@ -98,11 +98,13 @@ if (envConfig.isDevelopment && typeof window === 'undefined') {
 }
 
 /**
- * Log de configuración (solo en desarrollo)
+ * Log de configuración (siempre, para debugging)
  */
-if (envConfig.isDevelopment && typeof window !== 'undefined') {
+if (typeof window !== 'undefined') {
   console.log('🔧 Env Config:', {
     apiUrl: envConfig.apiUrl,
+    frontendUrl: envConfig.frontendUrl,
     env: envConfig.env,
+    keycloakUrl: envConfig.keycloak.url,
   });
 }
