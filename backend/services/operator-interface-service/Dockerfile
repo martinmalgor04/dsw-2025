@@ -51,14 +51,18 @@ FROM base AS production
 ENV NODE_ENV=production
 ENV PORT=3004
 
-# Crear usuario no-root
-USER nestjs
+# Establecer directorio de trabajo
+WORKDIR /app
 
-# Copiar estructura de directorios y node_modules
-COPY --from=build --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=build --chown=nestjs:nodejs /app/shared ./shared
+# Copiar aplicación construida y package.json
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/package*.json ./
+
+# Copiar node_modules completo del servicio (contiene todas las dependencias)
+COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/node_modules ./node_modules
+
+# Crear usuario no-root
+USER nestjs
 
 # Exponer puerto
 EXPOSE 3004
