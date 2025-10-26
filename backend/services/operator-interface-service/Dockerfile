@@ -69,15 +69,20 @@ COPY --from=build --chown=nestjs:nodejs /app/shared/database/prisma ./prisma
 COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/@prisma ./node_modules/@prisma
 COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/.prisma ./node_modules/.prisma
 
+# Copiar archivos compilados de shared packages
+COPY --from=build --chown=nestjs:nodejs /app/shared/database/dist ./shared/database/dist
+COPY --from=build --chown=nestjs:nodejs /app/shared/types/dist ./shared/types/dist
+COPY --from=build --chown=nestjs:nodejs /app/shared/utils/dist ./shared/utils/dist
+
 # Crear directorios para módulos locales y hacer symlinks (para resolver @logistics/*)
-# Los archivos compilados están en dist/shared/*/src, así que apuntamos ahí
+# Los archivos compilados están en ./shared/*/dist, apuntamos a los índices compilados
 RUN mkdir -p /app/node_modules/@logistics && \
     rm -rf /app/node_modules/@logistics/database && \
     rm -rf /app/node_modules/@logistics/types && \
     rm -rf /app/node_modules/@logistics/utils && \
-    ln -s /app/dist/shared/database/src /app/node_modules/@logistics/database && \
-    ln -s /app/dist/shared/types/src /app/node_modules/@logistics/types && \
-    ln -s /app/dist/shared/utils/src /app/node_modules/@logistics/utils && \
+    ln -s /app/shared/database/dist /app/node_modules/@logistics/database && \
+    ln -s /app/shared/types/dist /app/node_modules/@logistics/types && \
+    ln -s /app/shared/utils/dist /app/node_modules/@logistics/utils && \
     chown -h nestjs:nodejs /app/node_modules/@logistics/*
 
 # Crear usuario no-root
@@ -92,4 +97,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Comando de inicio
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/services/operator-interface-service/src/main.js"]
+CMD ["node", "dist/main.js"]
