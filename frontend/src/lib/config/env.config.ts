@@ -36,11 +36,14 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
     return value;
   }
 
+  // Logging importante
+  console.warn(`⚠️ Environment variable ${key} is not defined. Using default: "${defaultValue}"`);
+
   // Si no está definida y estamos en producción, lanzar error
   if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
     console.error(`❌ CRITICAL: Environment variable ${key} is not defined in production!`);
     if (key === 'NEXT_PUBLIC_API_URL') {
-      throw new Error(`NEXT_PUBLIC_API_URL must be defined. Got: ${defaultValue}`);
+      throw new Error(`NEXT_PUBLIC_API_URL must be defined in Dokploy Environment Variables section`);
     }
   }
 
