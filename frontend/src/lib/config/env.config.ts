@@ -53,10 +53,16 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
 /**
  * Configuración de entorno - se evalúa en tiempo de ejecución
  */
+// Validar que NEXT_PUBLIC_API_URL esté definida
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+if (!apiUrl && typeof window !== 'undefined') {
+  console.error('❌ FATAL: NEXT_PUBLIC_API_URL is not defined! Check Dokploy Build Environment Variables.');
+}
+
 export const envConfig: EnvConfig = {
   // Gateway único - todos los requests van aquí
   // ⚠️ DEBE estar definido en variables de entorno
-  apiUrl: getEnvVar('NEXT_PUBLIC_API_URL', ''),
+  apiUrl: apiUrl || 'http://localhost:3004',  // fallback solo para desarrollo local
 
   // Frontend URL - para redirecciones de autenticación
   // En browser, se detecta automáticamente. En servidor/test, usar variable
