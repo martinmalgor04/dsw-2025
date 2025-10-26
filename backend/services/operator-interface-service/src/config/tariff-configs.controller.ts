@@ -37,72 +37,42 @@ class CreateTariffConfigDto {
   @IsUUID()
   transportMethodId: string;
 
+  @IsNumber()
+  @Min(0)
+  baseTariff: number;
+
+  @IsNumber()
+  @Min(0)
+  costPerKm: number;
+
+  @IsNumber()
+  @Min(0)
+  costPerKg: number;
+
+  @IsNumber()
+  @Min(1)
+  volumetricFactor: number;
+
   @IsOptional()
   @IsString()
-  description?: string;
-
-  @IsNumber()
-  @Min(0)
-  minDistance?: number;
-
-  @IsNumber()
-  @Min(0)
-  maxDistance?: number;
-
-  @IsNumber()
-  @Min(0)
-  minWeight?: number;
-
-  @IsNumber()
-  @Min(0)
-  maxWeight?: number;
-
-  @IsNumber()
-  @Min(0)
-  baseFee: number;
-
-  @IsNumber()
-  @Min(0)
-  costPerKm?: number;
-
-  @IsNumber()
-  @Min(0)
-  costPerKg?: number;
+  environment?: string;
 
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  validFrom?: Date;
+
+  @IsOptional()
+  validTo?: Date;
 }
 
 class UpdateTariffConfigDto {
   @IsOptional()
-  @IsString()
-  description?: string;
-
-  @IsOptional()
   @IsNumber()
   @Min(0)
-  minDistance?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  maxDistance?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  minWeight?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  maxWeight?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  baseFee?: number;
+  baseTariff?: number;
 
   @IsOptional()
   @IsNumber()
@@ -115,8 +85,23 @@ class UpdateTariffConfigDto {
   costPerKg?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(1)
+  volumetricFactor?: number;
+
+  @IsOptional()
+  @IsString()
+  environment?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  validFrom?: Date;
+
+  @IsOptional()
+  validTo?: Date;
 }
 
 @ApiTags('config')
@@ -143,15 +128,14 @@ export class ConfigTariffConfigsController {
         properties: {
           id: { type: 'string', format: 'uuid' },
           transportMethodId: { type: 'string', format: 'uuid' },
-          description: { type: 'string' },
-          minDistance: { type: 'number' },
-          maxDistance: { type: 'number' },
-          minWeight: { type: 'number' },
-          maxWeight: { type: 'number' },
-          baseFee: { type: 'number' },
+          baseTariff: { type: 'number' },
           costPerKm: { type: 'number' },
           costPerKg: { type: 'number' },
+          volumetricFactor: { type: 'number' },
+          environment: { type: 'string' },
           isActive: { type: 'boolean' },
+          validFrom: { type: 'string', format: 'date-time' },
+          validTo: { type: 'string', format: 'date-time' },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' },
         },
