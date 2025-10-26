@@ -16,29 +16,14 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# STAGE 1: Dependencies
-# ===================================
-FROM base AS dependencies
-
-# Copiar archivos de dependencias (desde raíz del monorepo)
-COPY package*.json ./
-COPY shared/ ./shared/
-COPY services/operator-interface-service/package*.json ./services/operator-interface-service/
-
-WORKDIR /app/services/operator-interface-service
-
-# Instalar dependencias de producción
-RUN npm ci --only=production && npm cache clean --force
-
-# ===================================
-# STAGE 2: Build
+# STAGE 1: Build
 # ===================================
 FROM base AS build
 
-# Copiar archivos del monorepo
+# Copiar TODO el monorepo
 COPY . .
 
-# Instalar todas las dependencias (incluyendo dev) desde raíz
+# Instalar TODAS las dependencias desde raíz (incluyendo dev para TypeScript)
 RUN npm ci
 
 # Construir librerías compartidas primero
@@ -56,7 +41,7 @@ WORKDIR /app/services/operator-interface-service
 RUN npm run build
 
 # ===================================
-# STAGE 3: Production
+# STAGE 2: Production
 # ===================================
 FROM base AS production
 
@@ -67,8 +52,8 @@ ENV PORT=3004
 # Crear usuario no-root
 USER nestjs
 
-# Copiar dependencias de producción (solo del servicio)
-COPY --from=dependencies --chown=nestjs:nodejs /app/services/operator-interface-service/node_modules ./node_modules
+# Copiar dependencias de producción desde build
+COPY --from=build --chown=nestjs:nodejs /app/node_modules ./node_modules
 
 # Copiar aplicación construida
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
