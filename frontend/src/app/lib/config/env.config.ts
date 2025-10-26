@@ -27,7 +27,21 @@ interface EnvConfig {
  */
 function getEnvVar(key: string, defaultValue: string = ''): string {
   // En Next.js, las variables NEXT_PUBLIC_* están disponibles en process.env
-  return process.env[key] || defaultValue;
+  const value = process.env[key];
+
+  if (value) {
+    return value;
+  }
+
+  // Si no está definida y estamos en producción, lanzar error
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    console.error(`❌ CRITICAL: Environment variable ${key} is not defined in production!`);
+    if (key === 'NEXT_PUBLIC_API_URL') {
+      throw new Error(`NEXT_PUBLIC_API_URL must be defined. Got: ${defaultValue}`);
+    }
+  }
+
+  return defaultValue;
 }
 
 /**
@@ -35,11 +49,12 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
  */
 export const envConfig: EnvConfig = {
   // Gateway único - todos los requests van aquí
-  apiUrl: getEnvVar('NEXT_PUBLIC_API_URL', 'http://localhost:3004'),
+  // ⚠️ DEBE estar definido en variables de entorno
+  apiUrl: getEnvVar('NEXT_PUBLIC_API_URL', ''),
 
   // Keycloak config
   keycloak: {
-    url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', 'http://localhost:8080'),
+    url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', ''),
     realm: getEnvVar('NEXT_PUBLIC_KEYCLOAK_REALM', 'logistica'),
     clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'logix-frontend'),
   },
