@@ -23,22 +23,24 @@ FROM base AS build
 # Copiar TODO el monorepo
 COPY . .
 
-# Instalar TODAS las dependencias desde raíz (incluyendo dev para TypeScript)
+# Instalar TODAS las dependencias desde raíz
 RUN npm ci
 
-# Construir librerías compartidas primero
+# Instalar y construir shared/database
 WORKDIR /app/shared/database
-RUN npm run build
+RUN npm ci && npm run build
 
+# Instalar y construir shared/types
 WORKDIR /app/shared/types
-RUN npm run build
+RUN npm ci && npm run build
 
+# Instalar y construir shared/utils
 WORKDIR /app/shared/utils
-RUN npm run build
+RUN npm ci && npm run build
 
-# Construir solo el operator-interface-service
+# Instalar y construir operator-interface-service
 WORKDIR /app/services/operator-interface-service
-RUN npm run build
+RUN npm ci && npm run build
 
 # ===================================
 # STAGE 2: Production
