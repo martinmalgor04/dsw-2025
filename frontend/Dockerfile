@@ -50,7 +50,7 @@ FROM base AS runner
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=3005
 ENV HOSTNAME="0.0.0.0"
 
 # Crear usuario no-root
@@ -65,11 +65,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Exponer puerto
-EXPOSE 80
+EXPOSE 3005
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:80', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD node -e "require('http').get('http://localhost:3005', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Comando de inicio
 ENTRYPOINT ["dumb-init", "--"]
