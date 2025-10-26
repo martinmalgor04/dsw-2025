@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { configStore } from '../config.store';
 import type { ConfigState } from '../config.store';
 import type { CreateTransportMethodDTO, UpdateTransportMethodDTO, CreateCoverageZoneDTO, UpdateCoverageZoneDTO } from '../../services/config.service';
@@ -14,7 +14,13 @@ export function useConfig() {
     lastSync: null,
   });
 
+  const initialized = useRef(false);
+
   useEffect(() => {
+    // Evitar cargas duplicadas (StrictMode en desarrollo)
+    if (initialized.current) return;
+    initialized.current = true;
+
     const unsub = configStore.subscribe(setState);
     configStore.loadTransportMethods();
     configStore.loadCoverageZones();

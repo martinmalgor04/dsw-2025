@@ -64,8 +64,10 @@ export function ReglasCotizacion() {
   });
 
   useEffect(() => {
-    loadTariffConfigs();
-  }, [loadTariffConfigs]);
+    // Solo cargar en el montaje del componente, no en cada cambio de loadTariffConfigs
+    // La carga se maneja automáticamente por el store cuando se monta useConfig()
+    // Este useEffect solo se ejecuta una vez gracias al store interno
+  }, []);
 
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();
