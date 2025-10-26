@@ -6,9 +6,10 @@
 # Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
-# Instalar dependencias del sistema necesarias
+# Instalar dependencias del sistema necesarias (incluyendo OpenSSL para Prisma)
 RUN apk add --no-cache \
     dumb-init \
+    openssl \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nestjs -u 1001
 
