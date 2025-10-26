@@ -36,10 +36,7 @@ RUN npm ci --only=production && npm cache clean --force
 FROM base AS build
 
 # Copiar archivos del monorepo
-COPY package*.json ./
-COPY shared/ ./shared/
-COPY services/ ./services/
-COPY tsconfig.json ./
+COPY . .
 
 # Instalar todas las dependencias (incluyendo dev) desde raíz
 RUN npm ci
