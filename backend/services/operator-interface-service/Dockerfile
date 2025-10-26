@@ -20,9 +20,12 @@ WORKDIR /app
 # ===================================
 FROM base AS dependencies
 
-# Copiar archivos de dependencias
+# Copiar archivos de dependencias (desde raíz del monorepo)
 COPY package*.json ./
 COPY shared/ ./shared/
+COPY services/operator-interface-service/package*.json ./services/operator-interface-service/
+
+WORKDIR /app/services/operator-interface-service
 
 # Instalar dependencias de producción
 RUN npm ci --only=production && npm cache clean --force
@@ -32,29 +35,28 @@ RUN npm ci --only=production && npm cache clean --force
 # ===================================
 FROM base AS build
 
-# Copiar archivos de dependencias
+# Copiar archivos del monorepo
 COPY package*.json ./
 COPY shared/ ./shared/
+COPY services/ ./services/
+COPY tsconfig.json ./
 
-# Instalar todas las dependencias (incluyendo dev)
+# Instalar todas las dependencias (incluyendo dev) desde raíz
 RUN npm ci
-
-# Copiar código fuente
-COPY . .
 
 # Construir librerías compartidas primero
 WORKDIR /app/shared/database
-RUN npm install && npm run build
+RUN npm run build
 
 WORKDIR /app/shared/types
-RUN npm install && npm run build
+RUN npm run build
 
 WORKDIR /app/shared/utils
-RUN npm install && npm run build
+RUN npm run build
 
 # Construir solo el operator-interface-service
 WORKDIR /app/services/operator-interface-service
-RUN npm install && npm run build
+RUN npm run build
 
 # ===================================
 # STAGE 3: Production
@@ -68,12 +70,12 @@ ENV PORT=3004
 # Crear usuario no-root
 USER nestjs
 
-# Copiar dependencias de producción
-COPY --from=dependencies --chown=nestjs:nodejs /app/node_modules ./node_modules
+# Copiar dependencias de producción (solo del servicio)
+COPY --from=dependencies --chown=nestjs:nodejs /app/services/operator-interface-service/node_modules ./node_modules
 
 # Copiar aplicación construida
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
-COPY --from=build --chown=nestjs:nodejs /app/package*.json ./
+COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/package*.json ./
 
 # Exponer puerto
 EXPOSE 3004
