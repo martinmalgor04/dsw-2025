@@ -54,12 +54,30 @@ ENV PORT=3004
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar aplicación construida y package.json
+# Copiar aplicación construida
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/package*.json ./
 
-# Copiar node_modules completo del servicio (contiene todas las dependencias)
+# Copiar node_modules del servicio (dependencias directas del servicio)
 COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/node_modules ./node_modules
+
+# Copiar Prisma schema y archivos generados
+COPY --from=build --chown=nestjs:nodejs /app/shared/database/prisma ./prisma
+
+# Copiar Prisma dependencies de shared/database
+COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/@prisma ./node_modules/@prisma
+COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/.prisma ./node_modules/.prisma
+
+# Crear directorios para módulos locales y hacer symlinks (para resolver @logistics/*)
+# Los archivos compilados están en dist/shared/*/src, así que apuntamos ahí
+RUN mkdir -p /app/node_modules/@logistics && \
+    rm -rf /app/node_modules/@logistics/database && \
+    rm -rf /app/node_modules/@logistics/types && \
+    rm -rf /app/node_modules/@logistics/utils && \
+    ln -s /app/dist/shared/database/src /app/node_modules/@logistics/database && \
+    ln -s /app/dist/shared/types/src /app/node_modules/@logistics/types && \
+    ln -s /app/dist/shared/utils/src /app/node_modules/@logistics/utils && \
+    chown -h nestjs:nodejs /app/node_modules/@logistics/*
 
 # Crear usuario no-root
 USER nestjs
