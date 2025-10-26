@@ -9,6 +9,9 @@ interface EnvConfig {
   // API Gateway - único endpoint para el frontend
   apiUrl: string;
 
+  // Frontend URL - para redirecciones de autenticación
+  frontendUrl: string;
+
   // Keycloak (opcional)
   keycloak: {
     url: string;
@@ -51,6 +54,12 @@ export const envConfig: EnvConfig = {
   // Gateway único - todos los requests van aquí
   // ⚠️ DEBE estar definido en variables de entorno
   apiUrl: getEnvVar('NEXT_PUBLIC_API_URL', ''),
+
+  // Frontend URL - para redirecciones de autenticación
+  // En browser, se detecta automáticamente. En servidor/test, usar variable
+  frontendUrl: typeof window !== 'undefined'
+    ? window.location.origin
+    : getEnvVar('NEXT_PUBLIC_FRONTEND_URL', 'http://localhost:3000'),
 
   // Keycloak config
   keycloak: {

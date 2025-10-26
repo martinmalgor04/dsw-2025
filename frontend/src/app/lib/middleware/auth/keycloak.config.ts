@@ -11,5 +11,5 @@ export const keycloakInitOptions = {
   onLoad: 'check-sso' as const,
   pkceMethod: 'S256' as const,
   checkLoginIframe: false,
-  silentCheckSsoRedirectUri: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/silent-check-sso.html`,
+  silentCheckSsoRedirectUri: `${envConfig.frontendUrl}/silent-check-sso.html`,
 };

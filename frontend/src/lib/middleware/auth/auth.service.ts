@@ -1,4 +1,5 @@
 import { keycloak, keycloakInitOptions } from './keycloak.config';
+import { envConfig } from '../../config/env.config';
 
 export class AuthService {
   private static instance: AuthService;
@@ -23,14 +24,14 @@ export class AuthService {
   }
 
   async login(redirectUri?: string): Promise<void> {
-    await keycloak.login({ redirectUri: redirectUri || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000') });
+    await keycloak.login({ redirectUri: redirectUri || envConfig.frontendUrl });
   }
 
   async logout(redirectUri?: string): Promise<void> {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
     }
-    await keycloak.logout({ redirectUri: redirectUri || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000') });
+    await keycloak.logout({ redirectUri: redirectUri || envConfig.frontendUrl });
   }
 
   getToken(): string | undefined {
