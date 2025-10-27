@@ -3,6 +3,9 @@
 # TPI Desarrollo de Software 2025
 # ===================================
 
+# Force rebuild timestamp: 2025-10-27T12:30:00Z
+# (cambiar este valor fuerza Docker a ignorar caché)
+
 # Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
