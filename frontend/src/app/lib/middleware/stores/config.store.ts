@@ -30,7 +30,8 @@ function notify() {
 
   Promise.resolve().then(() => {
     notifyScheduled = false;
-    subscribers.forEach((s) => s(state));
+    const currentSubscribers = [...subscribers]; // Copiar lista para evitar issues si se modifica durante iteración
+    currentSubscribers.forEach((s) => s(state));
   });
 }
 
@@ -68,10 +69,11 @@ export const configStore = {
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.transportMethods.length) return;
 
     // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
-    if (!force && state.error && Date.now() - lastTransportMethodsError < ERROR_RETRY_DELAY) return;
+    if (!force && Date.now() - lastTransportMethodsError < ERROR_RETRY_DELAY) return;
 
     transportMethodsLoading = true;
     this.setLoading(true);
+    this.setError(null); // Limpiar error previo antes de intentar
     try {
       this.setTransportMethods(await configService.getTransportMethods());
     }
@@ -93,10 +95,11 @@ export const configStore = {
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.coverageZones.length) return;
 
     // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
-    if (!force && state.error && Date.now() - lastCoverageZonesError < ERROR_RETRY_DELAY) return;
+    if (!force && Date.now() - lastCoverageZonesError < ERROR_RETRY_DELAY) return;
 
     coverageZonesLoading = true;
     this.setLoading(true);
+    this.setError(null); // Limpiar error previo antes de intentar
     try {
       this.setCoverageZones(await configService.getCoverageZones());
     }
@@ -192,10 +195,11 @@ export const configStore = {
 
     // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
     // Esto previene loops infinitos cuando hay errores 404
-    if (!force && state.error && Date.now() - lastTariffConfigsError < ERROR_RETRY_DELAY) return;
+    if (!force && Date.now() - lastTariffConfigsError < ERROR_RETRY_DELAY) return;
 
     tariffConfigsLoading = true;
     this.setLoading(true);
+    this.setError(null); // Limpiar error previo antes de intentar
     try {
       this.setTariffConfigs(await tariffConfigService.getTariffConfigs());
     }
