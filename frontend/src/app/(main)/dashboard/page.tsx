@@ -92,7 +92,7 @@ export default function Dashboard() {
   const checkBackendStatus = () => {
     // Siempre disponible en modo frontend
     setBackendStatus({ available: true, url: 'Modo Frontend' });
-    setModeInfo({ mode: 'mock', features: ['frontend-only'] });
+    setModeInfo({ mode: 'mock', features: ['AGUANTE BOCA, LO LOGRASTE WACHO'] });
   };
 
   const retryBackendConnection = () => {
