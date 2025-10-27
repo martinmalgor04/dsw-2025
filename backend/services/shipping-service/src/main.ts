@@ -19,9 +19,18 @@ async function bootstrap() {
   );
 
   // CORS configuration
+  // En desarrollo: acepta localhost
+  // En producción: acepta la URL del frontend desde FRONTEND_URL
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const corsOrigin = frontendUrl.includes('localhost')
+    ? [/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/, 'http://localhost:3005', 'http://localhost:3000']
+    : [frontendUrl, /^https?:\/\/.*:3005$/];
+
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: corsOrigin,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
   // Swagger documentation
