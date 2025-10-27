@@ -36,8 +36,12 @@ const ERROR_RETRY_DELAY = 5000; // 5 segundos mínimo entre reintentos
 
 export const configStore = {
   subscribe(fn: (s: ConfigState) => void) {
-    subscribers.push(fn); fn(state); return () => {
-      const i = subscribers.indexOf(fn); if (i >= 0) subscribers.splice(i, 1);
+    subscribers.push(fn);
+    // NO llamar fn(state) aquí - solo registrar el subscriber
+    // El componente leerá el estado inicial del hook useState
+    return () => {
+      const i = subscribers.indexOf(fn);
+      if (i >= 0) subscribers.splice(i, 1);
     };
   },
   setLoading(v: boolean) { state = { ...state, isLoading: v }; notify(); },
