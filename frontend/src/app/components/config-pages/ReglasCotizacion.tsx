@@ -103,10 +103,10 @@ export function ReglasCotizacion() {
     setEditingConfig(config);
     setFormData({
       transportMethodId: config.transportMethodId,
-      baseTariff: config.baseTariff,
-      costPerKg: config.costPerKg,
-      costPerKm: config.costPerKm,
-      volumetricFactor: config.volumetricFactor,
+      baseTariff: Number(config.baseTariff),
+      costPerKg: Number(config.costPerKg),
+      costPerKm: Number(config.costPerKm),
+      volumetricFactor: Number(config.volumetricFactor),
       environment: config.environment,
       isActive: config.isActive,
     });
