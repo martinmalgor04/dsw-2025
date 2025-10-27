@@ -65,7 +65,7 @@ export function ReglasCotizacion() {
 
   useEffect(() => {
     loadTariffConfigs();
-  }, [loadTariffConfigs]);
+  }, []); // Removemos loadTariffConfigs de las dependencias
 
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();

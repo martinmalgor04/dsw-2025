@@ -21,7 +21,12 @@ let state: ConfigState = {
 
 const subscribers: Array<(s: ConfigState) => void> = [];
 
-function notify() { subscribers.forEach((s) => s(state)); }
+function notify() { 
+  // Solo notificar si hay suscriptores
+  if (subscribers.length > 0) {
+    subscribers.forEach((s) => s(state)); 
+  }
+}
 
 export const configStore = {
   subscribe(fn: (s: ConfigState) => void) {
@@ -128,14 +133,25 @@ export const configStore = {
   
   // Tariff Configs CRUD
   async loadTariffConfigs(force = false) {
+    // Evitar llamadas múltiples si ya está cargando
+    if (state.isLoading) return;
+    
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
+    
     this.setLoading(true);
-    try { this.setTariffConfigs(await tariffConfigService.getTariffConfigs()); }
+    this.setError(null); // Limpiar errores previos
+    
+    try { 
+      const configs = await tariffConfigService.getTariffConfigs();
+      this.setTariffConfigs(configs); 
+    }
     catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error cargando configuraciones de tarifa';
       this.setError(message);
     }
-    finally { this.setLoading(false); }
+    finally { 
+      this.setLoading(false); 
+    }
   },
   
   async createTariffConfig(dto: CreateTariffConfigDTO) {
