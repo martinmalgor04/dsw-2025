@@ -64,8 +64,19 @@ export function ReglasCotizacion() {
   });
 
   useEffect(() => {
+    console.log('🔍 ReglasCotizacion: Cargando configuraciones de tarifa...');
     loadTariffConfigs();
   }, []); // Removemos loadTariffConfigs de las dependencias
+
+  // Debug: Log cuando cambien los datos
+  useEffect(() => {
+    console.log('📊 ReglasCotizacion: Datos actualizados:', {
+      tariffConfigs: tariffConfigs.length,
+      transportMethods: transportMethods.length,
+      isLoading,
+      error
+    });
+  }, [tariffConfigs, transportMethods, isLoading, error]);
 
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();
