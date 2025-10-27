@@ -225,7 +225,7 @@ export default function Analitica() {
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>
                     <h1 className="text-3xl bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-                        Analítica y Reportes
+                        Analítica y Reportes de BOCA
                     </h1>
                     <p className="text-gray-600 mt-1">Información completa sobre tu proceso de selección.</p>
                 </div>
