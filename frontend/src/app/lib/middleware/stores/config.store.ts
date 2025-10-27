@@ -28,6 +28,12 @@ let transportMethodsLoading = false;
 let coverageZonesLoading = false;
 let tariffConfigsLoading = false;
 
+// Timestamps para evitar reintentos muy rápidos después de errores
+let lastTransportMethodsError = 0;
+let lastCoverageZonesError = 0;
+let lastTariffConfigsError = 0;
+const ERROR_RETRY_DELAY = 5000; // 5 segundos mínimo entre reintentos
+
 export const configStore = {
   subscribe(fn: (s: ConfigState) => void) {
     subscribers.push(fn); fn(state); return () => {
@@ -46,12 +52,16 @@ export const configStore = {
     // Cache check
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.transportMethods.length) return;
 
+    // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
+    if (!force && state.error && Date.now() - lastTransportMethodsError < ERROR_RETRY_DELAY) return;
+
     transportMethodsLoading = true;
     this.setLoading(true);
     try {
       this.setTransportMethods(await configService.getTransportMethods());
     }
     catch (e: unknown) {
+      lastTransportMethodsError = Date.now();
       const message = e instanceof Error ? e.message : 'Error cargando métodos';
       this.setError(message);
     }
@@ -67,12 +77,16 @@ export const configStore = {
     // Cache check
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.coverageZones.length) return;
 
+    // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
+    if (!force && state.error && Date.now() - lastCoverageZonesError < ERROR_RETRY_DELAY) return;
+
     coverageZonesLoading = true;
     this.setLoading(true);
     try {
       this.setCoverageZones(await configService.getCoverageZones());
     }
     catch (e: unknown) {
+      lastCoverageZonesError = Date.now();
       const message = e instanceof Error ? e.message : 'Error cargando zonas';
       this.setError(message);
     }
@@ -161,12 +175,17 @@ export const configStore = {
     // Cache check: no recargar si ya tenemos datos y no pasó mucho tiempo
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
 
+    // Si hubo un error reciente, no reintentar hasta que pasen 5 segundos
+    // Esto previene loops infinitos cuando hay errores 404
+    if (!force && state.error && Date.now() - lastTariffConfigsError < ERROR_RETRY_DELAY) return;
+
     tariffConfigsLoading = true;
     this.setLoading(true);
     try {
       this.setTariffConfigs(await tariffConfigService.getTariffConfigs());
     }
     catch (e: unknown) {
+      lastTariffConfigsError = Date.now(); // Registrar tiempo del error
       const message = e instanceof Error ? e.message : 'Error cargando configuraciones de tarifa';
       this.setError(message);
     }
