@@ -356,9 +356,9 @@ export default function Dashboard() {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
           <h1 className="text-3xl bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-            PEPACK - Gestión Logística
+            PEPACK - Gestión Logística y de BOCA
           </h1>
-          <p className="text-gray-600 mt-1">Sistema inteligente de gestión logística y seguimiento de entregas.</p>
+          <p className="text-gray-600 mt-1">Sistema inteligente de gestión logística y seguimiento de entregas de BOCA.</p>
         </div>
         <div className="flex items-center gap-4">
           <BackendStatusIndicator />
