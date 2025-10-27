@@ -100,7 +100,7 @@ export default function Dashboard() {
     setIsLoading(true);
     setTimeout(() => {
       setBackendStatus({ available: true, url: 'Frontend Mode' });
-      setModeInfo({ mode: 'mock', features: ['frontend-only'] });
+      setModeInfo({ mode: 'mock', features: ['GUANTE BOCA, LO LOGRASTE WACHO'] });
       setIsLoading(false);
     }, 1000);
   };
@@ -299,7 +299,7 @@ export default function Dashboard() {
             }`}>
             {modeInfo.mode === 'backend'
               ? 'Sistema completo de gestión logística con optimización de rutas y seguimiento en tiempo real.'
-              : 'Estás experimentando la interfaz completa de PEPACK con datos realistas. Todas las funcionalidades están disponibles para pruebas.'
+              : 'Estás experimentando la interfaz completa de PEPACK con datos realistas. Todas las funcionalidades están disponibles para pruebas de BOCA'
             }
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
