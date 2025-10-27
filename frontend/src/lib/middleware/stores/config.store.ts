@@ -133,20 +133,31 @@ export const configStore = {
   
   // Tariff Configs CRUD
   async loadTariffConfigs(force = false) {
+    console.log('🏪 configStore.loadTariffConfigs: Iniciando...', { force, isLoading: state.isLoading });
+    
     // Evitar llamadas múltiples si ya está cargando
-    if (state.isLoading) return;
+    if (state.isLoading) {
+      console.log('🏪 configStore.loadTariffConfigs: Ya está cargando, saliendo...');
+      return;
+    }
     
-    if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
+    if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) {
+      console.log('🏪 configStore.loadTariffConfigs: Datos recientes en cache, saliendo...');
+      return;
+    }
     
+    console.log('🏪 configStore.loadTariffConfigs: Haciendo request a la API...');
     this.setLoading(true);
     this.setError(null); // Limpiar errores previos
     
     try { 
       const configs = await tariffConfigService.getTariffConfigs();
+      console.log('🏪 configStore.loadTariffConfigs: Datos recibidos:', configs.length, 'configuraciones');
       this.setTariffConfigs(configs); 
     }
     catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error cargando configuraciones de tarifa';
+      console.error('🏪 configStore.loadTariffConfigs: Error:', message);
       this.setError(message);
     }
     finally { 
