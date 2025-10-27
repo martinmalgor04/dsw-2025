@@ -20,8 +20,19 @@ let state: ConfigState = {
 };
 
 const subscribers: Array<(s: ConfigState) => void> = [];
+let notifyScheduled = false;
 
-function notify() { subscribers.forEach((s) => s(state)); }
+function notify() {
+  // Encolar notificaciones en microtask para evitar updates infinitos
+  // Esto permite que múltiples cambios de estado se agrupen en una sola notificación
+  if (notifyScheduled) return;
+  notifyScheduled = true;
+
+  Promise.resolve().then(() => {
+    notifyScheduled = false;
+    subscribers.forEach((s) => s(state));
+  });
+}
 
 // Flags para evitar cargas concurrentes
 let transportMethodsLoading = false;
