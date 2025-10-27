@@ -5,10 +5,9 @@
  * This allows the server to listen on a custom port via environment variables
  */
 
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
-const path = require('path');
+import { createServer } from 'http';
+import { parse } from 'url';
+import next from 'next';
 
 // Get port from environment or default to 3005
 const port = parseInt(process.env.PORT || '3005', 10);

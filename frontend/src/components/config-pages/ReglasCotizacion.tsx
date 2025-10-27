@@ -66,7 +66,7 @@ export function ReglasCotizacion() {
   useEffect(() => {
     console.log('🔍 ReglasCotizacion: Cargando configuraciones de tarifa...');
     loadTariffConfigs();
-  }, []); // Removemos loadTariffConfigs de las dependencias
+  }, [loadTariffConfigs]); // Agregamos loadTariffConfigs a las dependencias
 
   // Debug: Log cuando cambien los datos
   useEffect(() => {
