@@ -23,6 +23,10 @@ const subscribers: Array<(s: ConfigState) => void> = [];
 
 function notify() { subscribers.forEach((s) => s(state)); }
 
+// Flags para evitar cargas concurrentes
+let transportMethodsLoading = false;
+let coverageZonesLoading = false;
+
 export const configStore = {
   subscribe(fn: (s: ConfigState) => void) {
     subscribers.push(fn); fn(state); return () => {
@@ -35,24 +39,46 @@ export const configStore = {
   setCoverageZones(list: CoverageZone[]) { state = { ...state, coverageZones: list, lastSync: Date.now() }; notify(); },
   setTariffConfigs(list: TariffConfigDTO[]) { state = { ...state, tariffConfigs: list, lastSync: Date.now() }; notify(); },
   async loadTransportMethods(force = false) {
+    // Evitar cargas concurrentes
+    if (transportMethodsLoading) return;
+
+    // Cache check
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.transportMethods.length) return;
+
+    transportMethodsLoading = true;
     this.setLoading(true);
-    try { this.setTransportMethods(await configService.getTransportMethods()); }
+    try {
+      this.setTransportMethods(await configService.getTransportMethods());
+    }
     catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error cargando métodos';
       this.setError(message);
     }
-    finally { this.setLoading(false); }
+    finally {
+      this.setLoading(false);
+      transportMethodsLoading = false;
+    }
   },
   async loadCoverageZones(force = false) {
+    // Evitar cargas concurrentes
+    if (coverageZonesLoading) return;
+
+    // Cache check
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.coverageZones.length) return;
+
+    coverageZonesLoading = true;
     this.setLoading(true);
-    try { this.setCoverageZones(await configService.getCoverageZones()); }
+    try {
+      this.setCoverageZones(await configService.getCoverageZones());
+    }
     catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error cargando zonas';
       this.setError(message);
     }
-    finally { this.setLoading(false); }
+    finally {
+      this.setLoading(false);
+      coverageZonesLoading = false;
+    }
   },
   
   // Transport Methods CRUD
@@ -127,15 +153,27 @@ export const configStore = {
   },
   
   // Tariff Configs CRUD
+  private tariffConfigsLoading = false; // Evitar cargas concurrentes
   async loadTariffConfigs(force = false) {
+    // Evitar cargas concurrentes
+    if (this.tariffConfigsLoading) return;
+
+    // Cache check: no recargar si ya tenemos datos y no pasó mucho tiempo
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
+
+    this.tariffConfigsLoading = true;
     this.setLoading(true);
-    try { this.setTariffConfigs(await tariffConfigService.getTariffConfigs()); }
+    try {
+      this.setTariffConfigs(await tariffConfigService.getTariffConfigs());
+    }
     catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error cargando configuraciones de tarifa';
       this.setError(message);
     }
-    finally { this.setLoading(false); }
+    finally {
+      this.setLoading(false);
+      this.tariffConfigsLoading = false;
+    }
   },
   
   async createTariffConfig(dto: CreateTariffConfigDTO) {
