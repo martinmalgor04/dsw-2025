@@ -26,6 +26,7 @@ function notify() { subscribers.forEach((s) => s(state)); }
 // Flags para evitar cargas concurrentes
 let transportMethodsLoading = false;
 let coverageZonesLoading = false;
+let tariffConfigsLoading = false;
 
 export const configStore = {
   subscribe(fn: (s: ConfigState) => void) {
@@ -151,17 +152,16 @@ export const configStore = {
     }
     finally { this.setLoading(false); }
   },
-  
+
   // Tariff Configs CRUD
-  private tariffConfigsLoading = false; // Evitar cargas concurrentes
   async loadTariffConfigs(force = false) {
     // Evitar cargas concurrentes
-    if (this.tariffConfigsLoading) return;
+    if (tariffConfigsLoading) return;
 
     // Cache check: no recargar si ya tenemos datos y no pasó mucho tiempo
     if (!force && state.lastSync && Date.now() - state.lastSync < 15 * 60 * 1000 && state.tariffConfigs.length) return;
 
-    this.tariffConfigsLoading = true;
+    tariffConfigsLoading = true;
     this.setLoading(true);
     try {
       this.setTariffConfigs(await tariffConfigService.getTariffConfigs());
@@ -172,7 +172,7 @@ export const configStore = {
     }
     finally {
       this.setLoading(false);
-      this.tariffConfigsLoading = false;
+      tariffConfigsLoading = false;
     }
   },
   
