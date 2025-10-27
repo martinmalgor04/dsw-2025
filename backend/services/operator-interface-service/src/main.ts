@@ -19,18 +19,13 @@ async function bootstrap() {
   );
 
   // CORS configuration
-  // En desarrollo: acepta localhost
-  // En producción: acepta la URL del frontend desde FRONTEND_URL
-  // Si FRONTEND_URL contiene un patrón de puerto, acepta cualquier host en ese puerto
+  // Lee FRONTEND_URL desde .env
+  // En desarrollo: http://localhost:3000 o http://localhost:3005
+  // En producción Dokploy: http://144.22.130.30:3005 (o la IP asignada)
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-  // Regex para aceptar tanto http://localhost:3005 como http://144.22.130.30:3005
-  const corsOrigin = frontendUrl.includes('localhost')
-    ? [/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/, 'http://localhost:3005', 'http://localhost:3000']
-    : [frontendUrl, /^https?:\/\/.*:3005$/];
-
   app.enableCors({
-    origin: corsOrigin,
+    origin: frontendUrl,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
