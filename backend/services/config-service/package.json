@@ -10,7 +10,7 @@
     "build": "nest build --tsc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "npm run build && npm run start:prod",
+    "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
@@ -21,9 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@logistics/database": "file:../../shared/database",
-    "@logistics/types": "file:../../shared/types",
-    "@logistics/utils": "file:../../shared/utils",
+    "@logistics/database": "workspace:*",
+    "@logistics/types": "workspace:*",
+    "@logistics/utils": "workspace:*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",

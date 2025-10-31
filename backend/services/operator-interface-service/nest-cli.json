@@ -2,10 +2,11 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
-  "root": "services/operator-interface-service",
+  "entryFile": "services/operator-interface-service/src/main",
   "compilerOptions": {
-    "deleteOutDir": false,
+    "deleteOutDir": true,
     "declaration": false,
-    "noEmitOnError": false
+    "webpack": false,
+    "tsConfigPath": "tsconfig.build.json"
   }
 }

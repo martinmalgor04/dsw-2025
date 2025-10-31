@@ -1,12 +1,14 @@
 {
-  "name": "frontend-nextjs",
-  "version": "0.1.0",
+  "name": "logistica-grupo12-tpi",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start -p 80",
-    "lint": "eslint"
+    "install:backend": "pnpm -r --filter \"./backend/**\" install && pnpm -C backend/shared/database prisma:generate",
+    "install:frontend": "pnpm -C frontend install",
+    "install:all": "pnpm install && pnpm run install:backend && pnpm run install:frontend",
+    "dev:backend": "pnpm -C backend run dev",
+    "dev:frontend": "pnpm -C frontend dev",
+    "dev": "pnpm run dev:frontend"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
