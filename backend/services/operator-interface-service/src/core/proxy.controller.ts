@@ -11,7 +11,6 @@ import {
 import { Request, Response } from 'express';
 import { ServiceFacade } from './service-facade';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Public } from '../decorators/public.decorator';
 
 /**
  * ProxyController - Smart Proxy Router
@@ -41,7 +40,6 @@ export class ProxyController {
    * Útil para debugging y monitoreo
    */
   @All('/gateway/status')
-  @Public()
   @ApiOperation({ summary: 'Get gateway and services status' })
   @ApiResponse({
     status: 200,

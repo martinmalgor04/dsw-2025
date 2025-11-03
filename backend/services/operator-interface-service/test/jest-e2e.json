@@ -2,10 +2,13 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
+  "testRegex": "e2e\\.spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "collectCoverageFrom": [
+    "src/**/*.(t|j)s"
+  ],
   "moduleNameMapper": {
     "^@logistics/(.*)$": "<rootDir>/../../shared/$1/src"
   }

@@ -5,29 +5,9 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
-import { RequestIdMiddleware } from './middleware/request-id.middleware';
-import { LoggingMiddleware } from './middleware/logging.middleware';
-import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // Middlewares de observabilidad y performance (orden importa)
-  // 1) Request-ID primero
-  const requestId = new RequestIdMiddleware();
-  app.use((req: any, res: any, next: any) => requestId.use(req, res, next));
-
-  // 2) Rate limiting
-  const configService = app.get(ConfigService);
-  const rateLimitMiddleware = new RateLimitMiddleware(configService);
-  app.use((req: any, res: any, next: any) =>
-    rateLimitMiddleware.use(req, res, next),
-  );
-
-  // 3) Logging estructurado (usa request-id y mide latencia)
-  const logging = new LoggingMiddleware();
-  app.use((req: any, res: any, next: any) => logging.use(req, res, next));
 
   // Global validation pipe
   app.useGlobalPipes(

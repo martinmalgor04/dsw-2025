@@ -5,7 +5,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { CoreModule } from './core/core.module';
-import { SecurityModule } from './security/security.module';
 
 @Module({
   imports: [
@@ -17,7 +16,6 @@ import { SecurityModule } from './security/security.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    SecurityModule,
     CoreModule,
     HealthModule,
   ],
