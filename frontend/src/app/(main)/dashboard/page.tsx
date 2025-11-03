@@ -70,7 +70,7 @@ export default function Dashboard() {
 
   const [pedidosRecientes, setPedidosRecientes] = useState<Pedido[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [lastUpdate, setLastUpdate] = useState<string>('Cargando...');
   const [error, setError] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState({ available: true, url: 'Modo Frontend' });
   const [modeInfo, setModeInfo] = useState({ mode: 'mock', features: ['frontend-only'] });
@@ -222,7 +222,8 @@ export default function Dashboard() {
         tiemposEntrega: tiemposEntregaData
       });
 
-      setLastUpdate(new Date());
+      // Guardar como string para evitar hydration mismatch
+      setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
@@ -372,7 +373,7 @@ export default function Dashboard() {
           </button>
           <div className="rounded-xl px-6 py-3 shadow-lg border border-white/30" style={glassStyle}>
             <span className="text-sm text-gray-700">
-              Actualizado: {lastUpdate.toLocaleTimeString()}
+              Actualizado: {lastUpdate}
             </span>
           </div>
         </div>

@@ -8,7 +8,9 @@
     "install:all": "pnpm install && pnpm run install:backend && pnpm run install:frontend",
     "dev:backend": "pnpm -C backend run dev",
     "dev:frontend": "pnpm -C frontend dev",
-    "dev": "pnpm run dev:frontend"
+    "dev": "pnpm run dev:frontend",
+    "keycloak:up": "docker compose -f keycloak/docker-compose.yml up -d",
+    "keycloak:down": "docker compose -f keycloak/docker-compose.yml down"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

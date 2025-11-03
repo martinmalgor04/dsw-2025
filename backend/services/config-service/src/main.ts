@@ -32,17 +32,41 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Config Service API')
     .setDescription(
-      'Configuration service for transport methods, coverage zones and tariff configurations',
+      'Configuration service for transport methods, coverage zones, tariff configurations, and fleet management. ' +
+      'This service manages all configuration data for the logistics platform including transport methods, ' +
+      'delivery coverage zones, pricing tiers, vehicles, drivers, and delivery routes.',
     )
-    .setVersion('1.0')
-    .addTag('transport-methods', 'Transport methods management')
-    .addTag('coverage-zones', 'Coverage zones management')
-    .addTag('tariff-configs', 'Tariff configurations management')
-    .addTag('health', 'Health checks')
+    .setVersion('1.0.0')
+    .setContact(
+      'Grupo 12 - UTN FRRE',
+      'https://github.com/grupos-12/logistica',
+      'grupo12@logistics.com',
+    )
+    .setLicense('Apache 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
+    .addServer('http://localhost:3003', 'Development')
+    .addServer('http://localhost:3004/config', 'Via Gateway')
+    .addTag('config', '📦 Configuration - Transport, Zones, and Tariffs')
+    .addTag('fleet', '🚚 Fleet - Vehicles, Drivers, and Routes')
+    .addTag('health', '❤️ Health Checks')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+      defaultModelsExpandDepth: 2,
+      docExpansion: 'list',
+    },
+    customCss: `
+      .swagger-ui .topbar {
+        display: none;
+      }
+      .swagger-ui .model-toggle:after {
+        background-image: none;
+      }
+    `,
+  });
 
   const port = process.env.PORT || 3003;
   await app.listen(port);

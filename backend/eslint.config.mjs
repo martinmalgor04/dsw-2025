@@ -39,4 +39,20 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'warn',
     },
   },
+  {
+    files: ['services/operator-interface-service/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          name: '@logistics/database',
+          message: '❌ Operator Interface Service is a pure gateway and must not access @logistics/database. Database operations should be handled by the respective microservices.',
+        },
+        {
+          name: '@prisma/client',
+          message: '❌ Operator Interface Service is a pure gateway and must not access @prisma/client. Database operations should be handled by the respective microservices.',
+        },
+      ],
+    },
+  },
 );

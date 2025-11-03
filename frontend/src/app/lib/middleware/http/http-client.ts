@@ -40,9 +40,15 @@ export class HttpClient {
   private setupInterceptors() {
     this.client.interceptors.request.use(
       (config) => {
-        const token = authStore.getToken();
+        let token = authStore.getToken();
+        if (!token && typeof window !== 'undefined') {
+          token = localStorage.getItem('auth_token') || null;
+        }
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+        } else {
+          // Log para debug - remover en producción
+          console.warn('⚠️ No token found for request:', config.url);
         }
         return config;
       },

@@ -46,7 +46,7 @@ export class ServiceRegistry {
       {
         name: 'config-service',
         baseUrl: `${baseUrl}:3003`,
-        routes: ['/config'],
+        routes: ['/config', '/fleet'],
         healthCheckUrl: '/health',
       },
       {

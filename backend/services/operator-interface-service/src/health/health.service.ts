@@ -1,30 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService as NestConfigService } from '@nestjs/config';
-import { PrismaService } from '@logistics/database';
 
+/**
+ * HealthService - Gateway Health Check
+ *
+ * NOTA IMPORTANTE: Este es el health check del GATEWAY, no debe acceder a BD directamente.
+ * El gateway simplemente reporta su propio estado.
+ * Los health checks de los microservicios se hacen en ServiceRegistry.
+ */
 @Injectable()
 export class HealthService {
-  constructor(
-    private readonly configService: NestConfigService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly configService: NestConfigService) {}
 
   async getHealthStatus() {
     const timestamp = new Date().toISOString();
     const environment = this.configService.get('NODE_ENV', 'development');
 
-    // Verificar conexión a base de datos
-    const databaseHealthy = await this.prisma.healthCheck();
-
     return {
-      status: databaseHealthy ? 'ok' : 'unhealthy',
+      status: 'ok',
       timestamp,
-      service: 'Logística API',
+      service: 'Operator Interface Gateway',
       version: '1.0.0',
       environment,
-      dependencies: {
-        database: databaseHealthy ? 'healthy' : 'unhealthy',
-      },
+      note: 'Gateway is running. Microservice health checks are performed separately.',
     };
   }
 }

@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Silent Check SSO</title>
+  </head>
+  <body>
+    <script>
+      // Este archivo es cargado por un iframe de Keycloak para completar check-sso sin interacción del usuario
+      // Debe existir en la misma origin que la app.
+      parent.postMessage({ message: 'kc-silent-check-sso' }, location.origin);
+    </script>
+  </body>
+</html>

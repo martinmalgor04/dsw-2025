@@ -72,9 +72,9 @@ export const envConfig: EnvConfig = {
 
   // Keycloak config
   keycloak: {
-    url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', ''),
-    realm: getEnvVar('NEXT_PUBLIC_KEYCLOAK_REALM', 'logistica'),
-    clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'logix-frontend'),
+    url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', 'http://localhost:8080'),
+    realm: getEnvVar('NEXT_PUBLIC_KEYCLOAK_REALM', 'ds-2025-realm'),
+    clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'grupo-02'),
   },
 
   // Environment detection
