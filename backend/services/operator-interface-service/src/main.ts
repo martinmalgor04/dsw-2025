@@ -5,13 +5,17 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { RequestIdMiddleware } from './middleware/request-id.middleware';
+import { randomUUID } from 'crypto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Middleware para generar X-Request-ID en cada request
-  app.use(new RequestIdMiddleware().use.bind(new RequestIdMiddleware()));
+  app.use((req: any, res: any, next: any) => {
+    const requestId = req.headers['x-request-id'] || randomUUID();
+    res.setHeader('x-request-id', requestId);
+    next();
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
