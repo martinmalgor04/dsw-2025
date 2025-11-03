@@ -7,6 +7,7 @@ import {
   Logger,
   BadGatewayException,
   NotFoundException,
+  Next,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ServiceFacade } from './service-facade';
@@ -27,6 +28,9 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
  * - /shipping/* → shipping-service
  * - /stock/* → stock-integration-service
  * - Cualquier nuevo servicio registrado en ServiceRegistry
+ *
+ * NOTA: Las rutas /health y /api/docs NO son proxied
+ * (son manejadas por HealthController y SwaggerModule respectivamente)
  */
 @ApiTags('gateway')
 @Controller()
@@ -67,9 +71,18 @@ export class ProxyController {
     description: 'Bad gateway - service unavailable',
   })
   @ApiResponse({ status: 404, description: 'Service not found for this route' })
-  async proxyRequest(@Req() req: Request, @Res() res: Response) {
+  async proxyRequest(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: any,
+  ) {
     const path = req.path;
     const method = req.method.toUpperCase();
+
+    // Excluir rutas que no deben ser proxied - pasar al siguiente handler
+    if (path === '/health' || path.startsWith('/api/')) {
+      return next();
+    }
 
     this.logger.log(`🔄 Proxy: ${method} ${path}`);
 
