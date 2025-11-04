@@ -1,12 +1,9 @@
 # ===================================
 # DOCKERFILE - STOCK INTEGRATION SERVICE
 # TPI Desarrollo de Software 2025
-# Multi-stage build optimizado con pnpm
+# Build context = service directory
 # ===================================
 
-# ===================================
-# Stage 1: Base - Preparación
-# ===================================
 FROM node:20-alpine AS base
 
 RUN apk add --no-cache \
@@ -20,56 +17,36 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# Stage 2: Dependencies - Instalación
+# Stage 2: Builder
 # ===================================
-FROM base AS dependencies
+FROM base AS builder
 
-# Copiar manifiestos del monorepo (SOLO manifiestos para caché eficiente)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY backend/package.json ./backend/
-COPY backend/shared/database/package.json ./backend/shared/database/
-COPY backend/shared/types/package.json ./backend/shared/types/
-COPY backend/shared/utils/package.json ./backend/shared/utils/
-COPY backend/services/stock-integration-service/package.json ./backend/services/stock-integration-service/
+# Copiar solo lo que necesitamos del servicio
+COPY . .
 
-# Instalar dependencias usando pnpm (respeta workspace)
-RUN pnpm install --frozen-lockfile
+# Build (asume que node_modules ya está)
+# O instalar sin lock (menos reproducible)
+RUN pnpm install --no-frozen-lockfile
 
-# ===================================
-# Stage 3: Builder - Compilación
-# ===================================
-FROM dependencies AS builder
-
-# Copiar código fuente
-COPY backend/shared ./backend/shared
-COPY backend/services/stock-integration-service ./backend/services/stock-integration-service
-COPY tsconfig.json ./
-
-# Compilar librerías compartidas declaradas en package.json
-# (aunque no se usen directamente, pueden ser dependencias transitivas)
-RUN pnpm --filter @logistics/database build
-RUN pnpm --filter @logistics/types build
-RUN pnpm --filter @logistics/utils build
-
-# Compilar stock-integration-service
-RUN pnpm --filter @logistics/stock-integration-service build
+# Compilar
+RUN npm run build
 
 # ===================================
-# Stage 4: Production - Runtime
+# Stage 3: Production
 # ===================================
 FROM base AS production
 
 ENV NODE_ENV=production
 ENV PORT=3002
 
-# Copiar node_modules completo (pnpm ya maneja workspace links correctamente)
-COPY --from=dependencies --chown=nestjs:nodejs /app/node_modules ./node_modules
+# Copiar node_modules del builder
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 
-# Copiar aplicación compilada
-COPY --from=builder --chown=nestjs:nodejs /app/backend/services/stock-integration-service/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/backend/services/stock-integration-service/package.json ./
+# Copiar dist compilado
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
-# Nota: Todas las shared libs se compilan por si son dependencias transitivas
+# Copiar package.json para referencia
+COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
 
 # Cambiar a usuario no-root
 USER nestjs
