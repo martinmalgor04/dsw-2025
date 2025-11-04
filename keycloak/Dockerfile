@@ -35,7 +35,7 @@ ENV KC_DB_USERNAME: ${POSTGRES_USER}
 ENV KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
 # Exponer puerto
-EXPOSE 8080
+EXPOSE 443
 
 # Comando de inicio con importación automática del realm
 # --import-realm importa automáticamente todos los archivos .json desde /opt/keycloak/data/import/
