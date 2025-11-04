@@ -179,10 +179,10 @@ mock-data/
 # ===================================
 # Package manager locks (opcional, según equipo)
 # ===================================
-# Descomentar si el equipo decide no versionar lockfiles
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# Ignorar lockfiles de npm y yarn (usamos pnpm exclusivamente)
+package-lock.json
+yarn.lock
+# pnpm-lock.yaml debe estar versionado
 
 frontend/node_modules
 frontend/dist

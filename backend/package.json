@@ -28,7 +28,6 @@
   ],
   "scripts": {
     "install:all": "pnpm -r --filter \"./backend/**\" install && pnpm -C shared/database prisma:generate",
-    "install:all:npm": "npm install && npm install --prefix=shared/database && npm install --prefix=shared/types && npm install --prefix=shared/utils && npm install --prefix=services/config-service && npm install --prefix=services/operator-interface-service && npm install --prefix=services/shipping-service && npm install --prefix=services/stock-integration-service && npm run prisma:generate && npm run prisma:migrate",
     "build:shared": "pnpm -C shared/database build && pnpm -C shared/types build && pnpm -C shared/utils build",
     "build:services": "pnpm -C services/config-service build && pnpm -C services/operator-interface-service build && pnpm -C services/shipping-service build && pnpm -C services/stock-integration-service build",
     "build": "pnpm run build:shared && pnpm run build:services",
