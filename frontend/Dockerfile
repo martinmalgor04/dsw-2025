@@ -37,19 +37,18 @@ RUN pnpm install --frozen-lockfile --prod
 FROM base AS builder
 
 # Copiar archivos de configuración del monorepo
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copiar packages de frontend y dependencias compartidas
+# Copiar package.json del frontend
 COPY frontend/package.json ./frontend/
 
 # Instalar todas las dependencias (incluyendo dev)
 RUN pnpm install --frozen-lockfile
 
-# Copiar código fuente del frontend y compartido
+# Copiar código fuente completo del frontend
 COPY frontend/ ./frontend/
 
-# Construir la aplicación Next.js
+# Cambiar al directorio del frontend y construir
 WORKDIR /app/frontend
 RUN pnpm run build
 
