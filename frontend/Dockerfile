@@ -35,14 +35,6 @@ RUN pnpm install --prod
 # ===================================
 FROM base AS builder
 
-# Build arguments (se pasan desde docker build --build-arg)
-ARG NEXT_PUBLIC_API_URL=http://localhost:3004
-ARG NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
-ARG NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
-ARG NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=logix-frontend
-ARG NEXT_PUBLIC_ENV=development
-
-# Exportar como env vars para que Next.js las compile
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_KEYCLOAK_URL=$NEXT_PUBLIC_KEYCLOAK_URL
 ENV NEXT_PUBLIC_KEYCLOAK_REALM=$NEXT_PUBLIC_KEYCLOAK_REALM
