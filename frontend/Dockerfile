@@ -63,10 +63,11 @@ USER nextjs
 # Copiar dependencias de producción desde stage deps
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copiar aplicación construida desde stage builder (frontend build)
-COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/frontend/public ./public
+# Copiar aplicación construida desde stage builder
+# El builder compiló en /app (WORKDIR /app), así que .next y public están allí
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Exponer puerto
 EXPOSE 3005
