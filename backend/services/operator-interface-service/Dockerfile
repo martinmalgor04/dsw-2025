@@ -10,8 +10,10 @@ FROM node:20-alpine AS base
 RUN apk add --no-cache \
     dumb-init \
     openssl \
+    curl \
     && addgroup -g 1001 -S nodejs \
-    && adduser -S nestjs -u 1001
+    && adduser -S nestjs -u 1001 \
+    && npm install -g pnpm@latest
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -25,23 +27,23 @@ FROM base AS build
 COPY . .
 
 # Instalar TODAS las dependencias desde raíz
-RUN npm ci
+RUN pnpm install
 
 # Instalar y construir shared/database
 WORKDIR /app/shared/database
-RUN npm ci && npm run build
+RUN pnpm run build
 
 # Instalar y construir shared/types
 WORKDIR /app/shared/types
-RUN npm ci && npm run build
+RUN pnpm run build
 
 # Instalar y construir shared/utils
 WORKDIR /app/shared/utils
-RUN npm ci && npm run build
+RUN pnpm run build
 
 # Instalar y construir operator-interface-service
 WORKDIR /app/services/operator-interface-service
-RUN npm ci && npm run build
+RUN pnpm run build
 
 # ===================================
 # STAGE 2: Production
