@@ -1,6 +1,7 @@
 # ===================================
-# DOCKERFILE - FRONTEND NEXT.JS (Monorepo pnpm)
+# DOCKERFILE - FRONTEND NEXT.JS
 # TPI Desarrollo de Software 2025
+# Construida dentro de carpeta /frontend
 # ===================================
 
 # Usar Node.js 20 Alpine para mejor rendimiento
@@ -22,34 +23,28 @@ WORKDIR /app
 # ===================================
 FROM base AS deps
 
-# Copiar archivos de configuración del monorepo desde directorio padre
-COPY ../pnpm-lock.yaml ../pnpm-workspace.yaml ./
-COPY ../package.json ./
-COPY package.json ./frontend/
+# Copiar solo package.json del frontend
+COPY package.json ./
 
-# Instalar dependencias de producción del frontend
-# (con todas sus dependencias de monorepo)
-RUN pnpm install --frozen-lockfile --prod
+# Instalar dependencias de producción
+# Nota: Sin pnpm-lock.yaml, instala con versiones flexibles
+RUN pnpm install --prod
 
 # ===================================
 # STAGE 2: Builder
 # ===================================
 FROM base AS builder
 
-# Copiar archivos de configuración del monorepo desde directorio padre
-COPY ../pnpm-lock.yaml ../pnpm-workspace.yaml ../package.json ./
-
 # Copiar package.json del frontend
-COPY package.json ./frontend/
+COPY package.json ./
 
 # Instalar todas las dependencias (incluyendo dev)
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
-# Copiar código fuente completo del frontend
-COPY . ./frontend/
+# Copiar código fuente del frontend
+COPY . .
 
-# Cambiar al directorio del frontend y construir
-WORKDIR /app/frontend
+# Construir la aplicación Next.js
 RUN pnpm run build
 
 # ===================================
