@@ -45,10 +45,13 @@ COPY backend/shared ./backend/shared
 COPY backend/services/stock-integration-service ./backend/services/stock-integration-service
 COPY tsconfig.json ./
 
-# Compilar librerías compartidas (solo las que usa este servicio)
+# Compilar librerías compartidas declaradas en package.json
+# (aunque no se usen directamente, pueden ser dependencias transitivas)
+RUN pnpm --filter @logistics/database build
 RUN pnpm --filter @logistics/types build
+RUN pnpm --filter @logistics/utils build
 
-# Compilar stock-integration-service (NO necesita database ni utils)
+# Compilar stock-integration-service
 RUN pnpm --filter @logistics/stock-integration-service build
 
 # ===================================
@@ -66,7 +69,7 @@ COPY --from=dependencies --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/backend/services/stock-integration-service/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/backend/services/stock-integration-service/package.json ./
 
-# Nota: stock-integration-service NO usa @logistics/database, solo @logistics/types
+# Nota: Todas las shared libs se compilan por si son dependencias transitivas
 
 # Cambiar a usuario no-root
 USER nestjs
