@@ -1,6 +1,7 @@
 # ===================================
 # DOCKERFILE - OPERATOR INTERFACE SERVICE
 # TPI Desarrollo de Software 2025
+# Diseñado para correr desde Dokploy con context /backend/services/operator-interface-service
 # ===================================
 
 # Usar Node.js 20 Alpine para mejor rendimiento
@@ -19,34 +20,35 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# STAGE 1: Build
+# STAGE 1: Dependencies
 # ===================================
-FROM base AS build
+FROM base AS deps
 
-# Copiar TODO el monorepo
-COPY . .
+# Copiar solo package.json del operator
+COPY package.json ./
 
-# Instalar TODAS las dependencias desde raíz
+# Instalar dependencias de producción
+RUN pnpm install --prod
+
+# ===================================
+# STAGE 2: Builder
+# ===================================
+FROM base AS builder
+
+# Copiar package.json del operator
+COPY package.json ./
+
+# Instalar todas las dependencias (incluyendo dev)
 RUN pnpm install
 
-# Instalar y construir shared/database
-WORKDIR /app/shared/database
-RUN pnpm run build
+# Copiar código fuente del operator
+COPY . .
 
-# Instalar y construir shared/types
-WORKDIR /app/shared/types
-RUN pnpm run build
-
-# Instalar y construir shared/utils
-WORKDIR /app/shared/utils
-RUN pnpm run build
-
-# Instalar y construir operator-interface-service
-WORKDIR /app/services/operator-interface-service
+# Construir la aplicación NestJS
 RUN pnpm run build
 
 # ===================================
-# STAGE 2: Production
+# STAGE 3: Runner (Producción)
 # ===================================
 FROM base AS production
 
@@ -54,48 +56,22 @@ FROM base AS production
 ENV NODE_ENV=production
 ENV PORT=3004
 
-# Establecer directorio de trabajo
-WORKDIR /app
-
-# Copiar aplicación construida
-COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/dist ./dist
-COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/package*.json ./
-
-# Copiar node_modules del servicio (dependencias directas del servicio)
-COPY --from=build --chown=nestjs:nodejs /app/services/operator-interface-service/node_modules ./node_modules
-
-# Copiar Prisma schema y archivos generados
-COPY --from=build --chown=nestjs:nodejs /app/shared/database/prisma ./prisma
-
-# Copiar Prisma dependencies de shared/database
-COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/@prisma ./node_modules/@prisma
-COPY --from=build --chown=nestjs:nodejs /app/shared/database/node_modules/.prisma ./node_modules/.prisma
-
-# Copiar archivos compilados de shared packages
-COPY --from=build --chown=nestjs:nodejs /app/shared/database/dist ./shared/database/dist
-COPY --from=build --chown=nestjs:nodejs /app/shared/types/dist ./shared/types/dist
-COPY --from=build --chown=nestjs:nodejs /app/shared/utils/dist ./shared/utils/dist
-
-# Crear directorios para módulos locales y hacer symlinks (para resolver @logistics/*)
-# Los archivos compilados están en ./shared/*/dist, apuntamos a los índices compilados
-RUN mkdir -p /app/node_modules/@logistics && \
-    rm -rf /app/node_modules/@logistics/database && \
-    rm -rf /app/node_modules/@logistics/types && \
-    rm -rf /app/node_modules/@logistics/utils && \
-    ln -s /app/shared/database/dist /app/node_modules/@logistics/database && \
-    ln -s /app/shared/types/dist /app/node_modules/@logistics/types && \
-    ln -s /app/shared/utils/dist /app/node_modules/@logistics/utils && \
-    chown -h nestjs:nodejs /app/node_modules/@logistics/*
-
 # Crear usuario no-root
 USER nestjs
+
+# Copiar dependencias de producción desde stage deps
+COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
+
+# Copiar aplicación construida desde stage builder
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
 
 # Exponer puerto
 EXPOSE 3004
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3004/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD curl -f http://localhost:3004/health || exit 1
 
 # Comando de inicio
 ENTRYPOINT ["dumb-init", "--"]
