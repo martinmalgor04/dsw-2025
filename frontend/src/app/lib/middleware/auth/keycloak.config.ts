@@ -46,7 +46,7 @@ export const keycloakInitOptions = {
   // 'login-required' solo en la página principal para forzar login
   // En el callback, se usa 'check-sso' para evitar loops
   onLoad: undefined as any, // No usar onLoad automático - manejar manualmente
-  pkceMethod: undefined, // PKCE desactivado en desarrollo
+  pkceMethod: 'S256', // PKCE habilitado para producción (Web Crypto API)
   checkLoginIframe: false,
   enableLogging: true,
   // Redirigir a la página de callback que maneja la autenticación
