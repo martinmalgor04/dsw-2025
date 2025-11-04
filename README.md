@@ -1,7 +1,20 @@
 # 📦 Módulo de Transporte, Logística y Seguimiento
 
-> **Trabajo Práctico Integrador - Desarrollo de Software 2025**  
+> **Trabajo Práctico Integrador - Desarrollo de Software 2025**
 > **UTN FRRE - Facultad Regional Resistencia - Grupo 12**
+
+## 📚 Documentación
+
+**Toda la documentación técnica está centralizada en [`/docs`](./docs/)**
+
+### Guías Rápidas:
+- 🚀 **[Deployment en Dokploy](./docs/deployment/INDEX.md)** - Guía completa de despliegue
+- 🌐 **[Networking](./docs/deployment/DOKPLOY-NETWORKING.md)** - Configuración de red y servicios
+- 🗄️ **[Database](./docs/deployment/DOKPLOY-DATABASE.md)** - PostgreSQL + Prisma
+- 🏗️ **[Arquitectura](./docs/architecture/README.md)** - Diseño del sistema
+- 📡 **[API](./docs/api/README.md)** - Endpoints y contratos
+
+---
 
 ## 🎯 Descripción del Proyecto
 

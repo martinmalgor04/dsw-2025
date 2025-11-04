@@ -40,24 +40,24 @@ export class ServiceRegistry {
    * - Kubernetes service discovery
    */
   private initializeServices() {
-    const baseUrl = process.env.BACKEND_BASE_URL || 'http://localhost';
-
+    // Permitir URLs completas por servicio (mejor para Docker/Kubernetes)
+    // Fallback a URLs locales para desarrollo
     const servicesConfig = [
       {
         name: 'config-service',
-        baseUrl: `${baseUrl}:3003`,
+        baseUrl: process.env.CONFIG_SERVICE_URL || 'http://localhost:3003',
         routes: ['/config', '/fleet'],
         healthCheckUrl: '/health',
       },
       {
         name: 'shipping-service',
-        baseUrl: `${baseUrl}:3001`,
+        baseUrl: process.env.SHIPPING_SERVICE_URL || 'http://localhost:3001',
         routes: ['/shipping'],
         healthCheckUrl: '/health',
       },
       {
         name: 'stock-integration-service',
-        baseUrl: `${baseUrl}:3002`,
+        baseUrl: process.env.STOCK_SERVICE_URL || 'http://localhost:3002',
         routes: ['/stock'],
         healthCheckUrl: '/health',
       },
