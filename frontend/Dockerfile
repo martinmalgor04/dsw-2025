@@ -35,8 +35,8 @@ RUN pnpm install --prod
 # ===================================
 FROM base AS builder
 
-ENV NEXT_PUBLIC_API_URL=logistica.mmalgor.com.ar:3004
-ENV NEXT_PUBLIC_KEYCLOAK_URL=keycloak.mmalgor.com.ar
+ENV NEXT_PUBLIC_API_URL=http://logistica.mmalgor.com.ar:3004
+ENV NEXT_PUBLIC_KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
 ENV NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
 ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=grupo-02
 ENV NEXT_PUBLIC_ENV=production
