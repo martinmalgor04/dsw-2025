@@ -15,7 +15,6 @@ services:
     command: start --import-realm
     environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
-      KC_HOSTNAME_URL: ${KC_HOSTNAME_URL:-https://keycloak.mmalgor.com.ar}
       KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME_ADMIN_URL:-https://keycloak.mmalgor.com.ar}
       KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT:-443}
       KC_PROXY: ${KC_PROXY:-edge}
