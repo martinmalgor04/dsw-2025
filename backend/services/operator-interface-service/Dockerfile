@@ -1,13 +1,13 @@
 # ===================================
 # DOCKERFILE - OPERATOR INTERFACE SERVICE
 # TPI Desarrollo de Software 2025
-# Diseñado para correr desde Dokploy con context /backend/services/operator-interface-service
+# Asume build context = raíz del monorepo
 # ===================================
 
 # Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
-# Instalar dependencias del sistema necesarias (incluyendo OpenSSL para Prisma)
+# Instalar dependencias del sistema necesarias
 RUN apk add --no-cache \
     dumb-init \
     openssl \
@@ -20,51 +20,42 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# STAGE 1: Dependencies
-# ===================================
-FROM base AS deps
-
-# Copiar solo package.json del operator
-COPY package.json ./
-
-# Instalar dependencias de producción
-RUN pnpm install --prod
-
-# ===================================
-# STAGE 2: Builder
+# STAGE 1: Builder
 # ===================================
 FROM base AS builder
 
-# Copiar package.json del operator
-COPY package.json ./
-
-# Instalar todas las dependencias (incluyendo dev)
-RUN pnpm install
-
-# Copiar código fuente del operator
+# Copiar monorepo completo
 COPY . .
 
-# Construir la aplicación NestJS
-RUN pnpm run build
+# Instalar todas las dependencias del monorepo
+RUN pnpm install
+
+# Construir solo el operator service
+RUN pnpm -C backend/services/operator-interface-service run build
 
 # ===================================
-# STAGE 3: Runner (Producción)
+# STAGE 2: Production
 # ===================================
 FROM base AS production
 
-# Variables de entorno
 ENV NODE_ENV=production
 ENV PORT=3004
 
+# Copiar package.json del operator
+COPY backend/services/operator-interface-service/package.json /app/package.json
+
+# Copiar node_modules COMPLETO incluyendo .pnpm
+# pnpm estructura los módulos con symlinks en .pnpm, todos deben copiarse juntos
+COPY --from=builder /app/node_modules /app/node_modules
+
+# Copiar dist del operator
+COPY --from=builder /app/backend/services/operator-interface-service/dist /app/dist
+
+# Permisos
+RUN chown -R nestjs:nodejs /app
+
 # Crear usuario no-root
 USER nestjs
-
-# Copiar dependencias de producción desde stage deps
-COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
-
-# Copiar aplicación construida desde stage builder
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
 
 # Exponer puerto
 EXPOSE 3004
