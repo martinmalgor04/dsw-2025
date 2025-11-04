@@ -9,11 +9,12 @@
 # Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
-# Instalar dependencias del sistema necesarias
+# Instalar dependencias del sistema necesarias y pnpm
 RUN apk add --no-cache \
     dumb-init \
     && addgroup -g 1001 -S nodejs \
-    && adduser -S nextjs -u 1001
+    && adduser -S nextjs -u 1001 \
+    && npm install -g pnpm@latest
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -23,28 +24,28 @@ WORKDIR /app
 # ===================================
 FROM base AS deps
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Copiar archivos de dependencias (package.json y pnpm-lock.yaml)
+COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
+# Instalar dependencias de producción
+RUN pnpm install --frozen-lockfile --prod
 
 # ===================================
 # STAGE 2: Builder
 # ===================================
 FROM base AS builder
 
-# Copiar archivos de dependencias
-COPY package*.json ./
+# Copiar archivos de dependencias (package.json y pnpm-lock.yaml)
+COPY package.json pnpm-lock.yaml ./
 
 # Instalar todas las dependencias (incluyendo dev)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copiar código fuente
 COPY . .
 
 # Construir la aplicación Next.js
-RUN npm run build
+RUN pnpm run build
 
 # ===================================
 # STAGE 3: Runner
