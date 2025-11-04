@@ -22,10 +22,10 @@ WORKDIR /app
 # ===================================
 FROM base AS deps
 
-# Copiar archivos de configuración del monorepo
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY frontend/package.json ./frontend/
-COPY package.json ./
+# Copiar archivos de configuración del monorepo desde directorio padre
+COPY ../pnpm-lock.yaml ../pnpm-workspace.yaml ./
+COPY ../package.json ./
+COPY package.json ./frontend/
 
 # Instalar dependencias de producción del frontend
 # (con todas sus dependencias de monorepo)
@@ -36,17 +36,17 @@ RUN pnpm install --frozen-lockfile --prod
 # ===================================
 FROM base AS builder
 
-# Copiar archivos de configuración del monorepo
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Copiar archivos de configuración del monorepo desde directorio padre
+COPY ../pnpm-lock.yaml ../pnpm-workspace.yaml ../package.json ./
 
 # Copiar package.json del frontend
-COPY frontend/package.json ./frontend/
+COPY package.json ./frontend/
 
 # Instalar todas las dependencias (incluyendo dev)
 RUN pnpm install --frozen-lockfile
 
 # Copiar código fuente completo del frontend
-COPY frontend/ ./frontend/
+COPY . ./frontend/
 
 # Cambiar al directorio del frontend y construir
 WORKDIR /app/frontend
