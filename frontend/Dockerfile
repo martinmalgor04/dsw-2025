@@ -1,17 +1,15 @@
 # ===================================
-# DOCKERFILE - FRONTEND NEXT.JS
+# DOCKERFILE - FRONTEND NEXT.JS (Monorepo pnpm)
 # TPI Desarrollo de Software 2025
 # ===================================
-
-# Force rebuild timestamp: 2025-10-27T12:30:00Z
-# (cambiar este valor fuerza Docker a ignorar caché)
 
 # Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
-# Instalar dependencias del sistema necesarias y pnpm
+# Instalar dependencias del sistema necesarias
 RUN apk add --no-cache \
     dumb-init \
+    curl \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nextjs -u 1001 \
     && npm install -g pnpm@latest
@@ -20,14 +18,17 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# STAGE 1: Dependencies
+# STAGE 1: Dependencies (Producción)
 # ===================================
 FROM base AS deps
 
-# Copiar archivos de dependencias (package.json y pnpm-lock.yaml)
-COPY package.json pnpm-lock.yaml ./
+# Copiar archivos de configuración del monorepo
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json ./frontend/
+COPY package.json ./
 
-# Instalar dependencias de producción
+# Instalar dependencias de producción del frontend
+# (con todas sus dependencias de monorepo)
 RUN pnpm install --frozen-lockfile --prod
 
 # ===================================
@@ -35,16 +36,21 @@ RUN pnpm install --frozen-lockfile --prod
 # ===================================
 FROM base AS builder
 
-# Copiar archivos de dependencias (package.json y pnpm-lock.yaml)
-COPY package.json pnpm-lock.yaml ./
+# Copiar archivos de configuración del monorepo
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json ./
+
+# Copiar packages de frontend y dependencias compartidas
+COPY frontend/package.json ./frontend/
 
 # Instalar todas las dependencias (incluyendo dev)
 RUN pnpm install --frozen-lockfile
 
-# Copiar código fuente
-COPY . .
+# Copiar código fuente del frontend y compartido
+COPY frontend/ ./frontend/
 
 # Construir la aplicación Next.js
+WORKDIR /app/frontend
 RUN pnpm run build
 
 # ===================================
@@ -60,20 +66,20 @@ ENV HOSTNAME="0.0.0.0"
 # Crear usuario no-root
 USER nextjs
 
-# Copiar dependencias de producción
+# Copiar dependencias de producción desde stage deps
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copiar aplicación construida
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Copiar aplicación construida desde stage builder (frontend build)
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/public ./public
 
 # Exponer puerto
 EXPOSE 3005
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3005', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD curl -f http://localhost:3005 || exit 1
 
 # Comando de inicio
 ENTRYPOINT ["dumb-init", "--"]
