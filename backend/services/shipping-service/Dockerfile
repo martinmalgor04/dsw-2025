@@ -1,7 +1,8 @@
 # ===================================
 # DOCKERFILE - SHIPPING SERVICE
 # TPI Desarrollo de Software 2025
-# Build context = service directory
+# Multi-stage build optimizado con pnpm
+# Build Context: . (monorepo root)
 # ===================================
 
 FROM node:20-alpine AS base
@@ -17,19 +18,21 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # ===================================
-# Stage 2: Builder
+# Stage 2: Runtime Dependencies
 # ===================================
-FROM base AS builder
+FROM base AS runtime-deps
 
-# Copiar solo lo que necesitamos del servicio
-COPY . .
+# Copiar configuración del monorepo
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+COPY package.json ./
 
-# Build (asume que node_modules ya está)
-# O instalar sin lock (menos reproducible)
-RUN pnpm install --no-frozen-lockfile
+# Copiar estructura completa para resolver workspace
+COPY backend/services ./backend/services
+COPY backend/shared ./backend/shared
 
-# Compilar
-RUN npm run build
+# Instalar solo dependencias de runtime (no devDependencies, no scripts)
+RUN pnpm install --prod --ignore-scripts
 
 # ===================================
 # Stage 3: Production
@@ -39,14 +42,14 @@ FROM base AS production
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# Copiar node_modules del builder
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+# Copiar pre-built dist (compilado en desarrollo local)
+COPY backend/services/shipping-service/dist ./dist
 
-# Copiar dist compilado
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+# Copiar node_modules de runtime
+COPY --from=runtime-deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 
 # Copiar package.json para referencia
-COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
+COPY backend/services/shipping-service/package.json ./
 
 # Cambiar a usuario no-root
 USER nestjs
