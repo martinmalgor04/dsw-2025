@@ -15,15 +15,20 @@ services:
     #command: start
     command: start --import-realm
     environment:
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.6
+    command: start --import-realm
+    environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_URL: ${KC_HOSTNAME_URL:-https://keycloak.mmalgor.com.ar}
+      KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME_ADMIN_URL:-https://keycloak.mmalgor.com.ar}
       KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT:-443}
-      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
-      KC_HOSTNAME_STRICT_BACKCHANNEL: ${KC_HOSTNAME_STRICT_BACKCHANNEL:-false}
-      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}
-      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
-      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED:-true}
       KC_PROXY: ${KC_PROXY:-edge}
       KC_PROXY_ADDRESS_FORWARDING: ${KC_PROXY_ADDRESS_FORWARDING:-true}
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}
+      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
+      KC_HOSTNAME_STRICT_BACKCHANNEL: ${KC_HOSTNAME_STRICT_BACKCHANNEL:-false}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
