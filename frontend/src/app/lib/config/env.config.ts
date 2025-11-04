@@ -51,36 +51,40 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
 }
 
 /**
- * Configuración de entorno - se evalúa en tiempo de ejecución
+ * Configuración de entorno - Usa las variables compiladas en build time
+ * En Next.js, NEXT_PUBLIC_* se reemplazan en build, no en runtime
  */
-// Validar que NEXT_PUBLIC_API_URL esté definida
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+// Las variables ya están compiladas, simplemente usarlas
+const apiUrl = typeof window !== 'undefined'
+  ? process.env.NEXT_PUBLIC_API_URL
+  : process.env.NEXT_PUBLIC_API_URL;
+
 if (!apiUrl && typeof window !== 'undefined') {
   console.error('❌ FATAL: NEXT_PUBLIC_API_URL is not defined! Check Dokploy Build Environment Variables.');
 }
 
 export const envConfig: EnvConfig = {
   // Gateway único - todos los requests van aquí
-  // ⚠️ DEBE estar definido en variables de entorno
-  apiUrl: apiUrl || 'http://localhost:3004',  // fallback solo para desarrollo local
+  // Las variables NEXT_PUBLIC_* se compilan en build time
+  apiUrl: apiUrl || 'http://localhost:3004',
 
   // Frontend URL - para redirecciones de autenticación
   // En browser, se detecta automáticamente. En servidor/test, usar variable
   frontendUrl: typeof window !== 'undefined'
     ? window.location.origin
-    : getEnvVar('NEXT_PUBLIC_FRONTEND_URL', 'http://localhost:3000'),
+    : (process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'),
 
   // Keycloak config
   keycloak: {
-    url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', 'http://localhost:8080'),
-    realm: getEnvVar('NEXT_PUBLIC_KEYCLOAK_REALM', 'ds-2025-realm'),
-    clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'grupo-02'),
+    url: process.env.NEXT_PUBLIC_KEYCLOAK_URL || 'http://localhost:8080',
+    realm: process.env.NEXT_PUBLIC_KEYCLOAK_REALM || 'ds-2025-realm',
+    clientId: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || 'grupo-02',
   },
 
   // Environment detection
-  env: (getEnvVar('NEXT_PUBLIC_ENV', 'development') as EnvConfig['env']),
-  isDevelopment: getEnvVar('NEXT_PUBLIC_ENV', 'development') === 'development',
-  isProduction: getEnvVar('NEXT_PUBLIC_ENV', 'development') === 'production',
+  env: ((process.env.NEXT_PUBLIC_ENV || 'development') as EnvConfig['env']),
+  isDevelopment: (process.env.NEXT_PUBLIC_ENV || 'development') === 'development',
+  isProduction: (process.env.NEXT_PUBLIC_ENV || 'development') === 'production',
 };
 
 /**
