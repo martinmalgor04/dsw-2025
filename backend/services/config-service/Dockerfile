@@ -70,6 +70,11 @@ COPY ${SERVICE_PATH} ./${SERVICE_PATH}
 # NOTA: El postinstall de @prisma/client generará automáticamente el Prisma Client
 RUN pnpm install --frozen-lockfile --filter=${SERVICE_FILTER}...
 
+# Compilar shared packages PRIMERO (el servicio depende de estos)
+RUN pnpm --filter @logistics/types run build
+RUN pnpm --filter @logistics/utils run build
+RUN pnpm --filter @logistics/database run build
+
 # Build del servicio (y sus dependencias workspace)
 WORKDIR /app/${SERVICE_PATH}
 RUN pnpm run build

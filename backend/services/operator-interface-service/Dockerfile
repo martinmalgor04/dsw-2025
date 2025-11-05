@@ -65,6 +65,9 @@ COPY ${SERVICE_PATH} ./${SERVICE_PATH}
 # Instalar dependencias usando --filter (incluye workspace dependencies)
 RUN pnpm install --frozen-lockfile --filter=${SERVICE_FILTER}...
 
+# Compilar shared packages PRIMERO (el servicio depende de estos)
+RUN pnpm --filter @logistics/types run build
+
 # Build del servicio (y sus dependencias workspace)
 WORKDIR /app/${SERVICE_PATH}
 RUN pnpm run build
