@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - keycloak_network
-
+      
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
     command: start --import-realm
@@ -19,10 +19,10 @@ services:
       KC_PROXY: ${KC_PROXY:-edge}
       KC_PROXY_ADDRESS_FORWARDING: ${KC_PROXY_ADDRESS_FORWARDING:-true}
       QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING: ${QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING:-true}
-      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}
-      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
-      KC_HOSTNAME_STRICT_BACKCHANNEL: ${KC_HOSTNAME_STRICT_BACKCHANNEL:-false}
-      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HOSTNAME_STRICT_HTTPS: false
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
