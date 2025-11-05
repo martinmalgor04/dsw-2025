@@ -76,7 +76,6 @@ RUN pnpm --filter @logistics/utils run build
 RUN pnpm --filter @logistics/database run build
 
 # Build del servicio (y sus dependencias workspace)
-# IMPORTANTE: shipping-service tiene un build especial que reorganiza archivos en dist/
 WORKDIR /app/${SERVICE_PATH}
 RUN pnpm run build
 

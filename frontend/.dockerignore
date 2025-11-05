@@ -29,7 +29,7 @@ jest.config.js
 .jest
 
 # TypeScript
-tsconfig.json
+# tsconfig.json - NEEDED for path aliases (@/*) resolution
 
 # Documentation
 README.md

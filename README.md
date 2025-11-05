@@ -142,26 +142,8 @@ npm run start:dev
 
 # Frontend (cuando esté implementado)
 cd frontend
-npm install
-npm run dev
-```
-
-## 🐳 Docker (Recomendado)
-
-### Comandos Principales
-```bash
-# Desarrollo
-./scripts/docker.sh up-dev      # Levantar servicios de desarrollo
-./scripts/docker.sh logs         # Ver logs
-./scripts/docker.sh health       # Verificar health
-
-# Producción
-./scripts/docker.sh build        # Construir imágenes
-./scripts/docker.sh up          # Levantar servicios de producción
-
-# Gestión
-./scripts/docker.sh status       # Ver estado
-./scripts/docker.sh clean        # Limpiar Docker
+pnpm install
+pnpm dev
 ```
 
 ### Servicios Disponibles
@@ -237,13 +219,6 @@ npm run test           # Tests
 npm run test:e2e       # Tests E2E
 npx prisma studio      # Interfaz BD
 npx prisma migrate dev # Migraciones
-```
-
-### Docker
-```bash
-docker-compose up -d   # Levantar servicios
-docker-compose down    # Detener servicios
-docker-compose logs    # Ver logs
 ```
 
 ## 📚 Documentación
