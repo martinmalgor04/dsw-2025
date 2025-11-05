@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import axios, { AxiosError } from 'axios';
 
 /**
  * Representa un servicio registrado en la arquitectura

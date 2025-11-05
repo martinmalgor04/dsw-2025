@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16.2
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_db_user
+      POSTGRES_PASSWORD: keycloak_db_user_password
+    networks:
+      - keycloak_network_local
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.6
+    command: start-dev --import-realm --http-enabled=true --hostname-strict=false
+    environment:
+      # Modo desarrollo - deshabilita todas las validaciones SSL
+      KC_HTTP_RELATIVE_PATH: /
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_URL: http://localhost:8080
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_PROXY: none
+      KC_PROXY_ADDRESS_FORWARDING: false
+      
+      # Credenciales de administrador
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ds2025
+      
+      # Configuración de base de datos
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak_db
+      KC_DB_USERNAME: keycloak_db_user
+      KC_DB_PASSWORD: keycloak_db_user_password
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-config:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_network_local
+
+volumes:
+  postgres_data_local:
+    driver: local
+
+networks:
+  keycloak_network_local:
+    driver: bridge
