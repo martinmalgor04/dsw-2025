@@ -28,6 +28,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
+  // Obtener puerto antes de usarlo en Swagger
+  const port = process.env.PORT || 3003;
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Config Service API')
@@ -43,7 +46,7 @@ async function bootstrap() {
       'grupo12@logistics.com',
     )
     .setLicense('Apache 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
-    .addServer('http://localhost:3003', 'Development')
+    .addServer(`http://localhost:${port}`, 'Development')
     .addServer('http://localhost:3004/config', 'Via Gateway')
     .addTag('config', '📦 Configuration - Transport, Zones, and Tariffs')
     .addTag('fleet', '🚚 Fleet - Vehicles, Drivers, and Routes')
@@ -67,8 +70,6 @@ async function bootstrap() {
       }
     `,
   });
-
-  const port = process.env.PORT || 3003;
   await app.listen(port);
 
   console.log(`🚀 Config Service running on http://localhost:${port}`);

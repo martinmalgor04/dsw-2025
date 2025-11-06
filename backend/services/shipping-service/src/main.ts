@@ -28,8 +28,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
+  // Obtener puerto antes de usarlo en Swagger
   const port = process.env.PORT || 3001;
-  await app.listen(port);
 
   // Swagger documentation
   const config = new DocumentBuilder()
@@ -57,6 +57,8 @@ async function bootstrap() {
     customSiteTitle: 'Shipping Service API - Docs',
     customCss: '.swagger-ui .topbar { display: none }',
   });
+
+  await app.listen(port);
 
   console.log(`🚀 Shipping Service running on http://localhost:${port}`);
   console.log(

@@ -381,26 +381,6 @@ curl -X POST http://localhost:3001/api/shipping/quote \
   }'
 ```
 
-### Usar Postman
-
-Se puede importar la especificación OpenAPI desde:
-- http://localhost:3004/api/docs-json (Operator Interface)
-- http://localhost:3001/api/docs-json (Shipping)
-- http://localhost:3002/api/docs-json (Stock Integration)
-- http://localhost:3003/api/docs-json (Config)
-
----
-
-## 🔄 Versionado de API
-
-Actualmente: **v1** (implícito)
-
-Futuro:
-- `/api/v1/shipping`
-- `/api/v2/shipping`
-
----
-
 ## 📊 Rate Limiting
 
 **En desarrollo**: Sin límites
@@ -415,7 +395,7 @@ Futuro:
 
 Configuración actual (desarrollo):
 ```javascript
-origin: ['http://localhost:5173', 'http://localhost:3000']
+origin: ['http://localhost:3005', 'http://localhost:3000']
 ```
 
 Producción:
@@ -428,7 +408,6 @@ origin: ['https://logistica.ds.frre.utn.edu.ar']
 ## 📚 Recursos Adicionales
 
 - [OpenAPI Specification](../../openapilog.yaml)
-- [Postman Collection](./postman/)
 - [API Testing Guide](../../TESTING.md)
 - [Architecture Documentation](../architecture/README.md)
 

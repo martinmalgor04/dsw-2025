@@ -24,6 +24,9 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Obtener puerto antes de usarlo en Swagger
+  const port = process.env.PORT || 3002;
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Stock Integration Service API')
@@ -51,8 +54,6 @@ async function bootstrap() {
     customSiteTitle: 'Stock Integration Service API - Docs',
     customCss: '.swagger-ui .topbar { display: none }',
   });
-
-  const port = process.env.PORT || 3002;
   await app.listen(port);
 
   console.log(
