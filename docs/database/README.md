@@ -1,4 +1,13 @@
-# 🗄️ Diseño de Base de Datos
+# 🗄️ Diseño de Base de Datos - Visión General
+
+> **📖 IMPORTANTE: Para el esquema Prisma actual y documentación completa, ver:**  
+> **[Backend Database Documentation](../backend/docs/database/README.md)**
+> 
+> Este archivo muestra el diseño en formato SQL.  
+> La documentación actualizada con Prisma schema está en `/backend/docs/database/README.md`.
+
+---
+
 
 ## Visión General
 

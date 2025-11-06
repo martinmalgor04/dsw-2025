@@ -1,4 +1,13 @@
-# 📡 Documentación de APIs
+# 📡 Documentación de APIs - Visión General
+
+> **📖 IMPORTANTE: Para documentación técnica completa y actualizada, ver:**  
+> **[Backend API Documentation](../backend/docs/api/README.md)**
+> 
+> Esta es una guía general. La documentación detallada con ejemplos completos,  
+> modelos de datos actualizados y testing está en `/backend/docs/api/README.md`.
+
+---
+
 
 ## APIs Disponibles
 
