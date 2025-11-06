@@ -105,7 +105,7 @@ Config Shipping Stock External
 ### Desarrollo
 - CORS configurado
 - Validación de input (DTOs)
-- Sin autenticación (endpoints abiertos)
+- Sin autenticación (endpoints abiertos al 06/11/2025)
 
 ### Producción (Roadmap)
 - **Autenticación**: Keycloak + JWT
@@ -144,8 +144,3 @@ Esta documentación incluye:
 
 - **[API Documentation](../backend/docs/api/README.md)** - Endpoints y contratos
 - **[Database Schema](../backend/docs/database/README.md)** - Prisma schema y migraciones
-- **[Deployment Guide](./deployment/INDEX.md)** - Guías de despliegue en Dokploy
-
----
-
-**Mantenido por**: Grupo 12 - UTN FRRE

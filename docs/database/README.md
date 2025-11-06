@@ -15,7 +15,7 @@ Base de datos PostgreSQL alojada en Supabase, diseñada para soportar operacione
 
 ## Esquema de Base de Datos
 
-### Tablas Principales
+### Tablas Principales / No implementado al 06/11/2025
 
 #### 1. `shipments` - Envíos
 ```sql

@@ -6,19 +6,6 @@
 
 ## 📋 Índice General
 
-### **🚀 Deployment**
-Toda la documentación de despliegue en Dokploy.
-
-- **[Índice de Deployment](./deployment/INDEX.md)** - Punto de entrada principal
-- **[Quick Start Dokploy](./deployment/DOKPLOY-README-QUICK.md)** - Guía rápida
-- **[Networking](./deployment/DOKPLOY-NETWORKING.md)** - Configuración de red
-- **[Database](./deployment/DOKPLOY-DATABASE.md)** - PostgreSQL + Prisma
-- **[Environment Variables Fix](./deployment/DOKPLOY-ENV-FIX.md)** - Problemas conocidos
-
-**Para deploys en Dokploy, empezar aquí:** [`deployment/INDEX.md`](./deployment/INDEX.md)
-
----
-
 ### **🏗️ Arquitectura**
 Diseño del sistema y decisiones técnicas.
 
@@ -76,20 +63,6 @@ Endpoints, contratos y documentación Swagger.
 
 ## 🔧 Guías por Tarea
 
-### **Quiero deployar en Dokploy:**
-1. ✅ Lee [`deployment/INDEX.md`](./deployment/INDEX.md)
-2. ✅ Sigue [`deployment/DOKPLOY-README-QUICK.md`](./deployment/DOKPLOY-README-QUICK.md)
-3. ✅ Configura networking: [`deployment/DOKPLOY-NETWORKING.md`](./deployment/DOKPLOY-NETWORKING.md)
-4. ✅ Configura database: [`deployment/DOKPLOY-DATABASE.md`](./deployment/DOKPLOY-DATABASE.md)
-
-### **Tengo un problema de conectividad:**
-1. ✅ [`deployment/DOKPLOY-NETWORKING.md`](./deployment/DOKPLOY-NETWORKING.md) - Sección Troubleshooting
-2. ✅ Verifica variables de entorno: [`deployment/DOKPLOY-ENV-FIX.md`](./deployment/DOKPLOY-ENV-FIX.md)
-
-### **Tengo un problema con la base de datos:**
-1. ✅ [`deployment/DOKPLOY-DATABASE.md`](./deployment/DOKPLOY-DATABASE.md) - Sección Troubleshooting
-2. ✅ Verifica migraciones: `npx prisma migrate status`
-
 ### **Quiero entender la arquitectura:**
 1. ✅ [`architecture/README.md`](./architecture/README.md)
 2. ✅ Lee el código de `service-registry.ts` y `service-facade.ts`
@@ -130,12 +103,6 @@ Endpoints, contratos y documentación Swagger.
 ```
 docs/
 ├── README.md (este archivo)
-├── deployment/
-│   ├── INDEX.md
-│   ├── DOKPLOY-README-QUICK.md
-│   ├── DOKPLOY-NETWORKING.md
-│   ├── DOKPLOY-DATABASE.md
-│   └── DOKPLOY-ENV-FIX.md
 ├── architecture/
 │   └── README.md
 ├── database/

@@ -39,12 +39,12 @@
 
 ### Swagger UI
 - **Desarrollo**: http://localhost:3000/api/docs
-- **Producción**: https://api.logistica.com/docs
+- **Producción**: https://apilogistica.mmalgor.com.ar/api/docs
 
 ### Validación
 - **Entrada**: DTOs con class-validator
 - **Salida**: Tipos TypeScript generados
-- **Errores**: Códigos HTTP estándar
+- **Errores**: Códigos HTTP/S estándares
 
 ## Autenticación
 
@@ -52,7 +52,7 @@
 - Sin autenticación (modo desarrollo)
 
 ### Producción
-- JWT tokens (futuro)
+- JWT tokens (futuro) (aun no al 06/11/2025)
 - API keys para sistemas externos
 
 ## Rate Limiting
@@ -63,8 +63,6 @@
 ## Versionado
 
 - **Actual**: v1.0.0
-- **Estrategia**: URL versioning (`/api/v1/`)
-- **Compatibilidad**: Backward compatible
 
 ## Ejemplos de Uso
 
@@ -119,4 +117,4 @@ curl -X POST http://localhost:3000/shipping \
 
 ---
 
-**Última actualización**: 16 de Octubre de 2025
+**Última actualización**: 6 de Noviembre de 2025

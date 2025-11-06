@@ -39,6 +39,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
+  // Obtener puerto antes de usarlo en Swagger
+  const port = process.env.PORT || 3004;
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Operator Interface API Gateway')
@@ -66,8 +69,6 @@ async function bootstrap() {
     customSiteTitle: 'Operator Interface API Gateway - Docs',
     customCss: '.swagger-ui .topbar { display: none }',
   });
-
-  const port = process.env.PORT || 3004;
   await app.listen(port);
 
   console.log(
