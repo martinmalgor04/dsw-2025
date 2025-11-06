@@ -27,14 +27,30 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Stock Integration Service API')
-    .setDescription('HTTP client service for Stock module integration')
-    .setVersion('1.0')
-    .addTag('stock', 'Stock module operations')
-    .addTag('health', 'Health checks')
+    .setDescription(
+      'Servicio HTTP interno para integración con el módulo de Stock. ' +
+        'Proporciona cliente resiliente con circuit breaker, retry automático y cache Redis. ' +
+        'Gestiona consultas de disponibilidad, reservas y sincronización de inventario. ' +
+        'Este servicio es consumido internamente por otros microservicios.',
+    )
+    .setVersion('1.0.0')
+    .setContact(
+      'Grupo 12 - UTN FRRE',
+      'https://github.com/grupos-12/logistica',
+      'grupo12@logistics.com',
+    )
+    .setLicense('Apache 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
+    .addServer(`http://localhost:${port}`, 'Development Server')
+    .addServer('http://localhost:3004/stock', 'Via API Gateway')
+    .addTag('stock', '📦 Operaciones de integración con Stock')
+    .addTag('health', '❤️ Health Checks')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Stock Integration Service API - Docs',
+    customCss: '.swagger-ui .topbar { display: none }',
+  });
 
   const port = process.env.PORT || 3002;
   await app.listen(port);

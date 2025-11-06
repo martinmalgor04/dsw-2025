@@ -41,15 +41,31 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('Operator Interface API')
-    .setDescription('Internal APIs for logistics operators frontend')
-    .setVersion('1.0')
-    .addTag('config', 'Configuration management')
-    .addTag('health', 'Health checks')
+    .setTitle('Operator Interface API Gateway')
+    .setDescription(
+      'API Gateway y Facade para operadores internos de logística. ' +
+        'Proporciona acceso unificado a todos los microservicios del sistema mediante smart proxy routing. ' +
+        'Incluye copias locales de endpoints de configuración y enrutamiento automático a servicios backend. ' +
+        'Rutas disponibles: /config/*, /shipping/*, /stock/*, /gateway/status',
+    )
+    .setVersion('1.0.0')
+    .setContact(
+      'Grupo 12 - UTN FRRE',
+      'https://github.com/grupos-12/logistica',
+      'grupo12@logistics.com',
+    )
+    .setLicense('Apache 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
+    .addServer(`http://localhost:${port}`, 'Development Gateway')
+    .addTag('config', '⚙️ Gestión de configuración (local)')
+    .addTag('gateway', '🌐 Estado del Gateway y Service Registry')
+    .addTag('health', '❤️ Health Checks')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Operator Interface API Gateway - Docs',
+    customCss: '.swagger-ui .topbar { display: none }',
+  });
 
   const port = process.env.PORT || 3004;
   await app.listen(port);
