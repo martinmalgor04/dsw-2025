@@ -23,7 +23,8 @@ import {
   BookOpen,
   Route,
   AlertTriangle,
-  Warehouse
+  Warehouse,
+  FileBarChart
 } from 'lucide-react';
 
 // Using text logo instead of image for now
@@ -49,6 +50,7 @@ export function Sidebar({
   // Items principales sin subsecciones
   const mainMenuItems = [
     { id: 'dashboard', label: 'Panel', icon: LayoutDashboard, href: '/dashboard' },
+    { id: 'reportes', label: 'Reportes', icon: FileBarChart, href: '/reportes' },
     { id: 'analitica', label: 'Analíticas', icon: BarChart3, href: '/analitica' },
   ];
 

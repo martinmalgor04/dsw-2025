@@ -31,15 +31,28 @@ export interface ShipmentDTO {
     id: string;
     name: string;
     weight: number;
-    dimensions: { width: number; height: number; depth: number };
+    dimensions: { width: number; height: number; depth?: number; length?: number };
     quantity: number;
-    price: number;
+    price?: number;
   }[];
   transportMethod?: { id: string; name: string };
+  driver?: {
+    id: string;
+    name: string;
+    phone: string;
+    licenseNumber: string;
+  };
+  vehicle?: {
+    id: string;
+    licensePlate: string;
+    model: string;
+    capacity: number;
+  };
   status: string;
   totalCost: number;
   createdAt: string;
   estimatedDeliveryDate?: string;
+  actualDeliveryDate?: string;
 }
 
 export interface CreateShipmentDTO {
@@ -51,6 +64,31 @@ export interface CreateShipmentDTO {
 }
 
 export type UpdateShipmentDTO = Partial<CreateShipmentDTO>;
+
+export interface TrackingEvent {
+  status: string;
+  description: string;
+  timestamp: string;
+  location?: string;
+}
+
+export interface PublicTrackingDTO {
+  id: string;
+  trackingNumber?: string;
+  status: string;
+  statusDescription: string;
+  currentLocation?: string;
+  estimatedDeliveryDate?: string;
+  actualDeliveryDate?: string;
+  destinationAddress: {
+    city: string;
+    state: string;
+    postalCode: string;
+  };
+  transportMethod: string;
+  events: TrackingEvent[];
+  labelUrl?: string;
+}
 
 // DTO para la respuesta del cálculo de costo, alineado con el backend
 export interface CalculateCostResponseDTO {
@@ -75,12 +113,20 @@ class ShipmentService {
     return httpClient.get(`/shipping/${id}`);
   }
 
+  async getShipmentById(id: string): Promise<ShipmentDTO> {
+    return this.getShipment(id);
+  }
+
   async createShipment(dto: CreateShipmentDTO): Promise<ShipmentDTO> {
     return httpClient.post('/shipping', dto);
   }
 
-  async updateShipment(id: string, dto: UpdateShipmentDTO): Promise<ShipmentDTO> {
+  async updateShipment(id: string, dto: UpdateShipmentDTO | { status: string }): Promise<ShipmentDTO> {
     return httpClient.patch(`/shipping/${id}`, dto);
+  }
+
+  async cancelShipment(id: string): Promise<void> {
+    return httpClient.patch(`/shipping/${id}`, { status: 'CANCELLED' });
   }
 
   async deleteShipment(id: string): Promise<void> {
@@ -92,6 +138,10 @@ class ShipmentService {
     products: ProductDTO[]
   ): Promise<CalculateCostResponseDTO> {
     return httpClient.post('/shipping/cost', { delivery_address, products });
+  }
+
+  async trackShipment(idOrTrackingNumber: string): Promise<PublicTrackingDTO> {
+    return httpClient.get(`/shipping/track/${idOrTrackingNumber}`);
   }
 }
 
