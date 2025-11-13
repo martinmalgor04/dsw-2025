@@ -9,6 +9,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_KC}
     networks:
       - keycloak_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_KC}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
       
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
@@ -26,7 +31,7 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB_KC}
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB_KC}
       KC_DB_USERNAME: ${POSTGRES_USER_KC}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD_KC}
     ports:
@@ -35,14 +40,15 @@ services:
       - ./realm-config:/opt/keycloak/data/import
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - keycloak_network
 
 volumes:
   postgres_data:
     driver: local
-
+    
 networks:
   keycloak_network:
     driver: bridge
