@@ -1,5 +1,8 @@
+name: dsw2025-dokploy-uhwhf9
+
 services:
   postgres:
+    container_name: keycloak-postgres  # Nombre único
     image: postgres:16.2
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -8,7 +11,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER_KC}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_KC}
     networks:
-      - keycloak_network
+      dokploy-network:
+        aliases:
+          - keycloak-postgres  # Alias único en la red
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_KC}"]
       interval: 5s
@@ -31,7 +36,7 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB_KC}
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/${POSTGRES_DB_KC}  # Usa el alias específico
       KC_DB_USERNAME: ${POSTGRES_USER_KC}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD_KC}
     ports:
@@ -43,12 +48,25 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - keycloak_network
+      - dokploy-network
+    labels:
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.rule=Host(`keycloak.mmalgor.com.ar`)
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.entrypoints=web
+      - traefik.http.services.dsw2025-dokploy-uhwhf9-5-web.loadbalancer.server.port=8080
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.service=dsw2025-dokploy-uhwhf9-5-web
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.rule=Host(`keycloak.mmalgor.com.ar`)
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.entrypoints=websecure
+      - traefik.http.services.dsw2025-dokploy-uhwhf9-5-websecure.loadbalancer.server.port=8080
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.service=dsw2025-dokploy-uhwhf9-5-websecure
+      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.tls.certresolver=letsencrypt
+      - traefik.enable=true
 
 volumes:
   postgres_data:
     driver: local
-    
+
 networks:
-  keycloak_network:
-    driver: bridge
+  dokploy-network:
+    external: true
