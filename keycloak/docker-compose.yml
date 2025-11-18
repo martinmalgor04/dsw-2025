@@ -44,4 +44,4 @@ volumes:
     driver: local
 
 networks:
-  keycloak_network
+  keycloak_network: {}
