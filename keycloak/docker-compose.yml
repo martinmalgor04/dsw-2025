@@ -20,7 +20,7 @@ services:
       
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
-    command: ["sh", "-c", "echo 'HOLA DESDE COMPOSE' && start --import-realm"]
+    command: start --import-realm
     environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
       KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME_ADMIN_URL}
