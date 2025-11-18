@@ -49,20 +49,6 @@ services:
         condition: service_healthy
     networks:
       - dokploy-network
-    labels:
-      - traefik.docker.network=dokploy-network
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.rule=Host(`keycloak.mmalgor.com.ar`)
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.entrypoints=web
-      - traefik.http.services.dsw2025-dokploy-uhwhf9-5-web.loadbalancer.server.port=8080
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.service=dsw2025-dokploy-uhwhf9-5-web
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-web.middlewares=redirect-to-https@file
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.rule=Host(`keycloak.mmalgor.com.ar`)
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.entrypoints=websecure
-      - traefik.http.services.dsw2025-dokploy-uhwhf9-5-websecure.loadbalancer.server.port=8080
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.service=dsw2025-dokploy-uhwhf9-5-websecure
-      - traefik.http.routers.dsw2025-dokploy-uhwhf9-5-websecure.tls.certresolver=letsencrypt
-      - traefik.enable=true
-
 volumes:
   postgres_data:
     driver: local
