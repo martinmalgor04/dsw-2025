@@ -1,22 +1,14 @@
 services:
   postgres:
-    container_name: keycloak-postgres  # Nombre único
     image: postgres:16.2
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${POSTGRES_DB_KC}
-      POSTGRES_USER: ${POSTGRES_USER_KC}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_KC}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      dokploy-network:
-        aliases:
-          - keycloak-postgres  # Alias único en la red
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_KC}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - keycloak_network
       
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
@@ -34,23 +26,22 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/${POSTGRES_DB_KC}  # Usa el alias específico
-      KC_DB_USERNAME: ${POSTGRES_USER_KC}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD_KC}
+      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 8080:8080
     volumes:
       - ./realm-config:/opt/keycloak/data/import
     restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     networks:
-      - dokploy-network
+      - keycloak_network
+
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  dokploy-network:
-    external: true
+  keycloak_network
