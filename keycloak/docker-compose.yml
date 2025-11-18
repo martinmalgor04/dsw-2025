@@ -1,5 +1,3 @@
-name: dsw2025-dokploy-uhwhf9
-
 services:
   postgres:
     container_name: keycloak-postgres  # Nombre único
