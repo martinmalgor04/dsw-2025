@@ -74,7 +74,7 @@ export const envConfig: EnvConfig = {
   keycloak: {
     url: getEnvVar('NEXT_PUBLIC_KEYCLOAK_URL', 'http://localhost:8080'),
     realm: getEnvVar('NEXT_PUBLIC_KEYCLOAK_REALM', 'ds-2025-realm'),
-    clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'grupo-02'),
+    clientId: getEnvVar('NEXT_PUBLIC_KEYCLOAK_CLIENT_ID', 'grupo-12'),
   },
 
   // Environment detection
