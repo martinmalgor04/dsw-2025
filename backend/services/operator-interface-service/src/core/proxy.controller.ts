@@ -7,6 +7,7 @@ import {
   Logger,
   BadGatewayException,
   NotFoundException,
+  HttpException,
   Next,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
@@ -99,6 +100,20 @@ export class ProxyController {
       // Retorna la respuesta con status 200 (o el que venga del servicio)
       return res.status(200).json(response);
     } catch (error: any) {
+      if (error instanceof HttpException) {
+        const status = error.getStatus();
+        const response = error.getResponse();
+        
+        // Solo loguear como error si es 5xx, warnings para 4xx
+        if (status >= 500) {
+           this.logger.error(`❌ Proxy Error ${status}: ${path}`, JSON.stringify(response));
+        } else {
+           this.logger.warn(`⚠️ Proxy Client Error ${status}: ${path}`, JSON.stringify(response));
+        }
+        
+        return res.status(status).json(response);
+      }
+
       if (error instanceof NotFoundException) {
         this.logger.warn(`❌ Service not found for route: ${path}`);
         return res.status(404).json({

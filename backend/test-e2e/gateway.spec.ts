@@ -112,7 +112,7 @@ describe('Logistics System E2E Tests (Auth & Gateway)', () => {
          return; // Test pasa porque auth y ruteo funcionaron
       }
       console.error('❌ Tracking Creation Failed:', error.response?.data || error.message);
-      throw error;
+      throw new Error(`Tracking failed: ${error.message}`);
     }
   });
 });

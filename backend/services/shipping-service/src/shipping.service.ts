@@ -191,7 +191,7 @@ export class ShippingService {
       }
     }
 
-    // 2. Calcular costo final
+    // 2. Calcular costo final (usando lógica real, no mock)
     let totalWeight = 0;
     // Use the first product's location as departure address
     const departurePostalCode = stockInfo[0]?.ubicacion?.postal_code || 'C1000ABC';
@@ -204,16 +204,29 @@ export class ShippingService {
       }
     }
 
-    const distanceInfo = await this.mockData.getDistanceInfo(
+    // Calcular distancia real
+    const distanceRes = await this.distanceService.calculateDistance(
       dto.delivery_address.postal_code,
       departurePostalCode,
     );
 
-    const shippingCost = this.mockData.calculateShippingCost(
-      distanceInfo.distance_km,
-      totalWeight,
-      dto.transport_type.toUpperCase() as any,
-    );
+    // Calcular tarifa real
+    // Buscar el método de transporte por código (AIR, ROAD, etc.)
+    const transportMethodCode = dto.transport_type.toUpperCase();
+    const transportMethod = await this.prisma.transportMethod.findFirst({
+      where: { code: transportMethodCode, isActive: true }
+    });
+
+    if (!transportMethod) {
+      throw new BadRequestException(`Transport method '${transportMethodCode}' not available`);
+    }
+
+    const tariff = await this.tariffService.calculateTariff({
+        transportMethodId: transportMethod.id,
+        billableWeight: totalWeight,
+        distance: distanceRes.distance,
+        environment: this.configService.get('NODE_ENV') || 'development',
+    });
 
     const productTotal = stockInfo.reduce((sum, stock) => {
       const product = dto.products.find((p) => p.id === stock.id);
@@ -223,7 +236,7 @@ export class ShippingService {
       return sum;
     }, 0);
 
-    const totalCost = productTotal + shippingCost.total_cost;
+    const totalCost = productTotal + tariff.totalCost;
 
     // 3. Generar tracking number
     const trackingNumber = this.mockData.generateTrackingNumber();
@@ -231,7 +244,7 @@ export class ShippingService {
     // 4. Calcular tiempo de entrega estimado
     const deliveryDays = this.mockData.getEstimatedDeliveryTime(
       dto.transport_type.toUpperCase() as any,
-      distanceInfo.distance_km,
+      distanceRes.distance,
     );
 
     const estimatedDelivery = new Date();

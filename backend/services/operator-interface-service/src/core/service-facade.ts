@@ -3,6 +3,7 @@ import {
   Logger,
   BadGatewayException,
   NotFoundException,
+  HttpException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ServiceRegistry, RegisteredService } from './service-registry';
@@ -185,7 +186,7 @@ export class ServiceFacade {
       }
 
       // Si es el último intento, marca el servicio como no saludable
-      if (isLastAttempt) {
+      if (isLastAttempt && !statusCode) { // Solo si no hubo respuesta
         this.serviceRegistry.markServiceUnhealthy(service.name);
       }
 
@@ -194,7 +195,12 @@ export class ServiceFacade {
         error.message,
       );
 
-      // Transforma el error a un formato estándar
+      // Si el servicio respondió con un error HTTP (4xx, 5xx), lo propagamos tal cual
+      if (statusCode && error.response?.data) {
+        throw new HttpException(error.response.data, statusCode);
+      }
+
+      // Transforma errores de conexión/red a BadGateway
       throw new BadGatewayException({
         message: `Service ${service.name} failed`,
         originalError: error.message,

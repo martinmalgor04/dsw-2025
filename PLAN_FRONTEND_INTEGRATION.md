@@ -1,80 +1,66 @@
-# Plan de Integración Frontend (Next.js + Microservicios)
+# Plan de Integración Frontend con Backend (Microservicios)
 
-Este plan detalla los pasos para conectar el frontend en Next.js con la nueva arquitectura de microservicios y autenticación Keycloak, sin modificar el backend existente.
+Este plan detalla los pasos necesarios para integrar el frontend existente con la nueva arquitectura de microservicios, autenticación Keycloak y endpoints de Shipping.
 
-## Fase 1: Configuración de Entorno y Autenticación
+## 1. Revisión de Tipos y DTOs (`frontend/src/lib/middleware/services/shipment.service.ts`)
 
-### 1.1. Variables de Entorno (.env.local)
-Crear/Actualizar `.env.local` en la carpeta `frontend/` para apuntar al Gateway local y al Keycloak de producción.
+### Problemas Identificados
+1. **`CalculateQuote` incompleto**: El método `calculateQuote` no envía `transport_type` al backend, lo cual generará un error 400.
+2. **Tipos de ID de Usuario**: El backend usa UUIDs (strings) para los IDs de usuario (Keycloak), pero el frontend define `user_id: number`.
+
+### Tareas
+- [ ] Modificar interfaz `CreateShipmentDTO`:
+  ```typescript
+  export interface CreateShipmentDTO {
+    order_id: number;
+    user_id: string; // Cambiar de number a string (UUID)
+    delivery_address: AddressDTO;
+    transport_type: 'AIR' | 'SEA' | 'RAIL' | 'ROAD';
+    products: ProductDTO[];
+  }
+  ```
+- [ ] Actualizar firma de `calculateQuote`:
+  ```typescript
+  async calculateQuote(
+    delivery_address: AddressDTO,
+    products: ProductDTO[],
+    transport_type: 'AIR' | 'SEA' | 'RAIL' | 'ROAD' // Nuevo parámetro
+  ): Promise<CalculateCostResponseDTO> {
+    return httpClient.post('/shipping/cost', { delivery_address, products, transport_type });
+  }
+  ```
+
+## 2. Integración de Autenticación Keycloak
+
+El `AuthService` ya está configurado para usar `keycloak-js` y el `HttpClient` inyecta el token.
+- [ ] Verificar que `NEXT_PUBLIC_AUTH_URL`, `NEXT_PUBLIC_AUTH_REALM`, `NEXT_PUBLIC_AUTH_CLIENT_ID` en `.env.local` (o `.env`) apunten al Keycloak correcto.
+- [ ] Asegurar que el login redirija correctamente y guarde el token.
+
+## 3. Actualización de Componentes UI
+
+### Pantalla de Cotización/Creación de Envío
+- [ ] Localizar el componente que llama a `shipmentService.calculateQuote`.
+- [ ] Asegurar que el usuario haya seleccionado un método de transporte ANTES de llamar a cotizar.
+- [ ] Pasar el `transport_type` seleccionado a la llamada del servicio.
+
+### Pantalla de Tracking (Integración con Compras)
+- [ ] Si existe una pantalla de tracking público, debe usar `shipmentService.getShipment(id)`.
+- [ ] Manejar estados de error (404 Not Found) amigablemente.
+
+## 4. Variables de Entorno
+
+Asegurar que el frontend apunte al Gateway:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3004
-NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
-NEXT_PUBLIC_KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
-NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
-NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=grupo-12
+# O en producción:
+# NEXT_PUBLIC_API_URL=https://gateway.tudominio.com
 ```
 
-### 1.2. Cliente HTTP Axios con Interceptor Auth
-Configurar una instancia de Axios centralizada que:
-1.  Tome la `baseURL` de `NEXT_PUBLIC_API_URL`.
-2.  Intercepte las requests para inyectar el header `Authorization: Bearer <TOKEN>` automáticamente obteniendo el token de la sesión de Keycloak (usando `useAuth` o `next-auth` según lo que esté instalado).
-3.  Maneje errores 401 (Token expirado) redirigiendo al login.
+## 5. Pruebas Manuales
 
-## Fase 2: Servicios de Integración (Frontend Services)
-
-Crear archivos de servicio en `frontend/src/services` para encapsular las llamadas a la API. Esto mantiene los componentes limpios.
-
-### 2.1. `shipping.service.ts`
-Implementar métodos para consumir los endpoints de `shipping-service` a través del Gateway:
-*   `getTransportMethods()` -> `GET /shipping/transport-methods` (Ahora disponible en backend).
-*   `calculateCost(data)` -> `POST /shipping/cost`.
-*   `createShipment(data)` -> `POST /shipping`.
-*   `getShipments(filters)` -> `GET /shipping`.
-*   `getShipmentById(id)` -> `GET /shipping/:id`.
-
-### 2.2. `tracking.service.ts`
-Implementar método para el tracking público (si aplica) o interno.
-*   `trackShipment(id)` -> `GET /api/logistics/tracking/:id`.
-
-### 2.3. `stock.service.ts` (Opcional / Lectura)
-*   `getProduct(id)` -> `GET /stock/productos/:id`.
-
-## Fase 3: Componentes de UI (Logística)
-
-Implementar o actualizar componentes en `frontend/src/components/logistics` o similar.
-
-### 3.1. Calculadora de Envíos (`ShippingCalculator`)
-*   **Input:** Dirección destino (CP), lista de productos (ID, cantidad).
-*   **Lógica:** Llama a `shippingService.calculateCost`.
-*   **Output:** Muestra costo estimado y desglose.
-
-### 3.2. Formulario de Creación de Envío (`CreateShipmentForm`)
-*   **Input:** Selección de método de transporte (cargado desde API), datos de cliente, items.
-*   **Lógica:** Llama a `shippingService.createShipment`.
-
-### 3.3. Listado de Envíos (`ShipmentList`)
-*   Tabla con paginación y filtros.
-*   Llama a `shippingService.getShipments`.
-
-### 3.4. Detalle de Envío (`ShipmentDetail`)
-*   Vista completa del envío, historial de estados (`logs`) y tracking.
-
-## Fase 4: Páginas (Routing)
-
-Conectar los componentes a las rutas de Next.js (App Router).
-
-*   `/dashboard`: Mostrar resumen de servicios (usando `/gateway/status`).
-*   `/operaciones/envios`: Página principal de gestión de envíos (Listado + Botón Crear).
-*   `/operaciones/envios/nuevo`: Página con `CreateShipmentForm`.
-*   `/operaciones/cotizar`: Página con `ShippingCalculator`.
-*   `/track/[id]`: Página pública (o protegida según requerimiento) para ver estado del envío.
-
-## Fase 5: Pruebas End-to-End (Manuales)
-
-1.  Login en Frontend con usuario de Keycloak.
-2.  Navegar a "Cotizar Envío", ingresar CP válido, ver costo.
-3.  Crear un envío real. Verificar que aparece en el listado.
-4.  Ver detalle del envío creado.
-5.  Cancelar envío (si el estado lo permite).
-
+1. **Login**: Iniciar sesión y verificar que se obtiene token.
+2. **Transport Methods**: Verificar que el dropdown de métodos de transporte se llena con datos del backend (`/shipping/transport-methods`).
+3. **Cotización**: Probar cotizar un envío con diferentes productos y métodos. Verificar que el precio cambia.
+4. **Crear Envío**: Completar el flujo de creación y verificar que devuelve un ID de envío y Tracking Number.
+5. **Tracking**: Usar el Tracking Number para consultar el estado.

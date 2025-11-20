@@ -685,6 +685,9 @@ importers:
         specifier: ^7.8.1
         version: 7.8.2
     devDependencies:
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.25
       '@types/node':
         specifier: ^20.3.1
         version: 20.19.24
