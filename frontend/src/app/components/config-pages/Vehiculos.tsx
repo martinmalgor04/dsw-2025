@@ -165,19 +165,23 @@ export function Vehiculos() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingVehiculo ? 'Editar' : 'Añadir'} Vehículo</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b border-gray-100">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              {editingVehiculo ? 'Editar' : 'Añadir'} Vehículo
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
               {editingVehiculo
-                ? 'Modifica los datos del vehículo.'
-                : 'Añade un nuevo vehículo al sistema.'}
+                ? 'Modifica los datos del vehículo en el sistema.'
+                : 'Completa el formulario para añadir un nuevo vehículo a tu flota.'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="license_plate">Patente *</Label>
+          <form onSubmit={handleSave} className="mt-6">
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="license_plate" className="text-sm font-semibold text-gray-700">
+                  Patente *
+                </Label>
                 <Input 
                   id="license_plate" 
                   name="license_plate" 
@@ -186,10 +190,13 @@ export function Vehiculos() {
                   minLength={6}
                   maxLength={10}
                   placeholder="ABC123"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="make">Marca *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="make" className="text-sm font-semibold text-gray-700">
+                  Marca *
+                </Label>
                 <Input 
                   id="make" 
                   name="make" 
@@ -197,10 +204,14 @@ export function Vehiculos() {
                   required 
                   minLength={2}
                   maxLength={50}
+                  placeholder="Ej: Scania"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="model">Modelo *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="model" className="text-sm font-semibold text-gray-700">
+                  Modelo *
+                </Label>
                 <Input 
                   id="model" 
                   name="model" 
@@ -208,10 +219,14 @@ export function Vehiculos() {
                   required 
                   minLength={2}
                   maxLength={50}
+                  placeholder="Ej: R450"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="year">Año *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="year" className="text-sm font-semibold text-gray-700">
+                  Año *
+                </Label>
                 <Input 
                   id="year" 
                   name="year" 
@@ -220,10 +235,14 @@ export function Vehiculos() {
                   required 
                   min="1990"
                   max="2025"
+                  placeholder="2024"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="capacityKg">Capacidad (Kg) *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="capacityKg" className="text-sm font-semibold text-gray-700">
+                  Capacidad (Kg) *
+                </Label>
                 <Input 
                   id="capacityKg" 
                   name="capacityKg" 
@@ -232,10 +251,14 @@ export function Vehiculos() {
                   required 
                   min="1"
                   max="50000"
+                  placeholder="Ej: 20000"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="volumeM3">Volumen (m³) *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="volumeM3" className="text-sm font-semibold text-gray-700">
+                  Volumen (m³) *
+                </Label>
                 <Input 
                   id="volumeM3" 
                   name="volumeM3" 
@@ -245,15 +268,19 @@ export function Vehiculos() {
                   required 
                   min="0.1"
                   max="100"
+                  placeholder="Ej: 45.5"
+                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-              <div>
-                <Label htmlFor="fuelType">Tipo de Combustible *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="fuelType" className="text-sm font-semibold text-gray-700">
+                  Tipo de Combustible *
+                </Label>
                 <select 
                   id="fuelType" 
                   name="fuelType" 
                   defaultValue={editingVehiculo?.fuelType || 'GASOLINE'} 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full h-9 px-3 py-2 text-black bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-colors placeholder:text-gray-400"
                   required
                 >
                   <option value="GASOLINE">Gasolina</option>
@@ -263,13 +290,15 @@ export function Vehiculos() {
                 </select>
               </div>
               {editingVehiculo && (
-                <div>
-                  <Label htmlFor="status">Estado *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-sm font-semibold text-gray-700">
+                    Estado *
+                  </Label>
                   <select 
                     id="status" 
                     name="status" 
                     defaultValue={editingVehiculo?.status || 'AVAILABLE'} 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full h-9 px-3 py-2 text-black bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-colors placeholder:text-gray-400"
                     required
                   >
                     <option value="AVAILABLE">Disponible</option>
@@ -280,9 +309,21 @@ export function Vehiculos() {
                 </div>
               )}
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit">Guardar</Button>
+            <DialogFooter className="mt-8 pt-6 border-t border-gray-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setDialogOpen(false)}
+                className="px-6"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                className="px-6 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white shadow-md"
+              >
+                {editingVehiculo ? 'Actualizar' : 'Guardar'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

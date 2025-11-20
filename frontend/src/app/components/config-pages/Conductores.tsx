@@ -131,7 +131,6 @@ export function Conductores() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleEdit(conductor)}>
                 Editar
               </DropdownMenuItem>
