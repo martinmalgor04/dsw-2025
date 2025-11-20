@@ -1,24 +1,33 @@
+version: "3.9"
+
 services:
   postgres:
+    container_name: keycloak-postgres
     image: postgres:16.2
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_KC}
+      POSTGRES_USER: ${POSTGRES_USER_KC}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_KC}
     networks:
-      - keycloak_network
-      
+      dokploy-network:
+        aliases:
+          - keycloak-postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_KC}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
-    command: start --import-realm
+    command: start --import-realm --proxy=edge --http-host=0.0.0.0
     environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
       KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME_ADMIN_URL}
-      KC_PROXY: ${KC_PROXY:-edge}
-      KC_PROXY_ADDRESS_FORWARDING: ${KC_PROXY_ADDRESS_FORWARDING:-true}
-      QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING: ${QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING:-true}
+      KC_PROXY_ADDRESS_FORWARDING: ${KC_PROXY_ADDRESS_FORWARDING}
+      QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING: ${QUARKUS_HTTP_PROXY_ADDRESS_FORWARDING}
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_BACKCHANNEL: false
@@ -26,23 +35,24 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
-      KC_DB_USERNAME: ${POSTGRES_USER}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/${POSTGRES_DB_KC}
+      KC_DB_USERNAME: ${POSTGRES_USER_KC}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD_KC}
     ports:
       - 8080:8080
     volumes:
       - ./realm-config:/opt/keycloak/data/import
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
-      - keycloak_network
+      - dokploy-network
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  keycloak_network:
-    driver: bridge
+  dokploy-network:
+    external: true
