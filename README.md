@@ -592,7 +592,7 @@ Si ves errores como "Failed to fetch Geist from Google Fonts" durante el build:
 #### Si hay errores de base de datos:
 ```bash
 # Resetear base de datos
-cd backend
+cd backendd
 pnpm prisma:migrate:reset
 
 # Verificar conexión
