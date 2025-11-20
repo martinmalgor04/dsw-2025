@@ -1,17 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { JwtGuard } from './auth.guard';
+import { JwtService } from './jwt.service';
+import { JwtGuard } from './jwt.guard';
 
-/**
- * AuthModule - Módulo de autenticación y autorización
- *
- * Proporciona:
- * - JwtGuard: Guard que valida tokens JWT de Keycloak
- * - Exporta JwtGuard para ser usado globalmente en la app
- */
 @Module({
-  imports: [ConfigModule],
-  providers: [JwtGuard],
-  exports: [JwtGuard],
+  providers: [JwtService, JwtGuard],
+  exports: [JwtService, JwtGuard],
 })
 export class AuthModule {}

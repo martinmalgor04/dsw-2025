@@ -80,7 +80,7 @@ export class ProxyController {
     const method = req.method.toUpperCase();
 
     // Excluir rutas que no deben ser proxied - pasar al siguiente handler
-    if (path === '/health' || path.startsWith('/api/')) {
+    if (path === '/health' || path.startsWith('/api/docs')) {
       return next();
     }
 
@@ -88,11 +88,12 @@ export class ProxyController {
 
     try {
       // Usa el facade para hacer la request al servicio correcto
+      const headers = this.enrichHeaders(req);
       const response = await this.serviceFacade.request(
         method,
         path,
         req.body,
-        this.extractRelevantHeaders(req.headers),
+        headers,
       );
 
       // Retorna la respuesta con status 200 (o el que venga del servicio)
@@ -123,12 +124,9 @@ export class ProxyController {
   }
 
   /**
-   * Extrae headers relevantes para pasar al servicio destino
-   * (no queremos pasar headers internos de Express)
+   * Extrae headers relevantes y añade contexto de usuario
    */
-  private extractRelevantHeaders(
-    headers: Record<string, any>,
-  ): Record<string, string> {
+  private enrichHeaders(req: Request): Record<string, string> {
     const relevantHeaders = [
       'authorization',
       'content-type',
@@ -141,10 +139,21 @@ export class ProxyController {
 
     const filtered: Record<string, string> = {};
 
-    for (const [key, value] of Object.entries(headers)) {
+    // 1. Copiar headers originales permitidos
+    for (const [key, value] of Object.entries(req.headers)) {
       if (relevantHeaders.includes(key.toLowerCase())) {
         filtered[key] = String(value);
       }
+    }
+
+    // 2. Inyectar contexto de usuario autenticado (si existe)
+    const user = (req as any).user;
+    if (user) {
+      if (user.sub) filtered['x-user-id'] = user.sub;
+      if (user.email) filtered['x-user-email'] = user.email;
+      if (user.preferred_username)
+        filtered['x-user-username'] = user.preferred_username;
+      if (user.scope) filtered['x-user-scope'] = user.scope;
     }
 
     return filtered;

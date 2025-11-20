@@ -53,7 +53,7 @@ export class ServiceRegistry {
       {
         name: 'shipping-service',
         baseUrl: process.env.SHIPPING_SERVICE_URL || 'http://localhost:3001',
-        routes: ['/shipping'],
+        routes: ['/shipping', '/api/logistics'],
         healthCheckUrl: '/health',
       },
       {

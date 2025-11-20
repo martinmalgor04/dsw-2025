@@ -7,7 +7,7 @@ import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
-import { JwtGuard } from './auth/auth.guard';
+import { JwtGuard } from './auth/jwt.guard';
 
 @Module({
   imports: [

@@ -29,6 +29,7 @@ import {
   ListShippingResponseDto,
   CancelShippingResponseDto,
 } from './dto/shipping-responses.dto';
+import { TransportMethodsResponseDto } from './dto/transport-methods.dto';
 
 @ApiTags('📦 Logística - Gestión de Envíos')
 @Controller('shipping')
@@ -77,6 +78,20 @@ export class ShippingController {
     @Body() body: CreateShippingRequestDto,
   ): Promise<CreateShippingResponseDto> {
     return this.shippingService.createShipping(body);
+  }
+
+  @Get('transport-methods')
+  @ApiOperation({
+    summary: '🚢 Obtener métodos de transporte disponibles',
+    description: 'Retorna la lista de métodos de transporte que pueden usarse para envíos',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de métodos de transporte',
+    type: TransportMethodsResponseDto,
+  })
+  async getTransportMethods(): Promise<TransportMethodsResponseDto> {
+    return this.shippingService.getTransportMethods();
   }
 
   @Get()

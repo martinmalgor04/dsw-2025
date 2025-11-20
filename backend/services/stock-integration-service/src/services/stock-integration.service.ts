@@ -6,7 +6,12 @@ import { firstValueFrom } from 'rxjs';
 
 import { StockCircuitBreakerService } from './stock-circuit-breaker.service';
 import { StockCacheService } from './stock-cache.service';
-import { ProductoStockDto, ReservaStockDto, EstadoReserva } from '../dto';
+import {
+  ProductoStockDto,
+  ReservaStockDto,
+  EstadoReserva,
+  CreateReservaDto,
+} from '../dto';
 import { IStockApiError } from '../interfaces/stock-api.interface';
 
 @Injectable()
@@ -270,6 +275,78 @@ export class StockIntegrationService {
         `Error al actualizar reserva para compraId: ${compraId}`,
         error,
       );
+      throw error;
+    }
+  }
+
+  /**
+   * Crea una nueva reserva
+   */
+  async createReserva(dto: CreateReservaDto): Promise<ReservaStockDto> {
+    // Verificar circuit breaker
+    if (this.circuitBreaker.isOpen()) {
+      throw new Error('Stock service unavailable - circuit breaker is open');
+    }
+
+    try {
+      const response = await this.makeRequestWithRetry(
+        'POST',
+        '/reservas',
+        dto,
+        { headers: await this.getAuthHeaders() },
+      );
+
+      const reserva = response.data;
+      this.circuitBreaker.recordSuccess();
+      this.logger.log(`Reserva creada exitosamente: ${reserva.idReserva}`);
+
+      // Guardar en caché
+      if (reserva.idReserva) {
+        await this.cache.set(
+          this.cache.getReservaByIdKey(reserva.idReserva, dto.usuarioId),
+          reserva,
+        );
+      }
+      if (reserva.idCompra) {
+        await this.cache.set(
+          this.cache.getReservaByCompraKey(reserva.idCompra, dto.usuarioId),
+          reserva,
+        );
+      }
+
+      return reserva;
+    } catch (error) {
+      this.circuitBreaker.recordFailure();
+      this.logger.error('Error creating reserva', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancela una reserva
+   */
+  async cancelReserva(reservaId: number, motivo: string): Promise<void> {
+    // Verificar circuit breaker
+    if (this.circuitBreaker.isOpen()) {
+      throw new Error('Stock service unavailable - circuit breaker is open');
+    }
+
+    try {
+      await this.makeRequestWithRetry(
+        'DELETE',
+        `/reservas/${reservaId}`,
+        { motivo },
+        { headers: await this.getAuthHeaders() },
+      );
+
+      this.circuitBreaker.recordSuccess();
+      this.logger.log(`Reserva ${reservaId} cancelada exitosamente`);
+
+      // Invalidar caché (no tenemos usuarioId fácil aquí, idealmente deberíamos pasarlo o invalidar por patrón si es posible)
+      // Como mejora futura, podríamos requerir userId para cancelar o buscar la reserva primero
+    } catch (error) {
+      this.circuitBreaker.recordFailure();
+      this.logger.error(`Error cancelling reserva ${reservaId}`, error);
       throw error;
     }
   }
