@@ -159,3 +159,75 @@ model RouteStop {
   @@index([status], map: "idx_route_stops_status")
   @@map("route_stops")
 }
+
+model Shipment {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId               Int              @map("order_id")
+  userId                Int              @map("user_id")
+  trackingNumber        String           @unique @map("tracking_number") @db.VarChar(50)
+
+  // Delivery address (campos desnormalizados para performance)
+  deliveryStreet        String           @map("delivery_street") @db.VarChar(200)
+  deliveryCity          String           @map("delivery_city") @db.VarChar(100)
+  deliveryState         String           @map("delivery_state") @db.VarChar(100)
+  deliveryPostalCode    String           @map("delivery_postal_code") @db.VarChar(20)
+  deliveryCountry       String           @map("delivery_country") @db.VarChar(2)
+
+  // Departure address (obtenida de Stock API)
+  departureStreet       String?          @map("departure_street") @db.VarChar(200)
+  departureCity         String?          @map("departure_city") @db.VarChar(100)
+  departureState        String?          @map("departure_state") @db.VarChar(100)
+  departurePostalCode   String?          @map("departure_postal_code") @db.VarChar(20)
+  departureCountry      String?          @map("departure_country") @db.VarChar(2)
+
+  status                String           @db.VarChar(30)  // ShippingStatus enum
+  transportType         String           @map("transport_type") @db.VarChar(20)  // TransportType enum
+  carrierName           String?          @map("carrier_name") @db.VarChar(100)
+
+  totalCost             Decimal          @map("total_cost") @db.Decimal(10, 2)
+  currency              String           @default("ARS") @db.VarChar(3)
+
+  estimatedDeliveryAt   DateTime         @map("estimated_delivery_at") @db.Timestamptz(6)
+  cancelledAt           DateTime?        @map("cancelled_at") @db.Timestamptz(6)
+
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  products              ShipmentProduct[]
+  logs                  ShipmentLog[]
+
+  @@index([orderId], map: "idx_shipments_order")
+  @@index([userId], map: "idx_shipments_user")
+  @@index([status], map: "idx_shipments_status")
+  @@index([trackingNumber], map: "idx_shipments_tracking")
+  @@index([createdAt], map: "idx_shipments_created_at")
+  @@map("shipments")
+}
+
+model ShipmentProduct {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipmentId  String    @map("shipment_id") @db.Uuid
+  productId   Int       @map("product_id")
+  quantity    Int
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  shipment    Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_shipment_products_shipment")
+
+  @@index([shipmentId], map: "idx_shipment_products_shipment")
+  @@index([productId], map: "idx_shipment_products_product")
+  @@map("shipment_products")
+}
+
+model ShipmentLog {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipmentId  String    @map("shipment_id") @db.Uuid
+  status      String    @db.VarChar(30)
+  message     String
+  timestamp   DateTime  @default(now()) @db.Timestamptz(6)
+
+  shipment    Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_shipment_logs_shipment")
+
+  @@index([shipmentId], map: "idx_shipment_logs_shipment")
+  @@index([timestamp], map: "idx_shipment_logs_timestamp")
+  @@map("shipment_logs")
+}

@@ -2,27 +2,6 @@ services:
   # ===================================
   # INFRAESTRUCTURA
   # ===================================
-  # PostgreSQL solo para Keycloak
-  # NOTA: Los microservicios usan Supabase (configurar DATABASE_URL y DIRECT_URL)
-  postgres:
-    image: postgres:16-alpine
-    container_name: logistics-postgres
-    environment:
-      POSTGRES_DB: keycloak_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - logistics-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d keycloak_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: logistics-redis
@@ -59,9 +38,6 @@ services:
       - DATABASE_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - DIRECT_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:5432/postgres
       - CORS_ORIGIN=http://localhost:3000
-    # depends_on:
-    #   postgres:
-    #     condition: service_healthy
     networks:
       - logistics-network
     healthcheck:
@@ -91,8 +67,6 @@ services:
       - CONFIG_SERVICE_URL=http://config-service:3003
       - STOCK_SERVICE_URL=http://stock-integration-service:3002
     depends_on:
-      # postgres:
-      #   condition: service_healthy
       redis:
         condition: service_healthy
       config-service:
@@ -155,8 +129,7 @@ services:
       - PORT=3004
       - FRONTEND_URL=http://localhost:3000
       # Keycloak Configuration - JWT Token Validation
-      # En desarrollo local: http://keycloak:8080
-      # En producción (Dokploy): https://keycloak.mmalgor.com.ar
+      # Producción: https://keycloak.mmalgor.com.ar
       - KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
       - KEYCLOAK_REALM=ds-2025-realm
       - RATE_LIMIT_WINDOW_MS=60000
@@ -172,8 +145,6 @@ services:
         condition: service_healthy
       stock-integration-service:
         condition: service_healthy
-      keycloak:
-        condition: service_started
     networks:
       - logistics-network
     healthcheck:
@@ -184,83 +155,36 @@ services:
       start_period: 40s
 
   # ===================================
-  # AUTENTICACIÓN
+  # FRONTEND (Opcional si se corre local)
   # ===================================
-  keycloak:
-    image: quay.io/keycloak/keycloak:23.0.6
-    container_name: logistics-keycloak
-    command: start-dev --import-realm --http-enabled=true --hostname-strict=false
-    environment:
-      KC_HTTP_RELATIVE_PATH: /
-      KC_HOSTNAME_PORT: 8080
-      KC_HOSTNAME_URL: http://localhost:8080
-      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_BACKCHANNEL: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
-      KC_PROXY: none
-      KC_PROXY_ADDRESS_FORWARDING: false
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ds2025
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres/keycloak_db
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: postgres123
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./keycloak/realm-config:/opt/keycloak/data/import
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - logistics-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/realms/master"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  # ===================================
-  # FRONTEND
-  # ===================================
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: logistics-frontend
-    ports:
-      - "3000:3005"
-    environment:
-      - NODE_ENV=production
-      - PORT=3005
-      - NEXT_PUBLIC_API_URL=http://localhost:3004
-      # Keycloak Configuration
-      # En desarrollo local: http://localhost:8080
-      # En producción (Dokploy): https://keycloak.mmalgor.com.ar
-      - NEXT_PUBLIC_KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
-      - NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
-      - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=grupo-02
-      - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
-    depends_on:
-      operator-interface-service:
-        condition: service_healthy
-      keycloak:
-        condition: service_started
-    networks:
-      - logistics-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: logistics-frontend
+  #   ports:
+  #     - "3000:3005"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=3005
+  #     - NEXT_PUBLIC_API_URL=http://localhost:3004
+  #     - NEXT_PUBLIC_KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
+  #     - NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
+  #     - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=grupo-12
+  #     - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+  #   depends_on:
+  #     operator-interface-service:
+  #       condition: service_healthy
+  #   networks:
+  #     - logistics-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3005"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
 volumes:
-  postgres_data:
-    driver: local
   redis_data:
     driver: local
 

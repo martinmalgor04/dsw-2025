@@ -7,7 +7,8 @@ import {
   IsEnum,
   Min,
 } from 'class-validator';
-import { AddressDto, ProductRequestDto, TransportType } from '@logistics/types';
+import { AddressDto, ProductRequestDto } from '@logistics/types';
+import { TransportType } from '../enums/transport-type.enum';
 
 export class CreateShippingRequestDto {
   @IsInt()

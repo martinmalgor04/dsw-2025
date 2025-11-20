@@ -107,3 +107,29 @@ export class ActualizarReservaDto {
   @IsEnum(EstadoReserva)
   estado: EstadoReserva;
 }
+
+export class CreateReservaProductoDto {
+  @ApiProperty({ description: 'ID del producto', example: 10 })
+  @IsNumber()
+  idProducto: number;
+
+  @ApiProperty({ description: 'Cantidad a reservar', example: 1 })
+  @IsNumber()
+  cantidad: number;
+}
+
+export class CreateReservaDto {
+  @ApiProperty({ description: 'ID de la compra', example: 'COMPRA-XYZ-12345' })
+  @IsString()
+  idCompra: string;
+
+  @ApiProperty({ description: 'ID del usuario', example: 123 })
+  @IsNumber()
+  usuarioId: number;
+
+  @ApiProperty({ type: [CreateReservaProductoDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateReservaProductoDto)
+  productos: CreateReservaProductoDto[];
+}

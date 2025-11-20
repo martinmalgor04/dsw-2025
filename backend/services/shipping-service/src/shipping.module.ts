@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ShippingController } from './shipping.controller';
+import { TrackingController } from './tracking.controller';
 import { ShippingService } from './shipping.service';
 import { MockDataService } from './services/mock-data.service';
 import { QuoteCacheService } from './services/quote-cache.service';
@@ -23,7 +24,7 @@ import { PostalCodeValidationService } from './services/postal-code-validation.s
       inject: [ConfigService],
     }),
   ],
-  controllers: [ShippingController],
+  controllers: [ShippingController, TrackingController],
   providers: [
     ShippingService,
     MockDataService,

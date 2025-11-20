@@ -1,6 +1,6 @@
 export enum TransportType {
-  AIR = 'air',
-  SEA = 'sea',
-  RAIL = 'rail',
-  ROAD = 'road',
+  AIR = 'AIR',
+  SEA = 'SEA',
+  RAIL = 'RAIL',
+  ROAD = 'ROAD',
 }

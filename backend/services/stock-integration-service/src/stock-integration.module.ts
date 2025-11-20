@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StockIntegrationService } from './services/stock-integration.service';
 import { StockCircuitBreakerService } from './services/stock-circuit-breaker.service';
 import { StockCacheService } from './services/stock-cache.service';
+import { StockIntegrationController } from './stock-integration.controller';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { StockCacheService } from './services/stock-cache.service';
     StockCircuitBreakerService,
     StockCacheService,
   ],
+  controllers: [StockIntegrationController],
   exports: [StockIntegrationService],
 })
 export class StockIntegrationModule {}

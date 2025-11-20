@@ -2,14 +2,16 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 import { MockDataService } from './services/mock-data.service';
 import { DistanceCalculationService } from './services/distance-calculation.service';
 import { TariffCalculationService } from './services/tariff-calculation.service';
 import { PostalCodeValidationService } from './services/postal-code-validation.service';
-import { TransportMethod } from '@logistics/database';
+import { PrismaService } from '@logistics/database';
 import { LoggerService } from '@logistics/utils';
 import {
   CalculateCostRequestDto,
@@ -24,6 +26,7 @@ import {
   ListShippingResponseDto,
   CancelShippingResponseDto,
 } from './dto/shipping-responses.dto';
+import { TransportMethodsResponseDto } from './dto/transport-methods.dto';
 
 @Injectable()
 export class ShippingService {
@@ -37,6 +40,7 @@ export class ShippingService {
     private distanceService: DistanceCalculationService,
     private tariffService: TariffCalculationService,
     private postalValidator: PostalCodeValidationService,
+    private prisma: PrismaService,
   ) {
     this.stockServiceUrl = this.configService.get<string>(
       'STOCK_SERVICE_URL',
@@ -44,9 +48,52 @@ export class ShippingService {
     );
   }
 
-  // Mock storage para testing (en memoria)
-  private mockShipments: any[] = [];
-  private nextId = 1;
+  private async getProductInfo(productId: number): Promise<any> {
+    try {
+      const url = `${this.stockServiceUrl}/stock/productos/${productId}`;
+      const response = await lastValueFrom(this.httpService.get(url));
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `Error fetching product ${productId} from stock service`,
+        error,
+      );
+      throw new BadRequestException(
+        `Product ${productId} not available or stock service error`,
+      );
+    }
+  }
+
+  async getTransportMethods(): Promise<TransportMethodsResponseDto> {
+    const configServiceUrl = this.configService.get<string>(
+      'CONFIG_SERVICE_URL',
+      'http://localhost:3003',
+    );
+
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(`${configServiceUrl}/config/transport-methods`),
+      );
+
+      const methods = response.data;
+
+      return {
+        transport_methods: methods
+          .filter((m: any) => m.isActive)
+          .map((m: any) => ({
+            type: m.code,
+            name: m.name,
+            estimated_days: m.estimatedDays,
+          })),
+      };
+    } catch (error) {
+      this.logger.error(
+        'Error fetching transport methods from config service',
+        error,
+      );
+      throw new BadRequestException('Could not fetch transport methods');
+    }
+  }
 
   async calculateCost(
     dto: CalculateCostRequestDto,
@@ -58,28 +105,39 @@ export class ShippingService {
     if (!postal.isValid)
       throw new BadRequestException(postal.errors.join(', '));
 
-    // Fetch stock info (temporary mock until stock-integration-service endpoint is wired)
+    // Fetch stock info from real service
     const productIds = dto.products.map((p) => p.id);
-    const stockInfo = await this.mockData.getStockInfo(productIds);
+    const stockInfo = await Promise.all(
+      productIds.map((id) => this.getProductInfo(id)),
+    );
 
     // Weight and product totals
     let totalWeight = 0;
     const productCosts: { id: number; cost: number }[] = [];
+    
+    // Use the first product's location as departure address (simplification)
+    const departurePostalCode = stockInfo[0]?.ubicacion?.postal_code || 'C1000ABC';
+
     for (const item of dto.products) {
       const stock = stockInfo.find((s) => s.id === item.id);
-      if (!stock || !stock.available || !stock.weight || !stock.price) {
+      if (
+        !stock ||
+        stock.stockDisponible < item.quantity || // Check available stock
+        !stock.pesoKg ||
+        !stock.precio
+      ) {
         throw new BadRequestException(
           `Product ${item.id} not available or missing data`,
         );
       }
-      totalWeight += stock.weight * item.quantity;
-      productCosts.push({ id: item.id, cost: stock.price * item.quantity });
+      totalWeight += stock.pesoKg * item.quantity;
+      productCosts.push({ id: item.id, cost: stock.precio * item.quantity });
     }
 
     // Distance
     const distanceRes = await this.distanceService.calculateDistance(
       dto.delivery_address.postal_code,
-      'C1000ABC',
+      departurePostalCode,
     );
 
     // Tariff calculation (using default transport method)
@@ -112,29 +170,43 @@ export class ShippingService {
   async createShipping(
     dto: CreateShippingRequestDto,
   ): Promise<CreateShippingResponseDto> {
-    // 1. Validar productos con Stock API (mock)
+    // 1. Validar productos con Stock API (real)
     const productIds = dto.products.map((p) => p.id);
-    const stockInfo = await this.mockData.getStockInfo(productIds);
+    const stockInfo = await Promise.all(
+      productIds.map((id) => this.getProductInfo(id)),
+    );
 
-    for (const stock of stockInfo) {
-      if (!stock.available) {
-        throw new BadRequestException(`Product ${stock.id} not available`);
+    for (let i = 0; i < dto.products.length; i++) {
+      const productRequest = dto.products[i];
+      const stock = stockInfo.find((s) => s.id === productRequest.id);
+      
+      if (!stock) {
+         throw new BadRequestException(`Product ${productRequest.id} not found`);
+      }
+      
+      if (stock.stockDisponible < productRequest.quantity) {
+        throw new BadRequestException(
+          `Product ${stock.id} has insufficient stock (Requested: ${productRequest.quantity}, Available: ${stock.stockDisponible})`
+        );
       }
     }
 
     // 2. Calcular costo final
     let totalWeight = 0;
+    // Use the first product's location as departure address
+    const departurePostalCode = stockInfo[0]?.ubicacion?.postal_code || 'C1000ABC';
+
     for (let i = 0; i < dto.products.length; i++) {
       const product = dto.products[i];
       const stock = stockInfo.find((s) => s.id === product.id);
-      if (stock && stock.weight) {
-        totalWeight += stock.weight * product.quantity;
+      if (stock && stock.pesoKg) {
+        totalWeight += stock.pesoKg * product.quantity;
       }
     }
 
     const distanceInfo = await this.mockData.getDistanceInfo(
       dto.delivery_address.postal_code,
-      'C1000ABC',
+      departurePostalCode,
     );
 
     const shippingCost = this.mockData.calculateShippingCost(
@@ -145,8 +217,8 @@ export class ShippingService {
 
     const productTotal = stockInfo.reduce((sum, stock) => {
       const product = dto.products.find((p) => p.id === stock.id);
-      if (stock.price && product) {
-        return sum + stock.price * product.quantity;
+      if (stock.precio && product) {
+        return sum + stock.precio * product.quantity;
       }
       return sum;
     }, 0);
@@ -165,46 +237,51 @@ export class ShippingService {
     const estimatedDelivery = new Date();
     estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
 
-    // 5. Crear registro en memoria (mock)
-    const shipping = {
-      id: `mock-${this.nextId++}`,
-      orderId: dto.order_id,
-      userId: dto.user_id,
-      trackingNumber,
-      deliveryStreet: dto.delivery_address.street,
-      deliveryCity: dto.delivery_address.city,
-      deliveryState: dto.delivery_address.state,
-      deliveryPostalCode: dto.delivery_address.postal_code,
-      deliveryCountry: dto.delivery_address.country,
-      transportType: dto.transport_type.toUpperCase(),
-      status: 'CREATED',
-      totalCost,
-      currency: 'ARS',
-      estimatedDeliveryAt: estimatedDelivery,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      products: dto.products.map((p) => ({
-        productId: p.id,
-        quantity: p.quantity,
-      })),
-      logs: [
-        {
-          timestamp: new Date(),
-          status: 'CREATED',
-          message: `Shipment created with tracking number: ${trackingNumber}`,
-        },
-      ],
-    };
+    // 5. Crear registro en BD
+    // Use actual departure address from stock info
+    const stockLocation = stockInfo[0]?.ubicacion || {};
 
-    // Guardar en memoria
-    this.mockShipments.push(shipping);
+    const shipment = await this.prisma.shipment.create({
+      data: {
+        orderId: dto.order_id,
+        userId: dto.user_id,
+        trackingNumber,
+        deliveryStreet: dto.delivery_address.street,
+        deliveryCity: dto.delivery_address.city,
+        deliveryState: dto.delivery_address.state,
+        deliveryPostalCode: dto.delivery_address.postal_code,
+        deliveryCountry: dto.delivery_address.country,
+        departureStreet: stockLocation.street,
+        departureCity: stockLocation.city,
+        departureState: stockLocation.state,
+        departurePostalCode: stockLocation.postal_code,
+        departureCountry: stockLocation.country,
+        transportType: dto.transport_type.toUpperCase(),
+        status: 'CREATED',
+        totalCost,
+        currency: 'ARS',
+        estimatedDeliveryAt: estimatedDelivery,
+        products: {
+          create: dto.products.map((p) => ({
+            productId: p.id,
+            quantity: p.quantity,
+          })),
+        },
+        logs: {
+          create: {
+            status: 'CREATED',
+            message: `Shipment created with tracking number: ${trackingNumber}`,
+          },
+        },
+      },
+    });
 
     return {
-      shipping_id: shipping.id,
-      status: 'created',
-      transport_type: dto.transport_type,
-      tracking_number: trackingNumber,
-      estimated_delivery_at: shipping.estimatedDeliveryAt.toISOString(),
+      shipping_id: shipment.id,
+      status: shipment.status.toLowerCase(),
+      transport_type: shipment.transportType,
+      tracking_number: shipment.trackingNumber,
+      estimated_delivery_at: shipment.estimatedDeliveryAt.toISOString(),
     };
   }
 
@@ -218,38 +295,38 @@ export class ShippingService {
   }): Promise<ListShippingResponseDto> {
     const { userId, status, fromDate, toDate, page, limit } = filters;
 
-    // Filtrar en memoria
-    let filteredShipments = this.mockShipments;
+    const where: any = {};
 
     if (userId) {
-      filteredShipments = filteredShipments.filter((s) => s.userId === userId);
+      where.userId = userId;
     }
     if (status) {
-      filteredShipments = filteredShipments.filter(
-        (s) => s.status.toLowerCase() === status.toLowerCase(),
-      );
+      where.status = status.toUpperCase();
     }
-    if (fromDate) {
-      const fromDateObj = new Date(fromDate);
-      filteredShipments = filteredShipments.filter(
-        (s) => s.createdAt >= fromDateObj,
-      );
-    }
-    if (toDate) {
-      const toDateObj = new Date(toDate);
-      filteredShipments = filteredShipments.filter(
-        (s) => s.createdAt <= toDateObj,
-      );
+    if (fromDate || toDate) {
+      where.createdAt = {};
+      if (fromDate) {
+        where.createdAt.gte = new Date(fromDate);
+      }
+      if (toDate) {
+        where.createdAt.lte = new Date(toDate);
+      }
     }
 
-    // Ordenar por fecha de creación (más recientes primero)
-    filteredShipments = filteredShipments.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    );
-
-    const total = filteredShipments.length;
-    const skip = (page - 1) * limit;
-    const shipments = filteredShipments.slice(skip, skip + limit);
+    const [shipments, total] = await Promise.all([
+      this.prisma.shipment.findMany({
+        where,
+        include: {
+          products: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.shipment.count({ where }),
+    ]);
 
     return {
       shipments: shipments.map((s) => ({
@@ -275,7 +352,17 @@ export class ShippingService {
   }
 
   async getShippingDetail(id: string): Promise<ShippingDetailDto> {
-    const shipping = this.mockShipments.find((s) => s.id === id);
+    const shipping = await this.prisma.shipment.findUnique({
+      where: { id },
+      include: {
+        products: true,
+        logs: {
+          orderBy: {
+            timestamp: 'desc',
+          },
+        },
+      },
+    });
 
     if (!shipping) {
       throw new NotFoundException('Shipping not found');
@@ -323,13 +410,13 @@ export class ShippingService {
   }
 
   async cancelShipping(id: string): Promise<CancelShippingResponseDto> {
-    const shippingIndex = this.mockShipments.findIndex((s) => s.id === id);
+    const shipping = await this.prisma.shipment.findUnique({
+      where: { id },
+    });
 
-    if (shippingIndex === -1) {
+    if (!shipping) {
       throw new NotFoundException('Shipping not found');
     }
-
-    const shipping = this.mockShipments[shippingIndex];
 
     if (!['CREATED', 'RESERVED'].includes(shipping.status)) {
       throw new BadRequestException(
@@ -337,23 +424,22 @@ export class ShippingService {
       );
     }
 
-    // Actualizar en memoria
-    const updated = {
-      ...shipping,
-      status: 'CANCELLED',
-      cancelledAt: new Date(),
-      updatedAt: new Date(),
-      logs: [
-        ...shipping.logs,
-        {
-          timestamp: new Date(),
-          status: 'CANCELLED',
-          message: 'Shipment cancelled by user',
-        },
-      ],
-    };
+    const cancelledAt = new Date();
 
-    this.mockShipments[shippingIndex] = updated;
+    const updated = await this.prisma.shipment.update({
+      where: { id },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt,
+        logs: {
+          create: {
+            status: 'CANCELLED',
+            message: 'Shipment cancelled by user',
+            timestamp: cancelledAt,
+          },
+        },
+      },
+    });
 
     return {
       shipping_id: updated.id,
