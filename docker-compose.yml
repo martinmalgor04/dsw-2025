@@ -99,7 +99,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true
       - REDIS_URL=redis://redis:6379
-      - STOCK_API_URL=http://stock-integration-service:3002
+      - STOCK_API_URL=https://comprasg5.mmalgor.com.ar
       - COMPRAS_API_URL=http://stock-integration-service:3002
     depends_on:
       redis:

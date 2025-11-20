@@ -256,35 +256,35 @@ export class ShippingService {
 
     const shipment = await this.prisma.shipment.create({
       data: {
-        orderId: dto.order_id,
-        userId: dto.user_id,
-        trackingNumber,
-        deliveryStreet: dto.delivery_address.street,
-        deliveryCity: dto.delivery_address.city,
-        deliveryState: dto.delivery_address.state,
-        deliveryPostalCode: dto.delivery_address.postal_code,
-        deliveryCountry: dto.delivery_address.country,
+      orderId: dto.order_id,
+      userId: dto.user_id,
+      trackingNumber,
+      deliveryStreet: dto.delivery_address.street,
+      deliveryCity: dto.delivery_address.city,
+      deliveryState: dto.delivery_address.state,
+      deliveryPostalCode: dto.delivery_address.postal_code,
+      deliveryCountry: dto.delivery_address.country,
         departureStreet: stockLocation.street,
         departureCity: stockLocation.city,
         departureState: stockLocation.state,
         departurePostalCode: stockLocation.postal_code,
         departureCountry: stockLocation.country,
-        transportType: dto.transport_type.toUpperCase(),
-        status: 'CREATED',
-        totalCost,
-        currency: 'ARS',
-        estimatedDeliveryAt: estimatedDelivery,
+      transportType: dto.transport_type.toUpperCase(),
+      status: 'CREATED',
+      totalCost,
+      currency: 'ARS',
+      estimatedDeliveryAt: estimatedDelivery,
         products: {
           create: dto.products.map((p) => ({
-            productId: p.id,
-            quantity: p.quantity,
-          })),
+        productId: p.id,
+        quantity: p.quantity,
+      })),
         },
         logs: {
           create: {
-            status: 'CREATED',
-            message: `Shipment created with tracking number: ${trackingNumber}`,
-          },
+          status: 'CREATED',
+          message: `Shipment created with tracking number: ${trackingNumber}`,
+        },
         },
       },
     });
@@ -318,10 +318,10 @@ export class ShippingService {
     }
     if (fromDate || toDate) {
       where.createdAt = {};
-      if (fromDate) {
+    if (fromDate) {
         where.createdAt.gte = new Date(fromDate);
-      }
-      if (toDate) {
+    }
+    if (toDate) {
         where.createdAt.lte = new Date(toDate);
       }
     }
@@ -442,14 +442,14 @@ export class ShippingService {
     const updated = await this.prisma.shipment.update({
       where: { id },
       data: {
-        status: 'CANCELLED',
+      status: 'CANCELLED',
         cancelledAt,
         logs: {
           create: {
-            status: 'CANCELLED',
-            message: 'Shipment cancelled by user',
+          status: 'CANCELLED',
+          message: 'Shipment cancelled by user',
             timestamp: cancelledAt,
-          },
+        },
         },
       },
     });
