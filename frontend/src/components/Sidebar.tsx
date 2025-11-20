@@ -50,6 +50,7 @@ export function Sidebar({
   const mainMenuItems = [
     { id: 'dashboard', label: 'Panel', icon: LayoutDashboard, href: '/dashboard' },
     { id: 'analitica', label: 'Analíticas', icon: BarChart3, href: '/analitica' },
+    { id: 'productos', label: 'Productos', icon: Package, href: '/productos' },
   ];
 
   // Secciones con subsecciones
