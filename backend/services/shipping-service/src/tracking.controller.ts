@@ -8,6 +8,7 @@ import {
   HttpStatus,
   NotFoundException,
   InternalServerErrorException,
+  HttpException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ShippingService } from './shipping.service';
@@ -76,6 +77,9 @@ export class TrackingController {
         creationDate: new Date().toISOString(),
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error.message);
     }
   }

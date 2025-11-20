@@ -107,19 +107,27 @@ export class ServiceRegistry {
 
   /**
    * Encuentra el servicio responsable de una ruta
-   * Ej: "/config/transport-methods" → retorna config-service
+   * Busca el prefijo más largo que coincida.
+   * Ej: "/api/logistics/tracking" -> match "/api/logistics" -> shipping-service
    */
   findServiceByRoute(path: string): RegisteredService | undefined {
-    // Extrae el prefijo de la ruta (ej: "/config" de "/config/transport-methods")
-    const routePrefix = '/' + path.split('/')[1];
+    let bestMatch: RegisteredService | undefined;
+    let longestMatchLength = 0;
 
     for (const service of this.services.values()) {
-      if (service.routes.includes(routePrefix)) {
-        return service;
+      for (const routePrefix of service.routes) {
+        // Verificamos si el path empieza con este prefijo
+        // Aseguramos que coincida el segmento completo (ej: "/api" no matchee "/api-x")
+        if (path.startsWith(routePrefix) && (path.length === routePrefix.length || path[routePrefix.length] === '/')) {
+          if (routePrefix.length > longestMatchLength) {
+            longestMatchLength = routePrefix.length;
+            bestMatch = service;
+          }
+        }
       }
     }
 
-    return undefined;
+    return bestMatch;
   }
 
   /**
