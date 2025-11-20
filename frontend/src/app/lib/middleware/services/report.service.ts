@@ -15,6 +15,40 @@ export interface ShipmentMetrics {
   averageCost: number;
 }
 
+export interface KPIData {
+  totalShipments: {
+    today: number;
+    week: number;
+    month: number;
+  };
+  deliverySuccessRate: number; // percentage
+  averageDeliveryTime: number; // hours
+  shipmentsByStatus: {
+    status: string;
+    count: number;
+    percentage: number;
+  }[];
+  timelineData: {
+    date: string;
+    shipments: number;
+    delivered: number;
+    cancelled: number;
+  }[];
+  transportTypeDistribution: {
+    type: string;
+    count: number;
+    percentage: number;
+  }[];
+  statusDistribution: {
+    status: string;
+    count: number;
+  }[];
+  topZones: {
+    zone: string;
+    shipments: number;
+  }[];
+}
+
 export interface VehicleUtilization {
   vehicleId: string;
   utilizationPct: number;
@@ -42,6 +76,10 @@ class ReportService {
 
   async getShipmentMetrics(period?: DateRange): Promise<ShipmentMetrics> {
     return httpClient.get('/reports/shipments', { params: period });
+  }
+
+  async getKPIs(period?: DateRange): Promise<KPIData> {
+    return httpClient.get('/reports/kpis', { params: period });
   }
 
   async getVehicleUtilization(period?: DateRange): Promise<VehicleUtilization[]> {
