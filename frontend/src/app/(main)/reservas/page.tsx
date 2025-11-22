@@ -21,6 +21,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Box,
 } from 'lucide-react';
 import {
   Card,
@@ -48,6 +49,11 @@ interface ReservaProducto {
   nombre: string;
   cantidad: number;
   precioUnitario: number;
+  dimensiones?: {
+    largoCm: number;
+    anchoCm: number;
+    altoCm: number;
+  };
 }
 
 interface Reserva {
@@ -118,12 +124,26 @@ export default function ReservasPage() {
         expiresAt: reserva.expiraEn, // Mapear expiraEn a expiresAt
         fechaCreacion: reserva.fechaCreacion,
         fechaActualizacion: reserva.fechaActualizacion,
-        productos: reserva.items?.map((item: any) => ({
-          idProducto: item.productoId,
-          nombre: item.nombre,
-          cantidad: item.cantidad,
-          precioUnitario: parseFloat(item.precioUnitario),
-        })) || [],
+        productos: reserva.items?.map((item: any) => {
+          const producto: ReservaProducto = {
+            idProducto: item.productoId,
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            precioUnitario: parseFloat(item.precioUnitario),
+          };
+
+          // Incluir dimensiones si están disponibles
+          if (item.producto?.dimensiones) {
+            const dims = item.producto.dimensiones;
+            producto.dimensiones = {
+              largoCm: parseFloat(dims.largoCm) || 0,
+              anchoCm: parseFloat(dims.anchoCm) || 0,
+              altoCm: parseFloat(dims.altoCm) || 0,
+            };
+          }
+
+          return producto;
+        }) || [],
       }));
 
       setReservas(mappedData);
@@ -140,6 +160,7 @@ export default function ReservasPage() {
   const updateReservaStatus = async (
     idReserva: number,
     nuevoEstado: 'confirmado' | 'cancelado' | 'pendiente',
+    usuarioId: number,
     motivo?: string
   ) => {
     try {
@@ -151,6 +172,13 @@ export default function ReservasPage() {
           motivo: motivo || 'Cancelación solicitada por el usuario',
         };
 
+        console.log('Cancelando reserva:', {
+          url,
+          method: 'DELETE',
+          body,
+          bodyStringified: JSON.stringify(body),
+        });
+
         const response = await fetch(url, {
           method: 'DELETE',
           headers: {
@@ -161,15 +189,49 @@ export default function ReservasPage() {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+          let errorMessage = `Error ${response.status}: ${response.statusText}`;
+          let errorData: any = {};
+          
+          try {
+            const responseText = await response.text();
+            if (responseText) {
+              try {
+                errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorData.details || errorData.error || errorMessage;
+              } catch {
+                // Si no es JSON, usar el texto directamente
+                errorMessage = responseText || errorMessage;
+              }
+            }
+          } catch (e) {
+            console.warn('No se pudo leer la respuesta del error:', e);
+          }
+          
+          console.error('Error al cancelar reserva:', {
+            status: response.status,
+            statusText: response.statusText,
+            url,
+            body,
+            errorData,
+            errorMessage,
+          });
+          
+          throw new Error(errorMessage || `Error ${response.status}: ${response.statusText}`);
         }
       } else {
         // Para cambiar a confirmado o pendiente, usamos PATCH con estado
+        // El enum de PostgreSQL espera valores en MAYÚSCULAS
         const body = {
-          usuarioId: 1, // TODO: Obtener del contexto de autenticación
-          estado: nuevoEstado,
+          usuarioId: usuarioId,
+          estado: nuevoEstado.toUpperCase(),
         };
+
+        console.log('Actualizando reserva:', {
+          url,
+          method: 'PATCH',
+          body,
+          bodyStringified: JSON.stringify(body),
+        });
 
         const response = await fetch(url, {
           method: 'PATCH',
@@ -181,8 +243,34 @@ export default function ReservasPage() {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+          let errorMessage = `Error ${response.status}: ${response.statusText}`;
+          let errorData: any = {};
+          
+          try {
+            const responseText = await response.text();
+            if (responseText) {
+              try {
+                errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorData.details || errorData.error || errorMessage;
+              } catch {
+                // Si no es JSON, usar el texto directamente
+                errorMessage = responseText || errorMessage;
+              }
+            }
+          } catch (e) {
+            console.warn('No se pudo leer la respuesta del error:', e);
+          }
+          
+          console.error('Error al actualizar reserva:', {
+            status: response.status,
+            statusText: response.statusText,
+            url,
+            body,
+            errorData,
+            errorMessage,
+          });
+          
+          throw new Error(errorMessage || `Error ${response.status}: ${response.statusText}`);
         }
       }
 
@@ -239,6 +327,71 @@ export default function ReservasPage() {
       currency: 'ARS',
       minimumFractionDigits: 2,
     }).format(price);
+  };
+
+  const calculateVolumeCm3 = (productos: ReservaProducto[] | undefined): number | null => {
+    if (!productos || productos.length === 0) {
+      return null;
+    }
+
+    let totalCm3 = 0;
+    let hasValidDimensions = false;
+
+    productos.forEach((producto) => {
+      if (
+        producto.dimensiones &&
+        producto.dimensiones.largoCm > 0 &&
+        producto.dimensiones.anchoCm > 0 &&
+        producto.dimensiones.altoCm > 0
+      ) {
+        const volumenCm3 =
+          producto.dimensiones.largoCm *
+          producto.dimensiones.anchoCm *
+          producto.dimensiones.altoCm *
+          producto.cantidad;
+        totalCm3 += volumenCm3;
+        hasValidDimensions = true;
+      }
+    });
+
+    if (!hasValidDimensions) {
+      return null;
+    }
+
+    return totalCm3;
+  };
+
+  const calculateVolumeM3 = (productos: ReservaProducto[] | undefined): number | null => {
+    const cm3 = calculateVolumeCm3(productos);
+    if (cm3 === null) {
+      return null;
+    }
+    // Convertir de cm³ a m³ (dividir por 1,000,000)
+    return cm3 / 1_000_000;
+  };
+
+  const formatVolume = (productos: ReservaProducto[] | undefined): string => {
+    const cm3 = calculateVolumeCm3(productos);
+    
+    if (cm3 === null) {
+      return 'N/A - Sin dimensiones';
+    }
+
+    // Convertir a m³ desde cm³ para evitar problemas de precisión
+    const m3 = cm3 / 1_000_000;
+
+    // Formatear m³ con más decimales si es necesario
+    let m3Formatted: string;
+    if (m3 < 0.01) {
+      // Para valores muy pequeños, mostrar más decimales
+      m3Formatted = m3.toFixed(6).replace(/\.?0+$/, '');
+    } else if (m3 < 1) {
+      m3Formatted = m3.toFixed(4).replace(/\.?0+$/, '');
+    } else {
+      m3Formatted = m3.toFixed(2).replace(/\.?0+$/, '');
+    }
+
+    return `${m3Formatted} m³ (${cm3.toLocaleString('es-AR')} cm³)`;
   };
 
   const getEstadoBadgeVariant = (estado: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -388,7 +541,12 @@ export default function ReservasPage() {
     setUpdatingReserva(reserva.idReserva);
 
     try {
-      await updateReservaStatus(reserva.idReserva, nuevoEstado);
+      await updateReservaStatus(
+        reserva.idReserva,
+        nuevoEstado,
+        reserva.usuarioId,
+        nuevoEstado === 'cancelado' ? 'Cancelación solicitada por el usuario' : undefined
+      );
 
       // Cerrar diálogo
       setConfirmDialog({ open: false, reserva: null, action: null, nuevoEstado: null });
@@ -603,6 +761,7 @@ export default function ReservasPage() {
                 const gradient = getCardGradient(reserva.idReserva);
                 const total = calculateTotal(reserva.productos);
                 const expired = isExpired(reserva.expiresAt) && reserva.estado !== 'cancelado';
+                const volumeM3 = calculateVolumeM3(reserva.productos);
 
 
                 return (
@@ -695,6 +854,25 @@ export default function ReservasPage() {
                             </span>
                           </div>
                         )}
+                      </div>
+
+                      {/* Volumen (m³) */}
+                      <div className="pt-2 border-t">
+                        <div className="flex items-center gap-2 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+                          <Box className="w-5 h-5 text-cyan-700 flex-shrink-0" />
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-cyan-700 mb-0.5">
+                              Volumen Total
+                            </div>
+                            <div className={`text-sm font-semibold ${
+                              calculateVolumeCm3(reserva.productos) === null
+                                ? 'text-gray-600'
+                                : 'text-cyan-900'
+                            }`}>
+                              {formatVolume(reserva.productos)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Productos - Botón desplegable */}
