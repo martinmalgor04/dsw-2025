@@ -128,9 +128,23 @@ export default function ProductosPage() {
   };
 
   const getStockColor = (stock: number): string => {
-    if (stock === 0) return 'text-red-600 font-semibold';
-    if (stock < 10) return 'text-orange-600 font-semibold';
-    return 'text-green-600 font-semibold';
+    if (stock === 0) return 'text-red-700 font-bold';
+    if (stock < 10) return 'text-orange-700 font-bold';
+    return 'text-green-700 font-bold';
+  };
+
+  const getCategoriaColor = (categoriaNombre: string): string => {
+    const colors = {
+      'Electrónica': 'text-blue-700 bg-blue-50 border-blue-200',
+      'Hogar': 'text-green-700 bg-green-50 border-green-200',
+      'Deportes': 'text-orange-700 bg-orange-50 border-orange-200',
+      'Ropa': 'text-purple-700 bg-purple-50 border-purple-200',
+      'Libros': 'text-indigo-700 bg-indigo-50 border-indigo-200',
+      'Juguetes': 'text-pink-700 bg-pink-50 border-pink-200',
+      'Herramientas': 'text-gray-700 bg-gray-50 border-gray-200',
+      'Belleza': 'text-rose-700 bg-rose-50 border-rose-200',
+    };
+    return colors[categoriaNombre as keyof typeof colors] || 'text-gray-700 bg-gray-50 border-gray-200';
   };
 
   const sortedProductos = [...productos].sort((a, b) => {
@@ -248,7 +262,7 @@ export default function ProductosPage() {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin text-cyan-500 mx-auto mb-4" />
-            <p className="text-gray-600">Cargando productos...</p>
+            <p className="text-gray-700">Cargando productos...</p>
           </div>
         </div>
       )}
@@ -319,7 +333,7 @@ export default function ProductosPage() {
                         <div className="absolute top-2 right-2">
                           <Badge
                             variant={getStockBadgeVariant(producto.stockDisponible)}
-                            className="bg-white/90 backdrop-blur-sm"
+                            className="bg-white/95 backdrop-blur-sm text-gray-800 font-medium border-gray-300"
                           >
                             <Box className="w-3 h-3 mr-1" />
                             {producto.stockDisponible} unidades
@@ -356,13 +370,13 @@ export default function ProductosPage() {
                             <Badge
                               key={categoria.id}
                               variant="outline"
-                              className="text-xs"
+                              className={`text-xs font-medium ${getCategoriaColor(categoria.nombre)}`}
                             >
                               {categoria.nombre}
                             </Badge>
                           ))}
                           {producto.categorias.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs font-medium text-gray-700 bg-gray-50 border-gray-200">
                               +{producto.categorias.length - 3}
                             </Badge>
                           )}
@@ -370,7 +384,7 @@ export default function ProductosPage() {
                       )}
 
                       {/* Dimensions and Weight */}
-                      <div className="text-xs text-gray-500 space-y-1 pt-2 border-t">
+                      <div className="text-xs text-gray-700 space-y-1 pt-2 border-t">
                         <div className="flex items-center gap-1">
                           <Box className="w-3 h-3" />
                           <span>
@@ -385,7 +399,7 @@ export default function ProductosPage() {
                       </div>
 
                       {/* Location */}
-                      <div className="flex items-start gap-1 text-xs text-gray-600 pt-2 border-t">
+                      <div className="flex items-start gap-1 text-xs text-gray-700 pt-2 border-t">
                         <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-2">
                           {producto.ubicacion.ciudad}, {producto.ubicacion.provincia}
@@ -394,7 +408,7 @@ export default function ProductosPage() {
                     </CardContent>
 
                     {/* Card Footer */}
-                    <CardFooter className="p-4 pt-0 flex items-center justify-between text-xs text-gray-500 border-t">
+                    <CardFooter className="p-4 pt-0 flex items-center justify-between text-xs text-gray-600 border-t">
                       <span>ID: {producto.id}</span>
                       <span>CP: {producto.ubicacion.codigoPostal}</span>
                     </CardFooter>

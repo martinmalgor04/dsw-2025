@@ -16,6 +16,12 @@ import {
   XCircle,
   DollarSign,
   FileText,
+  Check,
+  Ban,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Box,
 } from 'lucide-react';
 import {
   Card,
@@ -27,12 +33,27 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ReservaProducto {
   idProducto: number;
   nombre: string;
   cantidad: number;
   precioUnitario: number;
+  dimensiones?: {
+    largoCm: number;
+    anchoCm: number;
+    altoCm: number;
+  };
 }
 
 interface Reserva {
@@ -56,6 +77,26 @@ export default function ReservasPage() {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('idReserva');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [updatingReserva, setUpdatingReserva] = useState<number | null>(null);
+  const [expandedProductos, setExpandedProductos] = useState<Set<number>>(new Set());
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    reserva: Reserva | null;
+    action: 'confirmar' | 'cancelar' | 'pendiente' | null;
+    nuevoEstado: 'confirmado' | 'cancelado' | 'pendiente' | null;
+  }>({ open: false, reserva: null, action: null, nuevoEstado: null });
+
+  const toggleProductos = (idReserva: number) => {
+    setExpandedProductos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(idReserva)) {
+        newSet.delete(idReserva);
+      } else {
+        newSet.add(idReserva);
+      }
+      return newSet;
+    });
+  };
 
   const fetchReservas = async () => {
     setIsLoading(true);
@@ -72,8 +113,40 @@ export default function ReservasPage() {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      setReservas(data);
+      const rawData = await response.json();
+
+      // Mapear los datos de la API al formato esperado por el frontend
+      const mappedData = rawData.map((reserva: any) => ({
+        idReserva: reserva.idReserva,
+        idCompra: reserva.idCompra,
+        usuarioId: reserva.usuarioId,
+        estado: reserva.estado.toLowerCase(), // Convertir a minúsculas
+        expiresAt: reserva.expiraEn, // Mapear expiraEn a expiresAt
+        fechaCreacion: reserva.fechaCreacion,
+        fechaActualizacion: reserva.fechaActualizacion,
+        productos: reserva.items?.map((item: any) => {
+          const producto: ReservaProducto = {
+            idProducto: item.productoId,
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            precioUnitario: parseFloat(item.precioUnitario),
+          };
+
+          // Incluir dimensiones si están disponibles
+          if (item.producto?.dimensiones) {
+            const dims = item.producto.dimensiones;
+            producto.dimensiones = {
+              largoCm: parseFloat(dims.largoCm) || 0,
+              anchoCm: parseFloat(dims.anchoCm) || 0,
+              altoCm: parseFloat(dims.altoCm) || 0,
+            };
+          }
+
+          return producto;
+        }) || [],
+      }));
+
+      setReservas(mappedData);
       setLastUpdate(new Date());
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar reservas';
@@ -81,6 +154,140 @@ export default function ReservasPage() {
       console.error('Error fetching reservas:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updateReservaStatus = async (
+    idReserva: number,
+    nuevoEstado: 'confirmado' | 'cancelado' | 'pendiente',
+    usuarioId: number,
+    motivo?: string
+  ) => {
+    try {
+      const url = `https://comprasg5.mmalgor.com.ar/v1/reservas/${idReserva}`;
+
+      if (nuevoEstado === 'cancelado') {
+        // Para cancelar, usamos DELETE con motivo
+        const body = {
+          motivo: motivo || 'Cancelación solicitada por el usuario',
+        };
+
+        console.log('Cancelando reserva:', {
+          url,
+          method: 'DELETE',
+          body,
+          bodyStringified: JSON.stringify(body),
+        });
+
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          let errorMessage = `Error ${response.status}: ${response.statusText}`;
+          let errorData: any = {};
+          
+          try {
+            const responseText = await response.text();
+            if (responseText) {
+              try {
+                errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorData.details || errorData.error || errorMessage;
+              } catch {
+                // Si no es JSON, usar el texto directamente
+                errorMessage = responseText || errorMessage;
+              }
+            }
+          } catch (e) {
+            console.warn('No se pudo leer la respuesta del error:', e);
+          }
+          
+          console.error('Error al cancelar reserva:', {
+            status: response.status,
+            statusText: response.statusText,
+            url,
+            body,
+            errorData,
+            errorMessage,
+          });
+          
+          throw new Error(errorMessage || `Error ${response.status}: ${response.statusText}`);
+        }
+      } else {
+        // Para cambiar a confirmado o pendiente, usamos PATCH con estado
+        // El enum de PostgreSQL espera valores en MAYÚSCULAS
+        const body = {
+          usuarioId: usuarioId,
+          estado: nuevoEstado.toUpperCase(),
+        };
+
+        console.log('Actualizando reserva:', {
+          url,
+          method: 'PATCH',
+          body,
+          bodyStringified: JSON.stringify(body),
+        });
+
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          let errorMessage = `Error ${response.status}: ${response.statusText}`;
+          let errorData: any = {};
+          
+          try {
+            const responseText = await response.text();
+            if (responseText) {
+              try {
+                errorData = JSON.parse(responseText);
+                errorMessage = errorData.message || errorData.details || errorData.error || errorMessage;
+              } catch {
+                // Si no es JSON, usar el texto directamente
+                errorMessage = responseText || errorMessage;
+              }
+            }
+          } catch (e) {
+            console.warn('No se pudo leer la respuesta del error:', e);
+          }
+          
+          console.error('Error al actualizar reserva:', {
+            status: response.status,
+            statusText: response.statusText,
+            url,
+            body,
+            errorData,
+            errorMessage,
+          });
+          
+          throw new Error(errorMessage || `Error ${response.status}: ${response.statusText}`);
+        }
+      }
+
+      // Actualizar la reserva en el estado local
+      setReservas(prevReservas =>
+        prevReservas.map(reserva =>
+          reserva.idReserva === idReserva
+            ? { ...reserva, estado: nuevoEstado, fechaActualizacion: new Date().toISOString() }
+            : reserva
+        )
+      );
+
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar reserva';
+      console.error('Error updating reserva:', err);
+      throw new Error(message);
     }
   };
 
@@ -120,6 +327,71 @@ export default function ReservasPage() {
       currency: 'ARS',
       minimumFractionDigits: 2,
     }).format(price);
+  };
+
+  const calculateVolumeCm3 = (productos: ReservaProducto[] | undefined): number | null => {
+    if (!productos || productos.length === 0) {
+      return null;
+    }
+
+    let totalCm3 = 0;
+    let hasValidDimensions = false;
+
+    productos.forEach((producto) => {
+      if (
+        producto.dimensiones &&
+        producto.dimensiones.largoCm > 0 &&
+        producto.dimensiones.anchoCm > 0 &&
+        producto.dimensiones.altoCm > 0
+      ) {
+        const volumenCm3 =
+          producto.dimensiones.largoCm *
+          producto.dimensiones.anchoCm *
+          producto.dimensiones.altoCm *
+          producto.cantidad;
+        totalCm3 += volumenCm3;
+        hasValidDimensions = true;
+      }
+    });
+
+    if (!hasValidDimensions) {
+      return null;
+    }
+
+    return totalCm3;
+  };
+
+  const calculateVolumeM3 = (productos: ReservaProducto[] | undefined): number | null => {
+    const cm3 = calculateVolumeCm3(productos);
+    if (cm3 === null) {
+      return null;
+    }
+    // Convertir de cm³ a m³ (dividir por 1,000,000)
+    return cm3 / 1_000_000;
+  };
+
+  const formatVolume = (productos: ReservaProducto[] | undefined): string => {
+    const cm3 = calculateVolumeCm3(productos);
+    
+    if (cm3 === null) {
+      return 'N/A - Sin dimensiones';
+    }
+
+    // Convertir a m³ desde cm³ para evitar problemas de precisión
+    const m3 = cm3 / 1_000_000;
+
+    // Formatear m³ con más decimales si es necesario
+    let m3Formatted: string;
+    if (m3 < 0.01) {
+      // Para valores muy pequeños, mostrar más decimales
+      m3Formatted = m3.toFixed(6).replace(/\.?0+$/, '');
+    } else if (m3 < 1) {
+      m3Formatted = m3.toFixed(4).replace(/\.?0+$/, '');
+    } else {
+      m3Formatted = m3.toFixed(2).replace(/\.?0+$/, '');
+    }
+
+    return `${m3Formatted} m³ (${cm3.toLocaleString('es-AR')} cm³)`;
   };
 
   const getEstadoBadgeVariant = (estado: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -247,6 +519,79 @@ export default function ReservasPage() {
     }
   };
 
+  const handleChangeEstado = (reserva: Reserva, nuevoEstado: 'confirmado' | 'cancelado' | 'pendiente') => {
+    const actionMap = {
+      confirmado: 'confirmar',
+      cancelado: 'cancelar',
+      pendiente: 'pendiente',
+    } as const;
+
+    setConfirmDialog({
+      open: true,
+      reserva,
+      action: actionMap[nuevoEstado],
+      nuevoEstado,
+    });
+  };
+
+  const executeReservaAction = async () => {
+    if (!confirmDialog.reserva || !confirmDialog.nuevoEstado) return;
+
+    const { reserva, nuevoEstado } = confirmDialog;
+    setUpdatingReserva(reserva.idReserva);
+
+    try {
+      await updateReservaStatus(
+        reserva.idReserva,
+        nuevoEstado,
+        reserva.usuarioId,
+        nuevoEstado === 'cancelado' ? 'Cancelación solicitada por el usuario' : undefined
+      );
+
+      // Cerrar diálogo
+      setConfirmDialog({ open: false, reserva: null, action: null, nuevoEstado: null });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar reserva';
+      setError(message);
+    } finally {
+      setUpdatingReserva(null);
+    }
+  };
+
+  // Función para determinar qué botones mostrar según el estado actual
+  const getAvailableActions = (estado: string): Array<{ estado: 'confirmado' | 'cancelado' | 'pendiente'; label: string; color: string; icon: React.ReactNode }> => {
+    const actions = [];
+
+    if (estado !== 'confirmado') {
+      actions.push({
+        estado: 'confirmado' as const,
+        label: 'Confirmar',
+        color: 'bg-green-600 hover:bg-green-700 text-white border-green-600',
+        icon: <Check className="w-3 h-3" />,
+      });
+    }
+
+    if (estado !== 'pendiente') {
+      actions.push({
+        estado: 'pendiente' as const,
+        label: 'Pendiente',
+        color: 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-600',
+        icon: <Clock className="w-3 h-3" />,
+      });
+    }
+
+    if (estado !== 'cancelado') {
+      actions.push({
+        estado: 'cancelado' as const,
+        label: 'Cancelar',
+        color: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
+        icon: <Ban className="w-3 h-3" />,
+      });
+    }
+
+    return actions;
+  };
+
   const getSortIcon = (option: SortOption) => {
     if (sortBy !== option) {
       return <ArrowUpDown className="w-4 h-4" />;
@@ -335,8 +680,8 @@ export default function ReservasPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-800">{estadisticas.total}</div>
-              <div className="text-sm text-gray-600">Total</div>
+              <div className="text-2xl font-bold text-gray-900">{estadisticas.total}</div>
+              <div className="text-sm text-gray-700 font-medium">Total</div>
             </CardContent>
           </Card>
           <Card className="border-green-200 bg-green-50">
@@ -371,7 +716,7 @@ export default function ReservasPage() {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-            <p className="text-gray-600">Cargando reservas...</p>
+            <p className="text-gray-700">Cargando reservas...</p>
           </div>
         </div>
       )}
@@ -402,25 +747,27 @@ export default function ReservasPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
                   No hay reservas disponibles
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-gray-600">
                   No se encontraron reservas en el sistema.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               {sortedReservas.map((reserva) => {
                 const gradient = getCardGradient(reserva.idReserva);
                 const total = calculateTotal(reserva.productos);
                 const expired = isExpired(reserva.expiresAt) && reserva.estado !== 'cancelado';
+                const volumeM3 = calculateVolumeM3(reserva.productos);
+
 
                 return (
                   <Card
                     key={reserva.idReserva}
-                    className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300"
+                    className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 flex flex-col h-full"
                   >
                     {/* Card Header with Gradient */}
                     <CardHeader className="p-0">
@@ -461,20 +808,20 @@ export default function ReservasPage() {
                     </CardHeader>
 
                     {/* Card Content */}
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-6 space-y-4 flex-grow">
                       {/* Información Principal */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-2 text-sm">
-                          <User className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Usuario:</span>
-                          <span className="font-semibold text-gray-800">
+                          <User className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700 font-medium">Usuario:</span>
+                          <span className="font-semibold text-gray-900">
                             #{reserva.usuarioId}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <Package className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Productos:</span>
-                          <span className="font-semibold text-gray-800">
+                          <Package className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700 font-medium">Productos:</span>
+                          <span className="font-semibold text-gray-900">
                             {reserva.productos?.length || 0}
                           </span>
                         </div>
@@ -483,16 +830,16 @@ export default function ReservasPage() {
                       {/* Fechas */}
                       <div className="space-y-2 pt-2 border-t">
                         <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Creada:</span>
-                          <span className="text-gray-800">{formatDate(reserva.fechaCreacion)}</span>
+                          <Calendar className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700 font-medium">Creada:</span>
+                          <span className="text-gray-900">{formatDate(reserva.fechaCreacion)}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Expira:</span>
+                          <Calendar className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700 font-medium">Expira:</span>
                           <span
                             className={`font-semibold ${
-                              expired ? 'text-red-600' : 'text-gray-800'
+                              expired ? 'text-red-700' : 'text-gray-900'
                             }`}
                           >
                             {formatDate(reserva.expiresAt)}
@@ -500,65 +847,158 @@ export default function ReservasPage() {
                           </span>
                         </div>
                         {reserva.fechaActualizacion !== reserva.fechaCreacion && (
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Clock className="w-4 h-4" />
-                            <span>
+                            <span className="text-gray-700">
                               Actualizada: {formatDate(reserva.fechaActualizacion)}
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Productos */}
-                      {reserva.productos && reserva.productos.length > 0 && (
-                        <div className="pt-2 border-t">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                            Productos Reservados:
-                          </h4>
-                          <div className="space-y-2">
-                            {reserva.productos.map((producto, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between bg-gray-50 rounded-lg p-2 text-sm"
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium text-gray-800">
-                                    {producto.nombre}
-                                  </div>
-                                  <div className="text-gray-600">
-                                    Cantidad: {producto.cantidad} ×{' '}
-                                    {formatPrice(producto.precioUnitario)}
-                                  </div>
-                                </div>
-                                <div className="font-semibold text-gray-800">
-                                  {formatPrice(producto.precioUnitario * producto.cantidad)}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Total */}
+                      {/* Volumen (m³) */}
                       <div className="pt-2 border-t">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-gray-700">Total:</span>
-                          <div className="flex items-center gap-1 text-lg font-bold text-blue-600">
-                            <DollarSign className="w-5 h-5" />
-                            {formatPrice(total)}
+                        <div className="flex items-center gap-2 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+                          <Box className="w-5 h-5 text-cyan-700 flex-shrink-0" />
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-cyan-700 mb-0.5">
+                              Volumen Total
+                            </div>
+                            <div className={`text-sm font-semibold ${
+                              calculateVolumeCm3(reserva.productos) === null
+                                ? 'text-gray-600'
+                                : 'text-cyan-900'
+                            }`}>
+                              {formatVolume(reserva.productos)}
+                            </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* Productos - Botón desplegable */}
+                      {reserva.productos && reserva.productos.length > 0 && (
+                        <div className="pt-2 border-t">
+                          <button
+                            onClick={() => toggleProductos(reserva.idReserva)}
+                            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Package className="w-5 h-5 text-gray-600" />
+                              <div className="text-left">
+                                <div className="font-semibold text-gray-900">
+                                  Productos Reservados
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {reserva.productos.length} {reserva.productos.length === 1 ? 'producto' : 'productos'} • Total: {formatPrice(total)}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600 font-medium">
+                                {expandedProductos.has(reserva.idReserva) ? 'Ocultar' : 'Ver detalles'}
+                              </span>
+                              {expandedProductos.has(reserva.idReserva) ? (
+                                <ChevronUp className="w-5 h-5 text-gray-600" />
+                              ) : (
+                                <ChevronDown className="w-5 h-5 text-gray-600" />
+                              )}
+                            </div>
+                          </button>
+
+                          {/* Contenido desplegable */}
+                          {expandedProductos.has(reserva.idReserva) && (
+                            <div className="mt-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                              {reserva.productos.map((producto, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between bg-white rounded-lg p-3 text-sm border border-gray-200"
+                                >
+                                  <div className="flex-1">
+                                    <div className="font-medium text-gray-900">
+                                      {producto.nombre}
+                                    </div>
+                                    <div className="text-gray-600">
+                                      Cantidad: {producto.cantidad} ×{' '}
+                                      {formatPrice(producto.precioUnitario)}
+                                    </div>
+                                  </div>
+                                  <div className="font-semibold text-gray-900">
+                                    {formatPrice(producto.precioUnitario * producto.cantidad)}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                     </CardContent>
 
                     {/* Card Footer */}
-                    <CardFooter className="p-4 pt-0 flex items-center justify-between text-xs text-gray-500 border-t bg-gray-50">
-                      <span>ID Reserva: {reserva.idReserva}</span>
-                      {expired && (
-                        <Badge variant="outline" className="text-red-600 border-red-300">
-                          Expirada
-                        </Badge>
-                      )}
+                    <CardFooter className="p-4 pt-0 flex flex-col gap-3 text-xs text-gray-600 border-t bg-gray-50 min-h-[80px]">
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-medium">ID Reserva: {reserva.idReserva}</span>
+                        {expired && (
+                          <Badge variant="outline" className="text-red-600 border-red-300">
+                            Expirada
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Botones de acción - Mostrar según estado actual */}
+                      <div className="flex items-center justify-between w-full">
+                        {/* Badge de estado actual */}
+                        <div>
+                          {reserva.estado === 'confirmado' && (
+                            <Badge variant="outline" className="text-green-600 border-green-300">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Confirmada
+                            </Badge>
+                          )}
+
+                          {reserva.estado === 'cancelado' && (
+                            <Badge variant="outline" className="text-gray-600 border-gray-300">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Cancelada
+                            </Badge>
+                          )}
+
+                          {reserva.estado === 'pendiente' && (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pendiente
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Botones de acción */}
+                        {!expired && (
+                          <div className="flex gap-2">
+                            {getAvailableActions(reserva.estado).map((action) => (
+                              <Button
+                                key={action.estado}
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleChangeEstado(reserva, action.estado)}
+                                disabled={updatingReserva === reserva.idReserva}
+                                className={`h-8 px-3 text-xs font-medium ${action.color} min-w-[100px] flex items-center justify-center gap-1.5`}
+                              >
+                                {updatingReserva === reserva.idReserva ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <span>...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {action.icon}
+                                    <span>{action.label}</span>
+                                  </>
+                                )}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </CardFooter>
                   </Card>
                 );
@@ -567,6 +1007,59 @@ export default function ReservasPage() {
           )}
         </>
       )}
+
+      {/* Diálogo de confirmación */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) =>
+        setConfirmDialog(prev => ({ ...prev, open }))
+      }>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog.action === 'confirmar' && 'Confirmar Reserva'}
+              {confirmDialog.action === 'cancelar' && 'Cancelar Reserva'}
+              {confirmDialog.action === 'pendiente' && 'Marcar como Pendiente'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.action === 'confirmar' &&
+                `¿Está seguro de que desea confirmar la reserva #${confirmDialog.reserva?.idReserva}? Esta acción confirmará la reserva.`
+              }
+              {confirmDialog.action === 'cancelar' &&
+                `¿Está seguro de que desea cancelar la reserva #${confirmDialog.reserva?.idReserva}? Los productos reservados serán liberados.`
+              }
+              {confirmDialog.action === 'pendiente' &&
+                `¿Está seguro de que desea marcar la reserva #${confirmDialog.reserva?.idReserva} como pendiente?`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeReservaAction}
+              disabled={updatingReserva !== null}
+              className={
+                confirmDialog.action === 'confirmar'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : confirmDialog.action === 'cancelar'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-yellow-600 hover:bg-yellow-700'
+              }
+            >
+              {updatingReserva !== null ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Procesando...
+                </>
+              ) : (
+                confirmDialog.action === 'confirmar'
+                  ? 'Confirmar'
+                  : confirmDialog.action === 'cancelar'
+                  ? 'Cancelar'
+                  : 'Marcar Pendiente'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
