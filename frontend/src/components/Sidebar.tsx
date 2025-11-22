@@ -23,7 +23,8 @@ import {
   BookOpen,
   Route,
   AlertTriangle,
-  Warehouse
+  Warehouse,
+  ShoppingCart
 } from 'lucide-react';
 
 // Using text logo instead of image for now
@@ -50,6 +51,8 @@ export function Sidebar({
   const mainMenuItems = [
     { id: 'dashboard', label: 'Panel', icon: LayoutDashboard, href: '/dashboard' },
     { id: 'analitica', label: 'Analíticas', icon: BarChart3, href: '/analitica' },
+    { id: 'productos', label: 'Productos', icon: Package, href: '/productos' },
+    { id: 'reservas', label: 'Reservas', icon: ShoppingCart, href: '/reservas' },
   ];
 
   // Secciones con subsecciones
