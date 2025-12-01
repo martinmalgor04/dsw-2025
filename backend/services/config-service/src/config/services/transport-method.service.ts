@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { PrismaService, TransportMethod } from '@logistics/database';
 import { CreateTransportMethodDto } from '../dto/create-transport-method.dto';
 import { UpdateTransportMethodDto } from '../dto/update-transport-method.dto';
@@ -28,6 +35,9 @@ export class TransportMethodService {
    * Obtiene un método de transporte por ID
    */
   async findOne(id: string): Promise<TransportMethod> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid UUID format');
+    }
     this.logger.log(`Obteniendo método de transporte con ID: ${id}`);
     const transportMethod = await this.prisma.transportMethod.findUnique({
       where: { id },
@@ -39,7 +49,9 @@ export class TransportMethodService {
     });
 
     if (!transportMethod) {
-      throw new NotFoundException(`Método de transporte con ID ${id} no encontrado`);
+      throw new NotFoundException(
+        `Método de transporte con ID ${id} no encontrado`,
+      );
     }
 
     return transportMethod;
@@ -60,7 +72,9 @@ export class TransportMethodService {
     });
 
     if (!transportMethod) {
-      throw new NotFoundException(`Método de transporte con código ${code} no encontrado`);
+      throw new NotFoundException(
+        `Método de transporte con código ${code} no encontrado`,
+      );
     }
 
     return transportMethod;
@@ -69,8 +83,12 @@ export class TransportMethodService {
   /**
    * Crea un nuevo método de transporte
    */
-  async create(createTransportMethodDto: CreateTransportMethodDto): Promise<TransportMethod> {
-    this.logger.log(`Creando nuevo método de transporte: ${createTransportMethodDto.name}`);
+  async create(
+    createTransportMethodDto: CreateTransportMethodDto,
+  ): Promise<TransportMethod> {
+    this.logger.log(
+      `Creando nuevo método de transporte: ${createTransportMethodDto.name}`,
+    );
 
     // Verificar que el código no exista
     const existing = await this.prisma.transportMethod.findUnique({
@@ -78,7 +96,9 @@ export class TransportMethodService {
     });
 
     if (existing) {
-      throw new ConflictException(`Ya existe un método de transporte con el código ${createTransportMethodDto.code}`);
+      throw new ConflictException(
+        `Ya existe un método de transporte con el código ${createTransportMethodDto.code}`,
+      );
     }
 
     return this.prisma.transportMethod.create({
@@ -89,7 +109,10 @@ export class TransportMethodService {
   /**
    * Actualiza un método de transporte existente
    */
-  async update(id: string, updateTransportMethodDto: UpdateTransportMethodDto): Promise<TransportMethod> {
+  async update(
+    id: string,
+    updateTransportMethodDto: UpdateTransportMethodDto,
+  ): Promise<TransportMethod> {
     this.logger.log(`Actualizando método de transporte con ID: ${id}`);
 
     // Verificar que existe
@@ -102,7 +125,9 @@ export class TransportMethodService {
       });
 
       if (existing && existing.id !== id) {
-        throw new ConflictException(`Ya existe un método de transporte con el código ${updateTransportMethodDto.code}`);
+        throw new ConflictException(
+          `Ya existe un método de transporte con el código ${updateTransportMethodDto.code}`,
+        );
       }
     }
 
@@ -113,17 +138,17 @@ export class TransportMethodService {
   }
 
   /**
-   * Elimina un método de transporte
+   * Elimina (soft delete) un método de transporte
    */
-  async remove(id: string): Promise<void> {
-    this.logger.log(`Eliminando método de transporte con ID: ${id}`);
-    
+  async remove(id: string): Promise<TransportMethod> {
+    this.logger.log(`Desactivando método de transporte con ID: ${id}`);
+
     // Verificar que existe
     await this.findOne(id);
 
-    await this.prisma.transportMethod.delete({
+    return this.prisma.transportMethod.update({
       where: { id },
+      data: { isActive: false },
     });
   }
 }
-

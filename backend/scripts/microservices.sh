@@ -5,8 +5,21 @@
 
 set -e
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Obtener directorio del script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
+
+# Cargar configuración desde .env si existe
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+elif [ -f "$SCRIPT_DIR/env.example" ]; then
+    echo "⚠️  Usando configuración de ejemplo. Copia env.example a .env para personalizar."
+    source "$SCRIPT_DIR/env.example"
+else
+    echo "❌ No se encontró archivo de configuración. Crea .env basado en env.example"
+    exit 1
+fi
 
 # Colores para output
 RED='\033[0;31m'
@@ -161,12 +174,22 @@ status() {
 health() {
     log "Verificando health de todos los servicios..."
     
-    services=(
-        "http://localhost:3001/health:Shipping Service"
-        "http://localhost:3002/health:Stock Integration Service"
-        "http://localhost:3003/health:Config Service"
-        "http://localhost:3004/health:Operator Interface Service"
-    )
+    # Determinar URLs según el entorno
+    if [ "${ENVIRONMENT:-development}" = "development" ]; then
+        services=(
+            "${SHIPPING_SERVICE_URL}/health:Shipping Service"
+            "${STOCK_INTEGRATION_SERVICE_URL}/health:Stock Integration Service"
+            "${CONFIG_SERVICE_URL}/health:Config Service"
+            "${OPERATOR_INTERFACE_SERVICE_URL}/health:Operator Interface Service"
+        )
+    else
+        services=(
+            "${SHIPPING_SERVICE_URL_DEPLOYED}/health:Shipping Service"
+            "${STOCK_INTEGRATION_SERVICE_URL_DEPLOYED}/health:Stock Integration Service"
+            "${CONFIG_SERVICE_URL_DEPLOYED}/health:Config Service"
+            "${OPERATOR_INTERFACE_SERVICE_URL_DEPLOYED}/health:Operator Interface Service"
+        )
+    fi
     
     for service_info in "${services[@]}"; do
         url="${service_info%%:*}"

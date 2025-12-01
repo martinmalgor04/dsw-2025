@@ -1,23 +1,30 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Patch, 
-  Param, 
-  Body, 
-  HttpCode, 
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  HttpCode,
   HttpStatus,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiParam, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsOptional, Length, IsArray, ArrayNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  Length,
+  IsArray,
+  ArrayNotEmpty,
+} from 'class-validator';
 import { ConfigService } from './config.service';
 
 // DTOs que coinciden exactamente con la documentación
@@ -68,8 +75,8 @@ export class ConfigCoverageZonesController {
 
   @Get()
   @ApiOperation({ summary: 'Lista todas las zonas de cobertura disponibles' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Lista de zonas de cobertura',
     schema: {
       type: 'array',
@@ -78,9 +85,12 @@ export class ConfigCoverageZonesController {
         properties: {
           id: { type: 'string', format: 'uuid' },
           name: { type: 'string', example: 'Buenos Aires Capital' },
-          description: { type: 'string', example: 'Capital Federal y zonas aledañas' },
-          postalCodes: { 
-            type: 'array', 
+          description: {
+            type: 'string',
+            example: 'Capital Federal y zonas aledañas',
+          },
+          postalCodes: {
+            type: 'array',
             items: { type: 'string' },
             example: ['C1000', 'C1001', 'C1002', 'C1003', 'C1004', 'C1005'],
           },
@@ -122,7 +132,9 @@ export class ConfigCoverageZonesController {
       return await this.configService.getCoverageZoneById(id);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Zona de cobertura con ID ${id} no encontrada`);
+        throw new NotFoundException(
+          `Zona de cobertura con ID ${id} no encontrada`,
+        );
       }
       throw error;
     }
@@ -143,7 +155,9 @@ export class ConfigCoverageZonesController {
       return await this.configService.updateCoverageZone(id, updateDto);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Zona de cobertura con ID ${id} no encontrada`);
+        throw new NotFoundException(
+          `Zona de cobertura con ID ${id} no encontrada`,
+        );
       }
       throw new BadRequestException('Error al actualizar zona de cobertura');
     }

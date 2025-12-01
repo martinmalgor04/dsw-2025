@@ -25,7 +25,9 @@ describe('StockCircuitBreakerService', () => {
       ],
     }).compile();
 
-    service = module.get<StockCircuitBreakerService>(StockCircuitBreakerService);
+    service = module.get<StockCircuitBreakerService>(
+      StockCircuitBreakerService,
+    );
     configService = module.get<ConfigService>(ConfigService);
   });
 
@@ -68,34 +70,34 @@ describe('StockCircuitBreakerService', () => {
   describe('recordFailure', () => {
     it('should increment failure count', () => {
       expect(service.getFailureCount()).toBe(0);
-      
+
       service.recordFailure();
       expect(service.getFailureCount()).toBe(1);
-      
+
       service.recordFailure();
       expect(service.getFailureCount()).toBe(2);
     });
 
     it('should transition to OPEN state after threshold failures', () => {
       expect(service.getState()).toBe('CLOSED');
-      
+
       // Registrar 5 fallos (umbral por defecto)
       for (let i = 0; i < 5; i++) {
         service.recordFailure();
       }
-      
+
       expect(service.getState()).toBe('OPEN');
       expect(service.getFailureCount()).toBe(5);
     });
 
     it('should not transition to OPEN before threshold', () => {
       expect(service.getState()).toBe('CLOSED');
-      
+
       // Registrar 4 fallos (menos que el umbral)
       for (let i = 0; i < 4; i++) {
         service.recordFailure();
       }
-      
+
       expect(service.getState()).toBe('CLOSED');
       expect(service.getFailureCount()).toBe(4);
     });
@@ -111,7 +113,7 @@ describe('StockCircuitBreakerService', () => {
       // Forzar estado OPEN
       (service as any).state = 'OPEN';
       (service as any).lastFailureTime = Date.now();
-      
+
       expect(service.isOpen()).toBe(true);
     });
 
@@ -119,7 +121,7 @@ describe('StockCircuitBreakerService', () => {
       // Forzar estado OPEN con timestamp antiguo
       (service as any).state = 'OPEN';
       (service as any).lastFailureTime = Date.now() - 35000; // 35 segundos atrás
-      
+
       expect(service.isOpen()).toBe(false);
       expect(service.getState()).toBe('HALF_OPEN');
     });
@@ -138,13 +140,13 @@ describe('StockCircuitBreakerService', () => {
       service.recordFailure();
       service.recordFailure();
       service.recordFailure(); // Esto debería abrir el circuit breaker
-      
+
       expect(service.getState()).toBe('OPEN');
       expect(service.getFailureCount()).toBe(5);
-      
+
       // Resetear
       service.reset();
-      
+
       expect(service.getState()).toBe('CLOSED');
       expect(service.getFailureCount()).toBe(0);
       expect(service.getLastFailureTime()).toBe(0);
@@ -155,9 +157,9 @@ describe('StockCircuitBreakerService', () => {
     it('should return current statistics', () => {
       service.recordFailure();
       service.recordFailure();
-      
+
       const stats = service.getStats();
-      
+
       expect(stats).toEqual({
         state: 'CLOSED',
         failureCount: 2,
@@ -173,13 +175,13 @@ describe('StockCircuitBreakerService', () => {
       // Forzar estado OPEN
       (service as any).state = 'OPEN';
       (service as any).lastFailureTime = Date.now() - 1000; // 1 segundo atrás
-      
+
       // Debería seguir abierto (timeout es 30 segundos)
       expect(service.isOpen()).toBe(true);
-      
+
       // Simular que pasó el timeout
       (service as any).lastFailureTime = Date.now() - 35000; // 35 segundos atrás
-      
+
       // Debería transicionar a HALF_OPEN
       expect(service.isOpen()).toBe(false);
       expect(service.getState()).toBe('HALF_OPEN');

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { PrismaService, TariffConfig } from '@logistics/database';
 import { CreateTariffConfigDto } from '../dto/create-tariff-config.dto';
 import { UpdateTariffConfigDto } from '../dto/update-tariff-config.dto';
@@ -12,9 +18,13 @@ export class TariffConfigService {
   /**
    * Crea una nueva configuración de tarifa
    */
-  async create(createTariffConfigDto: CreateTariffConfigDto): Promise<TariffConfig> {
-    this.logger.log(`Creando configuración de tarifa para método: ${createTariffConfigDto.transportMethodId}`);
-    
+  async create(
+    createTariffConfigDto: CreateTariffConfigDto,
+  ): Promise<TariffConfig> {
+    this.logger.log(
+      `Creando configuración de tarifa para método: ${createTariffConfigDto.transportMethodId}`,
+    );
+
     return this.prisma.tariffConfig.create({
       data: {
         transportMethodId: createTariffConfigDto.transportMethodId,
@@ -24,8 +34,12 @@ export class TariffConfigService {
         volumetricFactor: createTariffConfigDto.volumetricFactor,
         environment: createTariffConfigDto.environment || 'development',
         isActive: createTariffConfigDto.isActive ?? true,
-        validFrom: createTariffConfigDto.validFrom ? new Date(createTariffConfigDto.validFrom) : new Date(),
-        validTo: createTariffConfigDto.validTo ? new Date(createTariffConfigDto.validTo) : null,
+        validFrom: createTariffConfigDto.validFrom
+          ? new Date(createTariffConfigDto.validFrom)
+          : new Date(),
+        validTo: createTariffConfigDto.validTo
+          ? new Date(createTariffConfigDto.validTo)
+          : null,
       },
       include: {
         transportMethod: true,
@@ -50,8 +64,11 @@ export class TariffConfigService {
    * Obtiene una configuración de tarifa por ID
    */
   async findOne(id: string): Promise<TariffConfig> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid UUID format');
+    }
     this.logger.log(`Obteniendo configuración de tarifa con ID: ${id}`);
-    
+
     const tariffConfig = await this.prisma.tariffConfig.findUnique({
       where: { id },
       include: {
@@ -60,7 +77,9 @@ export class TariffConfigService {
     });
 
     if (!tariffConfig) {
-      throw new NotFoundException(`Configuración de tarifa con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Configuración de tarifa con ID ${id} no encontrada`,
+      );
     }
 
     return tariffConfig;
@@ -69,14 +88,17 @@ export class TariffConfigService {
   /**
    * Actualiza una configuración de tarifa
    */
-  async update(id: string, updateTariffConfigDto: UpdateTariffConfigDto): Promise<TariffConfig> {
+  async update(
+    id: string,
+    updateTariffConfigDto: UpdateTariffConfigDto,
+  ): Promise<TariffConfig> {
     this.logger.log(`Actualizando configuración de tarifa con ID: ${id}`);
-    
+
     // Verificar que existe
     await this.findOne(id);
 
     const updateData: any = {};
-    
+
     if (updateTariffConfigDto.transportMethodId !== undefined) {
       updateData.transportMethodId = updateTariffConfigDto.transportMethodId;
     }
@@ -99,10 +121,14 @@ export class TariffConfigService {
       updateData.isActive = updateTariffConfigDto.isActive;
     }
     if (updateTariffConfigDto.validFrom !== undefined) {
-      updateData.validFrom = updateTariffConfigDto.validFrom ? new Date(updateTariffConfigDto.validFrom) : null;
+      updateData.validFrom = updateTariffConfigDto.validFrom
+        ? new Date(updateTariffConfigDto.validFrom)
+        : null;
     }
     if (updateTariffConfigDto.validTo !== undefined) {
-      updateData.validTo = updateTariffConfigDto.validTo ? new Date(updateTariffConfigDto.validTo) : null;
+      updateData.validTo = updateTariffConfigDto.validTo
+        ? new Date(updateTariffConfigDto.validTo)
+        : null;
     }
 
     return this.prisma.tariffConfig.update({
@@ -115,25 +141,33 @@ export class TariffConfigService {
   }
 
   /**
-   * Elimina una configuración de tarifa
+   * Elimina una configuración de tarifa (soft delete)
    */
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<TariffConfig> {
     this.logger.log(`Eliminando configuración de tarifa con ID: ${id}`);
-    
+
     // Verificar que existe
     await this.findOne(id);
 
-    await this.prisma.tariffConfig.delete({
+    return this.prisma.tariffConfig.update({
       where: { id },
+      data: { isActive: false },
+      include: {
+        transportMethod: true,
+      },
     });
   }
 
   /**
    * Obtiene configuraciones de tarifa por método de transporte
    */
-  async findByTransportMethod(transportMethodId: string): Promise<TariffConfig[]> {
-    this.logger.log(`Obteniendo configuraciones de tarifa para método: ${transportMethodId}`);
-    
+  async findByTransportMethod(
+    transportMethodId: string,
+  ): Promise<TariffConfig[]> {
+    this.logger.log(
+      `Obteniendo configuraciones de tarifa para método: ${transportMethodId}`,
+    );
+
     return this.prisma.tariffConfig.findMany({
       where: { transportMethodId },
       include: {

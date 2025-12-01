@@ -25,7 +25,9 @@ async function main() {
     return;
   }
 
-  console.log('✅ Transport methods and coverage zones found. Starting seed...');
+  console.log(
+    '✅ Transport methods and coverage zones found. Starting seed...',
+  );
 
   // ===== SEED: Drivers =====
   console.log('🚗 Seeding drivers...');

@@ -1,4 +1,13 @@
-import { IsString, IsInt, IsNumber, IsBoolean, IsOptional, MinLength, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTransportMethodDto {
@@ -70,4 +79,3 @@ export class CreateTransportMethodDto {
   @IsBoolean()
   isActive?: boolean;
 }
-

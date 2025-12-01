@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build && bash -c 'cd dist && cp -rn services/shipping-service/src/* . ; rm -rf services/*/src shared'",
+    "build": "nest build && cd dist && cp -r services/shipping-service/src/* . && rm -rf services/shipping-service shared",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "node -r dotenv/config node_modules/.bin/nest start --watch",
@@ -21,9 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@logistics/database": "file:../../shared/database",
-    "@logistics/types": "file:../../shared/types",
-    "@logistics/utils": "file:../../shared/utils",
+    "@logistics/database": "workspace:*",
+    "@logistics/types": "workspace:*",
+    "@logistics/utils": "workspace:*",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^10.0.0",

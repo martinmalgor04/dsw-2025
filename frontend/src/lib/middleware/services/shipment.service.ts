@@ -50,7 +50,7 @@ export interface CreateShipmentDTO {
   products: ProductDTO[];
 }
 
-export interface UpdateShipmentDTO extends Partial<CreateShipmentDTO> {}
+export type UpdateShipmentDTO = Partial<CreateShipmentDTO>;
 
 // DTO para la respuesta del cálculo de costo, alineado con el backend
 export interface CalculateCostResponseDTO {

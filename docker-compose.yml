@@ -1,76 +1,239 @@
-version: '3.8'
-
 services:
-  # Base de datos PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: logistica-postgres
-    environment:
-      POSTGRES_DB: logistica_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - logistica-network
-
-  # Cache Redis
+  # ===================================
+  # INFRAESTRUCTURA
+  # ===================================
   redis:
     image: redis:7-alpine
-    container_name: logistica-redis
+    container_name: logistics-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - logistica-network
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
-  # Backend service (desarrollo)
-  backend:
+  # ===================================
+  # MICROSERVICIOS BACKEND
+  # ===================================
+  config-service:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: logistica-backend
+      context: .
+      dockerfile: backend/services/config-service/Dockerfile
+      args:
+        NODE_VERSION: 20
+        SERVICE_PATH: backend/services/config-service
+        SERVICE_FILTER: "@logistics/config-service"
+        PORT: 3003
+    container_name: logistics-config-service
     ports:
-      - "3000:3000"
+      - "3003:3003"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/logistica_db
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
+      - PORT=3003
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true
+      - DIRECT_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:5432/postgres
+      - CORS_ORIGIN=http://localhost:3000
     networks:
-      - logistica-network
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # Frontend service (desarrollo)
+  shipping-service:
+    build:
+      context: .
+      dockerfile: backend/services/shipping-service/Dockerfile
+      args:
+        NODE_VERSION: 20
+        SERVICE_PATH: backend/services/shipping-service
+        SERVICE_FILTER: "@logistics/shipping-service"
+        PORT: 3001
+    container_name: logistics-shipping-service
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true
+      - REDIS_URL=redis://redis:6379
+      - CONFIG_SERVICE_URL=http://config-service:3003
+      - STOCK_SERVICE_URL=http://stock-integration-service:3002
+    depends_on:
+      redis:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      stock-integration-service:
+        condition: service_healthy
+    networks:
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  stock-integration-service:
+    build:
+      context: .
+      dockerfile: backend/services/stock-integration-service/Dockerfile
+      args:
+        NODE_VERSION: 20
+        SERVICE_PATH: backend/services/stock-integration-service
+        SERVICE_FILTER: "@logistics/stock-integration-service"
+        PORT: 3002
+    container_name: logistics-stock-service
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres.ghexalvmqhvfnkgyagzb:Pepack.2025@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true
+      - REDIS_URL=redis://redis:6379
+      - STOCK_API_URL=https://comprasg5.mmalgor.com.ar
+      - COMPRAS_API_URL=http://stock-integration-service:3002
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  operator-interface-service:
+    build:
+      context: .
+      dockerfile: backend/services/operator-interface-service/Dockerfile
+      args:
+        NODE_VERSION: 20
+        SERVICE_PATH: backend/services/operator-interface-service
+        SERVICE_FILTER: "@logistics/operator-interface-service"
+        PORT: 3004
+    container_name: logistics-operator-service
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - FRONTEND_URL=http://localhost:3000
+      # Keycloak Configuration - JWT Token Validation
+      # Producción: https://keycloak.mmalgor.com.ar
+      - KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
+      - KEYCLOAK_REALM=ds-2025-realm
+      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - NODE_ENV=production
+      - CONFIG_SERVICE_URL=http://config-service:3003
+      - SHIPPING_SERVICE_URL=http://shipping-service:3001
+      - STOCK_SERVICE_URL=http://stock-integration-service:3002
+    depends_on:
+      config-service:
+        condition: service_healthy
+      shipping-service:
+        condition: service_healthy
+      stock-integration-service:
+        condition: service_healthy
+    networks:
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===================================
+  # FRONTEND (Opcional si se corre local)
+  # ===================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: logistica-frontend
+    container_name: logistics-frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - VITE_API_URL=http://localhost:3000
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:3004
+      - NEXT_PUBLIC_KEYCLOAK_URL=https://keycloak.mmalgor.com.ar
+      - NEXT_PUBLIC_KEYCLOAK_REALM=ds-2025-realm
+      - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=grupo-12
+      - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
     depends_on:
-      - backend
+      operator-interface-service:
+        condition: service_healthy
     networks:
-      - logistica-network
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===================================
+  # TRACKING PORTAL (Portal público para clientes)
+  # ===================================
+  tracking-portal:
+    build:
+      context: ./tracking-portal
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3004
+    container_name: logistics-tracking-portal
+    ports:
+      - "3010:80"
+    environment:
+      - VITE_API_URL=http://localhost:3004
+    depends_on:
+      operator-interface-service:
+        condition: service_healthy
+    networks:
+      - logistics-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===================================
+  # TRACKING PORTAL NEXT (Versión Next.js)
+  # ===================================
+  tracking-portal-next:
+    build:
+      context: ./tracking-portal-next
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3004
+    container_name: logistics-tracking-portal-next
+    ports:
+      - "3006:3006"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3004
+    depends_on:
+      operator-interface-service:
+        condition: service_healthy
+    networks:
+      - logistics-network
 
 volumes:
-  postgres_data:
   redis_data:
+    driver: local
 
 networks:
-  logistica-network:
+  logistics-network:
     driver: bridge

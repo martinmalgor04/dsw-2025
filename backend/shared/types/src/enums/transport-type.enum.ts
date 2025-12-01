@@ -4,4 +4,3 @@ export enum TransportType {
   RAIL = 'rail',
   ROAD = 'road',
 }
-

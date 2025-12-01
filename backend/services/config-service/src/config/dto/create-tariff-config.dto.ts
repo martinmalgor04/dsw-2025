@@ -1,4 +1,11 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTariffConfigDto {
@@ -11,7 +18,7 @@ export class CreateTariffConfigDto {
 
   @ApiProperty({
     description: 'Tarifa base',
-    example: 100.50,
+    example: 100.5,
   })
   @IsNumber()
   @Min(0)
@@ -27,7 +34,7 @@ export class CreateTariffConfigDto {
 
   @ApiProperty({
     description: 'Costo por kilómetro',
-    example: 2.10,
+    example: 2.1,
   })
   @IsNumber()
   @Min(0)

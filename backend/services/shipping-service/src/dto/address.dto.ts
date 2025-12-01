@@ -12,7 +12,8 @@ export class AddressDto {
 
   @IsString()
   @Matches(/^[A-Z]{1}\d{4}[A-Z]{3}$/, {
-    message: 'postal_code must match Argentinian postal code format (e.g., H3500ABC)',
+    message:
+      'postal_code must match Argentinian postal code format (e.g., H3500ABC)',
   })
   postal_code: string;
 
@@ -20,4 +21,3 @@ export class AddressDto {
   @Length(2, 2)
   country: string;
 }
-

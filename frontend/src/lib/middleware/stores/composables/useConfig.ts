@@ -15,9 +15,13 @@ export function useConfig() {
   });
 
   useEffect(() => {
+    console.log('🔧 useConfig: Inicializando hook...');
     const unsub = configStore.subscribe(setState);
+    console.log('🔧 useConfig: Cargando transport methods...');
     configStore.loadTransportMethods();
+    console.log('🔧 useConfig: Cargando coverage zones...');
     configStore.loadCoverageZones();
+    console.log('🔧 useConfig: Cargando tariff configs...');
     configStore.loadTariffConfigs();
     return () => unsub();
   }, []);

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { PrismaModule } from '@logistics/database';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigManagementModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
-import { FleetModule } from './fleet/fleet.module';
+import { CoreModule } from './core/core.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtGuard } from './auth/jwt.guard';
 
 @Module({
   imports: [
@@ -18,12 +19,17 @@ import { FleetModule } from './fleet/fleet.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    PrismaModule,
-    ConfigManagementModule,
+    AuthModule,
+    CoreModule,
     HealthModule,
-    FleetModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+  ],
 })
 export class AppModule {}

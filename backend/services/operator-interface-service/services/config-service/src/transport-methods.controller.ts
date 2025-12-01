@@ -1,24 +1,31 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Patch, 
-  Param, 
-  Body, 
-  HttpCode, 
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  HttpCode,
   HttpStatus,
   NotFoundException,
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
-  ApiParam, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, Length, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  Length,
+  Min,
+} from 'class-validator';
 import { ConfigService } from './config.service';
 
 // DTOs que coinciden exactamente con la documentación
@@ -97,9 +104,11 @@ export class ConfigTransportMethodsController {
   constructor(private readonly configService: ConfigService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lista todos los métodos de transporte disponibles' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiOperation({
+    summary: 'Lista todos los métodos de transporte disponibles',
+  })
+  @ApiResponse({
+    status: 200,
     description: 'Lista de métodos de transporte',
     schema: {
       type: 'array',
@@ -109,7 +118,10 @@ export class ConfigTransportMethodsController {
           id: { type: 'string', format: 'uuid' },
           code: { type: 'string', example: 'air' },
           name: { type: 'string', example: 'Aéreo' },
-          description: { type: 'string', example: 'Transporte aéreo para envíos urgentes' },
+          description: {
+            type: 'string',
+            example: 'Transporte aéreo para envíos urgentes',
+          },
           averageSpeed: { type: 'number', example: 800 },
           estimatedDays: { type: 'string', example: '1-3' },
           baseCostPerKm: { type: 'string', example: '0.80' },
@@ -141,14 +153,18 @@ export class ConfigTransportMethodsController {
       });
     } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new ConflictException(`Ya existe un método de transporte con el código ${createDto.code}`);
+        throw new ConflictException(
+          `Ya existe un método de transporte con el código ${createDto.code}`,
+        );
       }
       throw new BadRequestException('Error al crear método de transporte');
     }
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtiene un método de transporte específico por ID' })
+  @ApiOperation({
+    summary: 'Obtiene un método de transporte específico por ID',
+  })
   @ApiParam({ name: 'id', description: 'UUID del método de transporte' })
   @ApiResponse({ status: 200, description: 'Método de transporte encontrado' })
   @ApiResponse({ status: 404, description: 'Método no encontrado' })
@@ -157,7 +173,9 @@ export class ConfigTransportMethodsController {
       return await this.configService.getTransportMethodById(id);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Método de transporte con ID ${id} no encontrado`);
+        throw new NotFoundException(
+          `Método de transporte con ID ${id} no encontrado`,
+        );
       }
       throw error;
     }
@@ -178,7 +196,9 @@ export class ConfigTransportMethodsController {
       return await this.configService.updateTransportMethod(id, updateDto);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new NotFoundException(`Método de transporte con ID ${id} no encontrado`);
+        throw new NotFoundException(
+          `Método de transporte con ID ${id} no encontrado`,
+        );
       }
       throw new BadRequestException('Error al actualizar método de transporte');
     }

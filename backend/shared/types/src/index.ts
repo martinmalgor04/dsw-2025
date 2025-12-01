@@ -1,6 +1,7 @@
 // DTOs
 export * from './dtos/address.dto';
 export * from './dtos/product-request.dto';
+export { normalizePostalCodeInput } from './dtos/address.dto';
 
 // Enums
 export * from './enums/shipping-status.enum';

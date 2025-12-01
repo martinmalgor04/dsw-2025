@@ -52,7 +52,7 @@ export function Toolbar({
             placeholder="Buscar..."
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 bg-white/80 border-purple-200/50 focus:border-purple-400 transition-colors"
+            className="pl-10 bg-white/80 border-purple-200/50 focus:border-purple-400 transition-colors text-black"
           />
           {searchValue && (
             <button

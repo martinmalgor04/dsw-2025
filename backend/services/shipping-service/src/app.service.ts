@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getServiceInfo() {
     return {
-      service: 'Shipping Service',
+      service: 'shipping-service',
       version: '1.0.0',
       description: 'Core shipping and logistics operations',
       timestamp: new Date().toISOString(),

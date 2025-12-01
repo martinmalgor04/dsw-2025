@@ -29,11 +29,11 @@ export class HttpClientService {
       (config) => {
         const startTime = Date.now();
         (config as any).metadata = { startTime };
-        
+
         this.logger.apiCall(
           config.method?.toUpperCase() || 'GET',
           `${config.baseURL || ''}${config.url}`,
-          { service: 'HttpClientService' }
+          { service: 'HttpClientService' },
         );
 
         return config;
@@ -41,61 +41,81 @@ export class HttpClientService {
       (error) => {
         this.logger.errorWithContext('Request failed', error);
         return Promise.reject(error);
-      }
+      },
     );
 
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        const duration = Date.now() - ((response.config as any).metadata?.startTime || 0);
-        
+        const duration =
+          Date.now() - ((response.config as any).metadata?.startTime || 0);
+
         this.logger.apiResponse(
           response.config.method?.toUpperCase() || 'GET',
           `${response.config.baseURL || ''}${response.config.url}`,
           response.status,
           duration,
-          { service: 'HttpClientService' }
+          { service: 'HttpClientService' },
         );
 
         return response;
       },
       (error) => {
         if (error.response) {
-          const duration = Date.now() - ((error.config as any)?.metadata?.startTime || 0);
-          
+          const duration =
+            Date.now() - (error.config?.metadata?.startTime || 0);
+
           this.logger.apiResponse(
             error.config?.method?.toUpperCase() || 'GET',
             `${error.config?.baseURL || ''}${error.config?.url}`,
             error.response.status,
             duration,
-            { service: 'HttpClientService' }
+            { service: 'HttpClientService' },
           );
         } else {
           this.logger.errorWithContext('Network error', error);
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   }
 
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async get<T = any>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.executeWithRetry(() => this.client.get<T>(url, config));
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.executeWithRetry(() => this.client.post<T>(url, data, config));
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.executeWithRetry(() => this.client.put<T>(url, data, config));
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.executeWithRetry(() => this.client.patch<T>(url, data, config));
   }
 
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async delete<T = any>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
     return this.executeWithRetry(() => this.client.delete<T>(url, config));
   }
 
@@ -119,7 +139,7 @@ export class HttpClientService {
 
         this.logger.logWithContext(
           `Retrying request, attempt ${attempt}/${maxRetries}`,
-          { attempt, maxRetries, delay: retryDelay }
+          { attempt, maxRetries, delay: retryDelay },
         );
 
         await this.delay(retryDelay * Math.pow(2, attempt - 1)); // Exponential backoff
@@ -132,8 +152,8 @@ export class HttpClientService {
   private shouldRetry(error: any): boolean {
     // Reintentar en casos de errores de red o errores 5xx
     return (
-      !error.response || 
-      error.response.status >= 500 || 
+      !error.response ||
+      error.response.status >= 500 ||
       error.code === 'ECONNRESET' ||
       error.code === 'ETIMEDOUT' ||
       error.code === 'ENOTFOUND'
@@ -141,7 +161,7 @@ export class HttpClientService {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

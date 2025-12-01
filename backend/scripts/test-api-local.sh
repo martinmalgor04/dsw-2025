@@ -7,6 +7,22 @@
 
 set -e
 
+# Obtener directorio del script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+# Cargar configuración desde .env si existe
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+elif [ -f "$SCRIPT_DIR/env.example" ]; then
+    echo "⚠️  Usando configuración de ejemplo. Copia env.example a .env para personalizar."
+    source "$SCRIPT_DIR/env.example"
+else
+    echo "❌ No se encontró archivo de configuración. Crea .env basado en env.example"
+    exit 1
+fi
+
 # Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,12 +36,22 @@ echo -e "${BLUE}=====================================${NC}"
 echo ""
 
 # Configuración de microservicios
-declare -A SERVICES=(
-    ["config-service"]="http://localhost:3003"
-    ["stock-integration-service"]="http://localhost:3002"
-    ["shipping-service"]="http://localhost:3001"
-    ["operator-interface-service"]="http://localhost:3004"
-)
+# Determinar URLs según el entorno
+if [ "${ENVIRONMENT:-development}" = "development" ]; then
+    declare -A SERVICES=(
+        ["config-service"]="${CONFIG_SERVICE_URL}"
+        ["stock-integration-service"]="${STOCK_INTEGRATION_SERVICE_URL}"
+        ["shipping-service"]="${SHIPPING_SERVICE_URL}"
+        ["operator-interface-service"]="${OPERATOR_INTERFACE_SERVICE_URL}"
+    )
+else
+    declare -A SERVICES=(
+        ["config-service"]="${CONFIG_SERVICE_URL_DEPLOYED}"
+        ["stock-integration-service"]="${STOCK_INTEGRATION_SERVICE_URL_DEPLOYED}"
+        ["shipping-service"]="${SHIPPING_SERVICE_URL_DEPLOYED}"
+        ["operator-interface-service"]="${OPERATOR_INTERFACE_SERVICE_URL_DEPLOYED}"
+    )
+fi
 
 # Contadores
 TESTS_TOTAL=0

@@ -40,7 +40,10 @@ export class HttpClient {
   private setupInterceptors() {
     this.client.interceptors.request.use(
       (config) => {
-        const token = authStore.getToken();
+        let token = authStore.getToken();
+        if (!token && typeof window !== 'undefined') {
+          token = localStorage.getItem('auth_token') || null;
+        }
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -70,9 +73,10 @@ export class HttpClient {
     while (true) {
       try {
         return await fn();
-      } catch (e: any) {
-        const code = e?.code as string | undefined;
-        const status = e?.statusCode as number | undefined;
+      } catch (e: unknown) {
+        const error = e as { code?: string; statusCode?: number };
+        const code = error.code;
+        const status = error.statusCode;
 
         const retryable =
           code === 'NETWORK_ERROR' ||

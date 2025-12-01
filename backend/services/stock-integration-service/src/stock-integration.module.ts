@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StockIntegrationService } from './services/stock-integration.service';
 import { StockCircuitBreakerService } from './services/stock-circuit-breaker.service';
 import { StockCacheService } from './services/stock-cache.service';
+import { StockIntegrationController } from './stock-integration.controller';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { StockCacheService } from './services/stock-cache.service';
         baseURL: configService.get<string>('STOCK_API_URL'),
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
       }),
       inject: [ConfigService],
@@ -26,7 +27,10 @@ import { StockCacheService } from './services/stock-cache.service';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         ttl: parseInt(configService.get<string>('STOCK_CACHE_TTL', '600'), 10), // 10 minutos
-        max: parseInt(configService.get<string>('STOCK_CACHE_MAX_ITEMS', '1000'), 10),
+        max: parseInt(
+          configService.get<string>('STOCK_CACHE_MAX_ITEMS', '1000'),
+          10,
+        ),
         store: 'memory', // Por ahora usamos memoria, luego Redis
       }),
       inject: [ConfigService],
@@ -38,6 +42,7 @@ import { StockCacheService } from './services/stock-cache.service';
     StockCircuitBreakerService,
     StockCacheService,
   ],
+  controllers: [StockIntegrationController],
   exports: [StockIntegrationService],
 })
 export class StockIntegrationModule {}

@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getServiceInfo() {
     return {
-      service: 'Stock Integration Service',
+      service: 'stock-integration-service',
       version: '1.0.0',
       description: 'HTTP client service for Stock module integration',
       timestamp: new Date().toISOString(),

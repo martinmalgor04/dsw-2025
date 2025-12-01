@@ -6,19 +6,27 @@ export type CircuitBreakerState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 @Injectable()
 export class StockCircuitBreakerService {
   private readonly logger = new Logger(StockCircuitBreakerService.name);
-  
+
   private state: CircuitBreakerState = 'CLOSED';
   private failureCount = 0;
   private lastFailureTime = 0;
-  
+
   private readonly threshold: number;
   private readonly timeout: number;
 
   constructor(private configService: ConfigService) {
-    this.threshold = this.configService.get<number>('STOCK_CIRCUIT_BREAKER_THRESHOLD', 5);
-    this.timeout = this.configService.get<number>('STOCK_CIRCUIT_BREAKER_TIMEOUT', 30000);
-    
-    this.logger.log(`Circuit Breaker initialized - Threshold: ${this.threshold}, Timeout: ${this.timeout}ms`);
+    this.threshold = this.configService.get<number>(
+      'STOCK_CIRCUIT_BREAKER_THRESHOLD',
+      5,
+    );
+    this.timeout = this.configService.get<number>(
+      'STOCK_CIRCUIT_BREAKER_TIMEOUT',
+      30000,
+    );
+
+    this.logger.log(
+      `Circuit Breaker initialized - Threshold: ${this.threshold}, Timeout: ${this.timeout}ms`,
+    );
   }
 
   /**
@@ -42,9 +50,11 @@ export class StockCircuitBreakerService {
     if (this.state === 'HALF_OPEN') {
       this.transitionToClosed();
     }
-    
+
     this.failureCount = 0;
-    this.logger.debug(`Success recorded. Failure count reset to 0. State: ${this.state}`);
+    this.logger.debug(
+      `Success recorded. Failure count reset to 0. State: ${this.state}`,
+    );
   }
 
   /**
@@ -53,9 +63,11 @@ export class StockCircuitBreakerService {
   recordFailure(): void {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    
-    this.logger.warn(`Failure recorded. Count: ${this.failureCount}/${this.threshold}. State: ${this.state}`);
-    
+
+    this.logger.warn(
+      `Failure recorded. Count: ${this.failureCount}/${this.threshold}. State: ${this.state}`,
+    );
+
     if (this.failureCount >= this.threshold) {
       this.transitionToOpen();
     }
@@ -100,7 +112,7 @@ export class StockCircuitBreakerService {
     this.state = 'OPEN';
     this.logger.error(
       `Circuit breaker transitioned from ${previousState} to OPEN. ` +
-      `Failure count: ${this.failureCount}/${this.threshold}`
+        `Failure count: ${this.failureCount}/${this.threshold}`,
     );
   }
 
@@ -112,7 +124,7 @@ export class StockCircuitBreakerService {
     this.state = 'HALF_OPEN';
     this.logger.warn(
       `Circuit breaker transitioned from ${previousState} to HALF_OPEN. ` +
-      `Testing if service is available again.`
+        `Testing if service is available again.`,
     );
   }
 
@@ -125,7 +137,7 @@ export class StockCircuitBreakerService {
     this.failureCount = 0;
     this.logger.log(
       `Circuit breaker transitioned from ${previousState} to CLOSED. ` +
-      `Service is healthy again.`
+        `Service is healthy again.`,
     );
   }
 

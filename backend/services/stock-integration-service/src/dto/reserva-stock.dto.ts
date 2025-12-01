@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+import { DimensionesDto } from './producto-stock.dto';
 
 export enum EstadoReserva {
   CONFIRMADO = 'confirmado',
@@ -13,7 +21,10 @@ export class ReservaProductoDto {
   @IsNumber()
   idProducto: number;
 
-  @ApiProperty({ description: 'Nombre del producto', example: 'Laptop Dell Inspiron' })
+  @ApiProperty({
+    description: 'Nombre del producto',
+    example: 'Laptop Dell Inspiron',
+  })
   @IsString()
   nombre: string;
 
@@ -24,6 +35,16 @@ export class ReservaProductoDto {
   @ApiProperty({ description: 'Precio unitario', example: 150000 })
   @IsNumber()
   precioUnitario: number;
+
+  @ApiProperty({
+    description: 'Dimensiones del producto cuando están disponibles',
+    required: false,
+    type: DimensionesDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DimensionesDto)
+  dimensiones?: DimensionesDto;
 }
 
 export class ReservaStockDto {
@@ -31,7 +52,10 @@ export class ReservaStockDto {
   @IsNumber()
   idReserva: number;
 
-  @ApiProperty({ description: 'ID de compra del sistema externo', example: 'COMPRA-XYZ-12345' })
+  @ApiProperty({
+    description: 'ID de compra del sistema externo',
+    example: 'COMPRA-XYZ-12345',
+  })
   @IsString()
   idCompra: string;
 
@@ -39,23 +63,45 @@ export class ReservaStockDto {
   @IsNumber()
   usuarioId: number;
 
-  @ApiProperty({ description: 'Estado de la reserva', enum: EstadoReserva, example: EstadoReserva.PENDIENTE })
+  @ApiProperty({
+    description: 'Estado de la reserva',
+    enum: EstadoReserva,
+    example: EstadoReserva.PENDIENTE,
+  })
   @IsEnum(EstadoReserva)
   estado: EstadoReserva;
 
-  @ApiProperty({ description: 'Fecha de expiración en formato ISO 8601', example: '2025-01-20T10:30:00Z' })
+  @ApiProperty({
+    description: 'Fecha de expiración en formato ISO 8601',
+    example: '2025-01-20T10:30:00Z',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  expiresAt: string;
+  expiresAt?: string;
 
-  @ApiProperty({ description: 'Fecha de creación en formato ISO 8601', example: '2025-01-17T10:30:00Z' })
+  @ApiProperty({
+    description: 'Fecha de creación en formato ISO 8601',
+    example: '2025-01-17T10:30:00Z',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  fechaCreacion: string;
+  fechaCreacion?: string;
 
-  @ApiProperty({ description: 'Fecha de actualización en formato ISO 8601', example: '2025-01-17T10:30:00Z' })
+  @ApiProperty({
+    description: 'Fecha de actualización en formato ISO 8601',
+    example: '2025-01-17T10:30:00Z',
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  fechaActualizacion: string;
+  fechaActualizacion?: string;
 
-  @ApiProperty({ description: 'Productos en la reserva', type: [ReservaProductoDto] })
+  @ApiProperty({
+    description: 'Productos en la reserva',
+    type: [ReservaProductoDto],
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ReservaProductoDto)
@@ -63,11 +109,44 @@ export class ReservaStockDto {
 }
 
 export class ActualizarReservaDto {
-  @ApiProperty({ description: 'ID del usuario propietario de la reserva', example: 123 })
+  @ApiProperty({
+    description: 'ID del usuario propietario de la reserva',
+    example: 123,
+  })
   @IsNumber()
   usuarioId: number;
 
-  @ApiProperty({ description: 'Nuevo estado de la reserva', enum: EstadoReserva, example: EstadoReserva.CONFIRMADO })
+  @ApiProperty({
+    description: 'Nuevo estado de la reserva',
+    enum: EstadoReserva,
+    example: EstadoReserva.CONFIRMADO,
+  })
   @IsEnum(EstadoReserva)
   estado: EstadoReserva;
+}
+
+export class CreateReservaProductoDto {
+  @ApiProperty({ description: 'ID del producto', example: 10 })
+  @IsNumber()
+  idProducto: number;
+
+  @ApiProperty({ description: 'Cantidad a reservar', example: 1 })
+  @IsNumber()
+  cantidad: number;
+}
+
+export class CreateReservaDto {
+  @ApiProperty({ description: 'ID de la compra', example: 'COMPRA-XYZ-12345' })
+  @IsString()
+  idCompra: string;
+
+  @ApiProperty({ description: 'ID del usuario', example: 123 })
+  @IsNumber()
+  usuarioId: number;
+
+  @ApiProperty({ type: [CreateReservaProductoDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateReservaProductoDto)
+  productos: CreateReservaProductoDto[];
 }

@@ -1,52 +1,95 @@
 # ===================================
-# DOCKERFILE PARA FRONTEND - RF-001
+# DOCKERFILE - FRONTEND NEXT.JS
 # TPI Desarrollo de Software 2025
+# Construida dentro de carpeta /frontend
 # ===================================
 
+# Usar Node.js 20 Alpine para mejor rendimiento
 FROM node:20-alpine AS base
 
-# Install dependencies only when needed
+# Instalar dependencias del sistema necesarias
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S nextjs -u 1001 \
+    && npm install -g pnpm@latest
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# ===================================
+# STAGE 1: Dependencies (Producción)
+# ===================================
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package*.json ./
-RUN npm install
+# Copiar solo package.json del frontend
+COPY package.json ./
 
-# Rebuild the source code only when needed
+# Instalar dependencias de producción
+# Nota: Sin pnpm-lock.yaml, instala con versiones flexibles
+RUN pnpm install --prod
+
+# ===================================
+# STAGE 2: Builder
+# ===================================
 FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Build arguments - Dokploy los pasa como: docker build --build-arg NEXT_PUBLIC_API_URL=...
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_KEYCLOAK_URL
+ARG NEXT_PUBLIC_KEYCLOAK_REALM
+ARG NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+ARG NEXT_PUBLIC_ENV
+
+# Convertir ARGs a ENVs para que Next.js los compile
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_KEYCLOAK_URL=$NEXT_PUBLIC_KEYCLOAK_URL
+ENV NEXT_PUBLIC_KEYCLOAK_REALM=$NEXT_PUBLIC_KEYCLOAK_REALM
+ENV NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=$NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+ENV NEXT_PUBLIC_ENV=$NEXT_PUBLIC_ENV
+
+# Copiar package.json del frontend
+COPY package.json ./
+
+# Instalar todas las dependencias (incluyendo dev)
+RUN pnpm install
+
+# Copiar código fuente del frontend
 COPY . .
 
-# Build the application
-RUN npm run build
+# Construir la aplicación Next.js con las variables de entorno
+RUN pnpm run build
 
-# Production image, copy all the files and run the app
+# ===================================
+# STAGE 3: Runner
+# ===================================
 FROM base AS runner
-WORKDIR /app
 
+# Variables de entorno
 ENV NODE_ENV=production
+ENV PORT=3005
+ENV HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 sveltekit
+# Crear usuario no-root
+USER nextjs
 
-# Copy the built application
-COPY --from=builder /app/.svelte-kit ./svelte-kit
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
+# Copiar dependencias de producción desde stage deps
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Create a non-root user
-USER sveltekit
+# Copiar aplicación construida desde stage builder
+# El builder compiló en /app (WORKDIR /app), así que .next y public están allí
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-EXPOSE 5173
-
-ENV PORT=5173
-ENV HOST=0.0.0.0
+# Exponer puerto
+EXPOSE 3005
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5173 || exit 1
+    CMD curl -f http://localhost:3005 || exit 1
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Comando de inicio
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]

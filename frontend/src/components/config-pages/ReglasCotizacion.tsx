@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Edit, Trash2, Calculator, DollarSign, Package, Truck } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Calculator, Truck } from "lucide-react";
 import { DataTable, createSortableHeader } from "../config/DataTable";
 import { Toolbar } from "../config/Toolbar";
 import { BadgeEstado } from "../config/BadgeEstado";
@@ -26,7 +26,7 @@ import {
 } from "../ui/dropdown-menu";
 import { toast } from "sonner";
 import { useConfig } from "@/lib/middleware/stores/composables/useConfig";
-import type { TariffConfigDTO, CreateTariffConfigDTO, UpdateTariffConfigDTO } from "@/lib/middleware/services/tariff-config.service";
+import type { TariffConfigDTO, CreateTariffConfigDTO } from "@/lib/middleware/services/tariff-config.service";
 
 const environments = [
   { value: "development", label: "Desarrollo" },
@@ -63,16 +63,25 @@ export function ReglasCotizacion() {
     isActive: true,
   });
 
+  // Los datos se cargan automáticamente en useConfig
+  // No necesitamos llamar loadTariffConfigs aquí
+
+  // Debug: Log cuando cambien los datos
   useEffect(() => {
-    loadTariffConfigs();
-  }, []); // Removido loadTariffConfigs de las dependencias
+    console.log('📊 ReglasCotizacion: Datos actualizados:', {
+      tariffConfigs: tariffConfigs.length,
+      transportMethods: transportMethods.length,
+      isLoading,
+      error
+    });
+  }, [tariffConfigs, transportMethods, isLoading, error]);
 
   const filteredConfigs = tariffConfigs.filter((config) => {
     const search = searchValue.toLowerCase();
     const matchesSearch =
-      config.transportMethod.name.toLowerCase().includes(search) ||
-      config.transportMethod.code.toLowerCase().includes(search) ||
-      config.environment.toLowerCase().includes(search);
+      config.transportMethod?.name?.toLowerCase().includes(search) ||
+      config.transportMethod?.code?.toLowerCase().includes(search) ||
+      config.environment?.toLowerCase().includes(search);
     const matchesEstado =
       filterEstado === "todos" ||
       (filterEstado === "activo" && config.isActive) ||
@@ -101,10 +110,10 @@ export function ReglasCotizacion() {
     setEditingConfig(config);
     setFormData({
       transportMethodId: config.transportMethodId,
-      baseTariff: config.baseTariff,
-      costPerKg: config.costPerKg,
-      costPerKm: config.costPerKm,
-      volumetricFactor: config.volumetricFactor,
+      baseTariff: Number(config.baseTariff),
+      costPerKg: Number(config.costPerKg),
+      costPerKm: Number(config.costPerKm),
+      volumetricFactor: Number(config.volumetricFactor),
       environment: config.environment,
       isActive: config.isActive,
     });
@@ -136,7 +145,7 @@ export function ReglasCotizacion() {
         toast.success("Configuración de tarifa creada correctamente");
       }
       setIsModalOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Error al guardar la configuración de tarifa");
     }
   };
@@ -148,17 +157,16 @@ export function ReglasCotizacion() {
       await deleteTariffConfig(deleteConfig.id);
       toast.success("Configuración de tarifa eliminada correctamente");
       setDeleteConfig(null);
-    } catch (error) {
+    } catch {
       toast.error("Error al eliminar la configuración de tarifa");
     }
   };
 
   const columns: ColumnDef<TariffConfigDTO>[] = [
     {
-      accessorKey: "transportMethod",
+      id: "transportMethodIcon",
       header: "",
-      cell: ({ row }) => {
-        const method = row.original.transportMethod;
+      cell: () => {
         return (
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center">
             <Truck className="w-5 h-5 text-blue-600" />
@@ -167,12 +175,13 @@ export function ReglasCotizacion() {
       },
     },
     {
-      accessorKey: "transportMethod.name",
+      accessorKey: "transportMethod",
+      accessorFn: (row) => row.transportMethod?.name || 'N/A',
       header: createSortableHeader("Método de Transporte"),
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.transportMethod.name}</div>
-          <div className="text-sm text-gray-500">{row.original.transportMethod.code}</div>
+          <div className="font-medium">{row.original.transportMethod?.name || 'N/A'}</div>
+          <div className="text-sm text-gray-500">{row.original.transportMethod?.code || 'N/A'}</div>
         </div>
       ),
     },
@@ -201,7 +210,7 @@ export function ReglasCotizacion() {
       header: "Entorno",
       cell: ({ row }) => (
         <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
-          {row.original.environment}
+          {row.original.environment || 'N/A'}
         </span>
       ),
     },
@@ -438,7 +447,7 @@ export function ReglasCotizacion() {
         open={!!deleteConfig}
         onOpenChange={(open) => !open && setDeleteConfig(null)}
         title="Eliminar regla de cotización"
-        description={`¿Estás seguro de que deseas eliminar la regla de cotización para "${deleteConfig?.transportMethod.name}"?`}
+        description={`¿Estás seguro de que deseas eliminar la regla de cotización para "${deleteConfig?.transportMethod?.name || 'N/A'}"?`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}
         variant="danger"

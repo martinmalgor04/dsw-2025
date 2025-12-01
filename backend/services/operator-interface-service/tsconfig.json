@@ -5,7 +5,8 @@
     "baseUrl": "./",
     "paths": {
       "@logistics/*": ["../../shared/*/src"]
-    }
+    },
+    "skipLibCheck": true,
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]

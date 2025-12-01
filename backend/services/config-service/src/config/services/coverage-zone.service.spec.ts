@@ -63,7 +63,9 @@ describe('CoverageZoneService', () => {
 
   describe('findOne', () => {
     it('debería retornar una zona de cobertura por ID', async () => {
-      mockPrismaService.coverageZone.findUnique.mockResolvedValue(mockCoverageZone);
+      mockPrismaService.coverageZone.findUnique.mockResolvedValue(
+        mockCoverageZone,
+      );
 
       const result = await service.findOne(mockCoverageZone.id);
 
@@ -76,7 +78,9 @@ describe('CoverageZoneService', () => {
     it('debería lanzar NotFoundException si no encuentra la zona', async () => {
       mockPrismaService.coverageZone.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -136,7 +140,9 @@ describe('CoverageZoneService', () => {
 
       const updatedZone = { ...mockCoverageZone, ...updateDto };
 
-      mockPrismaService.coverageZone.findUnique.mockResolvedValue(mockCoverageZone);
+      mockPrismaService.coverageZone.findUnique.mockResolvedValue(
+        mockCoverageZone,
+      );
       mockPrismaService.coverageZone.update.mockResolvedValue(updatedZone);
 
       const result = await service.update(mockCoverageZone.id, updateDto);
@@ -151,7 +157,9 @@ describe('CoverageZoneService', () => {
     it('debería lanzar NotFoundException si la zona no existe', async () => {
       mockPrismaService.coverageZone.findUnique.mockResolvedValue(null);
 
-      await expect(service.update('invalid-id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('invalid-id', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -159,7 +167,9 @@ describe('CoverageZoneService', () => {
     it('debería desactivar una zona de cobertura (soft delete)', async () => {
       const inactiveZone = { ...mockCoverageZone, isActive: false };
 
-      mockPrismaService.coverageZone.findUnique.mockResolvedValue(mockCoverageZone);
+      mockPrismaService.coverageZone.findUnique.mockResolvedValue(
+        mockCoverageZone,
+      );
       mockPrismaService.coverageZone.update.mockResolvedValue(inactiveZone);
 
       const result = await service.remove(mockCoverageZone.id);
@@ -174,8 +184,9 @@ describe('CoverageZoneService', () => {
     it('debería lanzar NotFoundException si la zona no existe', async () => {
       mockPrismaService.coverageZone.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
-

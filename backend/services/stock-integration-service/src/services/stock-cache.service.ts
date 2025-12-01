@@ -7,9 +7,7 @@ import type { Cache } from 'cache-manager';
 export class StockCacheService {
   private readonly logger = new Logger(StockCacheService.name);
 
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   /**
    * Obtiene un valor del caché
@@ -73,6 +71,13 @@ export class StockCacheService {
   }
 
   /**
+   * Clave para el listado completo de productos
+   */
+  getProductsListKey(): string {
+    return 'stock:products:list';
+  }
+
+  /**
    * Genera claves estructuradas para reservas por ID de compra
    */
   getReservaByCompraKey(compraId: string, userId: number): string {
@@ -87,17 +92,27 @@ export class StockCacheService {
   }
 
   /**
+   * Clave para listados de reservas (global o por usuario)
+   */
+  getReservasListKey(userId?: number): string {
+    if (typeof userId === 'number') {
+      return `stock:reservas:user:${userId}`;
+    }
+    return 'stock:reservas:all';
+  }
+
+  /**
    * Health check del caché
    */
   async healthCheck(): Promise<boolean> {
     try {
       const testKey = 'health:check';
       const testValue = 'ok';
-      
+
       await this.set(testKey, testValue, 10);
       const retrieved = await this.get<string>(testKey);
       await this.delete(testKey);
-      
+
       return retrieved === testValue;
     } catch (error) {
       this.logger.error('Cache health check failed', error);

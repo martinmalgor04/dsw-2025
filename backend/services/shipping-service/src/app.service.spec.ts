@@ -21,7 +21,9 @@ describe('AppService', () => {
     expect(serviceInfo).toBeDefined();
     expect(serviceInfo.service).toBe('Shipping Service');
     expect(serviceInfo.version).toBe('1.0.0');
-    expect(serviceInfo.description).toBe('Core shipping and logistics operations');
+    expect(serviceInfo.description).toBe(
+      'Core shipping and logistics operations',
+    );
     expect(serviceInfo.timestamp).toBeDefined();
     expect(serviceInfo.port).toBeDefined();
   });

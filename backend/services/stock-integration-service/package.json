@@ -18,12 +18,14 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:integration": "jest --config ./test/jest-integration.json",
+    "test:real": "jest --config ./test/jest-real.json --runInBand"
   },
   "dependencies": {
-    "@logistics/database": "file:../../shared/database",
-    "@logistics/types": "file:../../shared/types",
-    "@logistics/utils": "file:../../shared/utils",
+    "@logistics/database": "workspace:*",
+    "@logistics/types": "workspace:*",
+    "@logistics/utils": "workspace:*",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^10.0.0",

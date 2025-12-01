@@ -9,4 +9,3 @@ export class ProductRequestDto {
   @Min(1)
   quantity: number;
 }
-

@@ -26,9 +26,13 @@ describe('StockIntegrationService Integration', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-    
-    service = moduleFixture.get<StockIntegrationService>(StockIntegrationService);
-    circuitBreaker = moduleFixture.get<StockCircuitBreakerService>(StockCircuitBreakerService);
+
+    service = moduleFixture.get<StockIntegrationService>(
+      StockIntegrationService,
+    );
+    circuitBreaker = moduleFixture.get<StockCircuitBreakerService>(
+      StockCircuitBreakerService,
+    );
     cache = moduleFixture.get<StockCacheService>(StockCacheService);
   });
 
@@ -53,7 +57,7 @@ describe('StockIntegrationService Integration', () => {
   describe('Health Check', () => {
     it('should return healthy status when all services are working', async () => {
       const healthCheck = await service.healthCheck();
-      
+
       expect(healthCheck).toBeDefined();
       expect(healthCheck.service).toBe('StockIntegrationService');
       expect(healthCheck.status).toBe('healthy');
@@ -69,11 +73,11 @@ describe('StockIntegrationService Integration', () => {
 
       // Test SET
       await cache.set(testKey, testValue, 60);
-      
+
       // Test GET
       const retrieved = await cache.get(testKey);
       expect(retrieved).toEqual(testValue);
-      
+
       // Test DELETE
       await cache.delete(testKey);
       const afterDelete = await cache.get(testKey);
@@ -126,7 +130,7 @@ describe('StockIntegrationService Integration', () => {
     it('should handle product retrieval with fallback', async () => {
       // This test will use the fallback since we don't have a real Stock API
       const product = await service.getProductById(1);
-      
+
       expect(product).toBeDefined();
       expect(product.id).toBe(1);
       expect(product.nombre).toBe('Producto No Disponible');
@@ -137,8 +141,11 @@ describe('StockIntegrationService Integration', () => {
 
     it('should handle reserva retrieval with fallback', async () => {
       // This test will return null since we don't have a real Stock API
-      const reserva = await service.getReservaByCompraId('COMPRA-TEST-123', 123);
-      
+      const reserva = await service.getReservaByCompraId(
+        'COMPRA-TEST-123',
+        123,
+      );
+
       expect(reserva).toBeNull();
     });
 
@@ -150,7 +157,7 @@ describe('StockIntegrationService Integration', () => {
 
       // Should throw error when circuit breaker is open
       await expect(
-        service.updateReservaStatus(1, 'confirmado' as any, 123)
+        service.updateReservaStatus(1, 'confirmado' as any, 123),
       ).rejects.toThrow('Stock service unavailable - circuit breaker is open');
     });
   });
@@ -159,10 +166,10 @@ describe('StockIntegrationService Integration', () => {
     it('should handle network errors gracefully', async () => {
       // Reset circuit breaker
       circuitBreaker.reset();
-      
+
       // Try to get a product (will fail due to no real API)
       const product = await service.getProductById(999);
-      
+
       // Should return fallback product
       expect(product).toBeDefined();
       expect(product.nombre).toBe('Producto No Disponible');
@@ -170,9 +177,9 @@ describe('StockIntegrationService Integration', () => {
 
     it('should record failures in circuit breaker', () => {
       const initialFailures = circuitBreaker.getFailureCount();
-      
+
       circuitBreaker.recordFailure();
-      
+
       expect(circuitBreaker.getFailureCount()).toBe(initialFailures + 1);
     });
   });
@@ -180,16 +187,16 @@ describe('StockIntegrationService Integration', () => {
   describe('Performance', () => {
     it('should perform cache operations within acceptable time', async () => {
       const startTime = Date.now();
-      
+
       // Perform multiple cache operations
       for (let i = 0; i < 10; i++) {
         await cache.set(`perf:test:${i}`, { id: i, data: 'test' }, 60);
         await cache.get(`perf:test:${i}`);
       }
-      
+
       const endTime = Date.now();
       const duration = endTime - startTime;
-      
+
       // Should complete within 1 second
       expect(duration).toBeLessThan(1000);
     });
@@ -198,7 +205,7 @@ describe('StockIntegrationService Integration', () => {
   describe('Configuration', () => {
     it('should use correct configuration values', () => {
       const stats = circuitBreaker.getStats();
-      
+
       expect(stats.threshold).toBe(5);
       expect(stats.state).toBeDefined();
       expect(stats.failureCount).toBeDefined();

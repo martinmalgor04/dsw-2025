@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CoverageZone } from '@logistics/database';
 import { CoverageZoneService } from './services/coverage-zone.service';
@@ -19,8 +30,12 @@ export class CoverageZoneController {
     status: 201,
     description: 'Zona de cobertura creada exitosamente',
   })
-  async create(@Body() createCoverageZoneDto: CreateCoverageZoneDto): Promise<CoverageZone> {
-    this.logger.log(`POST /config/coverage-zones - Creando: ${createCoverageZoneDto.name}`);
+  async create(
+    @Body() createCoverageZoneDto: CreateCoverageZoneDto,
+  ): Promise<CoverageZone> {
+    this.logger.log(
+      `POST /config/coverage-zones - Creando: ${createCoverageZoneDto.name}`,
+    );
     return this.coverageZoneService.create(createCoverageZoneDto);
   }
 
@@ -69,5 +84,21 @@ export class CoverageZoneController {
     this.logger.log(`PATCH /config/coverage-zones/${id}`);
     return this.coverageZoneService.update(id, updateCoverageZoneDto);
   }
-}
 
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Eliminar (desactivar) una zona de cobertura' })
+  @ApiParam({ name: 'id', description: 'ID de la zona de cobertura' })
+  @ApiResponse({
+    status: 200,
+    description: 'Zona de cobertura desactivada exitosamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Zona de cobertura no encontrada',
+  })
+  async remove(@Param('id') id: string): Promise<CoverageZone> {
+    this.logger.log(`DELETE /config/coverage-zones/${id}`);
+    return this.coverageZoneService.remove(id);
+  }
+}
