@@ -1,0 +1,303 @@
+{
+  "repo_notes": [
+    {
+      "content": "2025-12-TPI DOCS"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce the logistics management system, summarizing its purpose, key features, and overall architecture at a high level",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "System Architecture",
+      "purpose": "Comprehensive overview of the system's architecture, patterns, and design decisions",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Microservices Overview",
+      "purpose": "Overview of the microservices architecture, service boundaries, and inter-service communication patterns",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "API Gateway Pattern",
+      "purpose": "Detailed explanation of the Operator Interface Service acting as an API Gateway with smart routing, circuit breaking, and retry logic",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication Architecture",
+      "purpose": "Overview of Keycloak integration, OAuth 2.0 flows, and security patterns used throughout the system",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Flow Patterns",
+      "purpose": "Explanation of key data flows including quote calculation, shipment creation, and public tracking",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Technology Stack",
+      "purpose": "Complete list and rationale for technologies used: NestJS, Next.js, React, Keycloak, PostgreSQL, Redis, Docker, pnpm",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Backend Services",
+      "purpose": "Comprehensive documentation of all backend microservices",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Operator Interface Service (API Gateway)",
+      "purpose": "Detailed documentation of the API Gateway including routing, proxy logic, circuit breakers, and retry mechanisms",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Shipping Service",
+      "purpose": "Documentation of shipping operations including cost calculation, shipment creation, tracking, and status management",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Config Service",
+      "purpose": "Documentation of configuration management including transport methods, coverage zones, and tariff configurations",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Stock Integration Service",
+      "purpose": "Documentation of external stock API integration including circuit breaker, caching, and fallback strategies",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Shared Packages (pnpm workspace)",
+      "purpose": "Documentation of shared TypeScript packages: @logistics/types, @logistics/utils, @logistics/database",
+      "parent": "Backend Services",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend Applications",
+      "purpose": "Overview of all frontend applications in the system",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Operator Dashboard (Next.js)",
+      "purpose": "Documentation of the main operator-facing dashboard application",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication and Authorization",
+      "purpose": "Detailed explanation of Keycloak integration, token management, and protected routes in the operator dashboard",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Application Structure and Navigation",
+      "purpose": "Documentation of the app router structure, sidebar navigation, and page organization",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Configuration Management UI",
+      "purpose": "Documentation of tariff rules, transport methods, and coverage zones management interfaces",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reservations Management UI",
+      "purpose": "Documentation of the reservations/stock management interface including status changes and volume calculations",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "State Management and Services",
+      "purpose": "Documentation of Zustand stores, API services, HttpClient, and data flow patterns",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Public Tracking Portals",
+      "purpose": "Overview of the public-facing shipment tracking applications",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Tracking Portal (Vite + React)",
+      "purpose": "Documentation of the Vite-based tracking portal including architecture, API integration, and Nginx deployment",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Tracking Portal Next (Next.js)",
+      "purpose": "Documentation of the Next.js-based tracking portal including SSR considerations and deployment",
+      "parent": "Frontend Applications",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication and Security",
+      "purpose": "Comprehensive documentation of authentication, authorization, and security patterns",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Keycloak Setup and Configuration",
+      "purpose": "Detailed guide to Keycloak deployment, realm configuration, clients, scopes, and roles",
+      "parent": "Authentication and Security",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "OAuth 2.0 Authorization Flow",
+      "purpose": "Explanation of the OAuth 2.0 Authorization Code flow with PKCE used for frontend authentication",
+      "parent": "Authentication and Security",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Token Management and Refresh",
+      "purpose": "Documentation of JWT token lifecycle, storage, automatic refresh, and error handling",
+      "parent": "Authentication and Security",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database and Persistence",
+      "purpose": "Documentation of database schema, ORM configuration, and data persistence patterns",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Schema and Models",
+      "purpose": "Documentation of PostgreSQL schema including shipments, products, logs, transport methods, and tariffs",
+      "parent": "Database and Persistence",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Prisma Configuration and Usage",
+      "purpose": "Documentation of Prisma ORM setup, schema definition, client generation, and usage patterns",
+      "parent": "Database and Persistence",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
