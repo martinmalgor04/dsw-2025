@@ -3,7 +3,7 @@
 Este documento consolida todos los requisitos faltantes, deuda técnica y tareas de integración necesarias para finalizar el proyecto, priorizadas por impacto en la evaluación.
 
 ---
-
+cambiamos esto
 ## 🚨 FASE 1: BASE DE DATOS Y CORE (Bloqueante)
 
 Antes de conectar el frontend, debemos arreglar el modelo de datos.
